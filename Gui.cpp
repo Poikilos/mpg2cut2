@@ -3255,7 +3255,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
                B380_Volume_Window();
            break;
 
-      case IDM_VOLUME_DOWN:
+      case IDM_VOLUME_DOWN: 
            VOL320_Down();
            break; 
 
@@ -6152,7 +6152,7 @@ void  Set_Zoom(int P_NewSetting)
   CheckMenuItem(hMenu, IDM_ZOOM_AUTO,   MF_UNCHECKED);
   Set_Zoom_Menu(P_NewSetting);
   Prev_Clip_Height = 0;
-  View_MOUSE_ALIGN(-1);
+  View_MOUSE_ALIGN(-1); 
 }
  
 

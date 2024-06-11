@@ -947,12 +947,15 @@ void View_MOUSE_CHK(LPARAM lParam)
 void View_MOUSE_ALIGN(LPARAM lParam)
 {
 
-  int iUnseen;
+  int iUnseen, iZoomNum;
 
   if (DBGflag)
       DBGout("MouseAlign");
 
-
+  if (iZoom > 0)
+      iZoomNum = iZoom;
+  else
+      iZoomNum = 1;
   if (MParse.SeqHdr_Found_Flag)
   {
       Mpeg_Aspect_Resize();  // In case Zoom has changed;
@@ -963,7 +966,7 @@ void View_MOUSE_ALIGN(LPARAM lParam)
   if (lParam > -1)
   {
         iView_xFrom = (iView_xFrom +
-                      ( (xPos - iPhysView_Width/2) * iZoom)
+                      ( (xPos - iPhysView_Width/2) * iZoomNum)
                          * iAspHoriz / 2048)
                                  & 0xFFFFFFFC ;
 
@@ -974,7 +977,7 @@ void View_MOUSE_ALIGN(LPARAM lParam)
          {
 
              iView_yFrom = (iView_yFrom +
-                                       ( (yPos - (iPhysView_Height/2) )
+                              ( (yPos - (iPhysView_Height/2) )
                                                         * iAspVert / 2048)
                            ) &  0xFFFFFFFC;
          }
