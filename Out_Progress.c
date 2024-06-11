@@ -135,6 +135,7 @@ LRESULT CALLBACK OUT_DlgProgress(HWND hProgress_Link, UINT message,
 
               iOut_Error = 8;
               Out_CanFlag = 'C' ;
+              Sleep(333);
               Progress_Kill(hProgress_Link);
               return true;
 

@@ -337,8 +337,8 @@ void VOL305_Volume_Lesser()
 
   iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
 
-  if (iVolume_Boost <= 0)
-      BoostUnTick();
+  //if (iVolume_Boost <= 0)
+  //    BoostUnTick();
 
   //if (MParse.ShowStats_Flag)
         Stats_Volume_Boost();
@@ -1006,13 +1006,13 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
 
                if (iVolume_Boost > K_BOOST_DENOM)
                    BoostTick();
-               else
-               if (iVolume_Boost == K_BOOST_DENOM)
-               {
-                   iCtl_Volume_Boost = 0; iVolume_Boost = 0;
-                   iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
-                   BoostUnTick();
-               }
+               //else
+               //if (iVolume_Boost == K_BOOST_DENOM)
+               //{
+               //    iCtl_Volume_Boost = 0; iVolume_Boost = 0;
+               //    iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+               //    BoostUnTick();
+               //}
 
                Stats_Volume_Boost();
                iSlider_Skip = 0;

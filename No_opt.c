@@ -328,6 +328,13 @@ int  Y100_FIN()
   F900_Close_Release('c');
 
 
+  if (iBusy)
+  {
+    Out_CanFlag = 'C';
+    Sleep(100);
+    SetPriorityClass(hThread_OUT, IDLE_PRIORITY_CLASS);
+    SetThreadPriority(hThread_OUT, THREAD_PRIORITY_IDLE);
+  }
   // Release allocated memory
 
   // Release Direct Draw and various buffers before we terminate
@@ -373,6 +380,17 @@ int  Y100_FIN()
   {
     DeleteObject(hFont1);
     hFont1 = 0;
+  }
+
+
+  if (iBusy)
+  {
+      Out_CanFlag = 'C';
+      Sleep(1000);
+      if (iBusy)
+      {
+         TerminateProcess(hThread_OUT, 666);    
+      }
   }
 
   ReleaseDC(hWnd_MAIN, hDC);

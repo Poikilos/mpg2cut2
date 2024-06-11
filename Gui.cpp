@@ -5326,7 +5326,7 @@ void Set_Priority(HANDLE P_Process, const int P_New_Priority,
   if (P_Apply_Now)
      iRC = SetPriorityClass(P_Process, WIN_PRI_CLASS[W_Pri_Ix]);
 
-  //if (iRC) 
+  //if (iRC)  
   {
      iCtl_Priority[P_Target] = P_New_Priority;
      CheckMenuItem(hMenu, MENU_PP[P_Target][0],   MF_UNCHECKED);
