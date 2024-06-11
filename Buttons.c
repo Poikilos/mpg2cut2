@@ -708,6 +708,9 @@ void ToolBar_Metrics()
   if (iSkipBar_PosY)
       iSelMsgX   = iStop_PosX;
   else
+  if (iView_TC_Format == 7 && process.total > 999*1024*1024) // Lengthy sel stats ?
+      iSelMsgX   = iSingle_PosX; // dual time codes need more space on right
+  else
   if (!iMainWin_State || VGA_Width < 800)
       iSelMsgX   = iSlow2_PosX;   // iSingle_PosX;
   else

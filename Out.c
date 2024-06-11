@@ -565,7 +565,7 @@ void OUT_SAVE_GO(char P_Act)
   }
   
 
-  iOut_Parse_Deep = iCtl_Out_Parse_Deep;
+  iOut_Parse_Deep = (iCtl_Out_Parse_Deep  && iCtl_Out_Parse);  
 
   if (iCtl_Out_Fix_SD_Hdr
    && Coded_Pic_Width < 769 && Coded_Pic_Height < 577)
@@ -606,10 +606,10 @@ void OUT_SAVE_GO(char P_Act)
          case IDYES: 
               uOrgAspect = iView_Aspect_Mode + 1;
 
-              iOut_Fix_Aspect = 1;
+              iOut_Fix_Aspect    = 1;
               iOut_Parse_AllPkts = 1;
-              // iOut_Parse_Deep    = 1;
-              iCtl_Out_Parse |= 1;
+              iOut_Parse_Deep    = 1;
+              iCtl_Out_Parse    |= 1;
               break;
      }
   }
@@ -2653,7 +2653,7 @@ void Out_Progress_Chk(int P_Show)
           }
 
           sprintf(szBuffer,
-               "Overall  %d MB written of %d MB total. %d %%", // .... %d kB/s  ",
+               "Overall  %d MB written of %d MB total. %d %%", 
                              iOutMB,     iFudgeTotMB,  iCum_pct);
           if (DBGflag) DBGout(szBuffer)  ;
           SetDlgItemText(hProgress,

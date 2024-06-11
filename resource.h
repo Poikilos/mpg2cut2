@@ -154,6 +154,7 @@
 #define IDP_DUMMy1                      1056
 #define IDC_VID_TC2                     1056
 #define STATS_PIC_TREF                  1056
+#define IDP_PARSING                     1056
 #define MSG_FRAME_NUM                   1057
 #define IDC_SUBTIT                      1057
 #define IDC_MPAdec_NAME                 1058

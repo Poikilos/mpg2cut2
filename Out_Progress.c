@@ -211,6 +211,7 @@ int iPrev_Priority = 424242;
 {
   unsigned uRadio[4];
   int iBreathe;
+  char szParse[4];
 
   uRadio[0] = BST_UNCHECKED;
   uRadio[1] = BST_UNCHECKED;
@@ -276,6 +277,16 @@ int iPrev_Priority = 424242;
   SendDlgItemMessage(hProgress, IDP_SLOW_CHK,  BM_SETCHECK, uRadio[3], 0);
 
   iPrev_Priority = iCtl_Priority[2];
+
+  strcpy(szParse,"   ");
+
+  if (iOut_Parse_AllPkts)
+      szParse[0] = 'A';
+
+  if (iOut_Parse_Deep)
+      szParse[1] = 'D';
+
+  SetDlgItemText(hProgress, IDP_PARSING, szParse);
 
 }
 

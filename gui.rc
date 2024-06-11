@@ -33,7 +33,7 @@ IDD_PROGRESS DIALOGEX 0, 0, 225, 52
 STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
 EXSTYLE WS_EX_CLIENTEDGE
 CAPTION "Saving..."
-FONT 12, "Tahoma", 0, 0, 0x1
+FONT 12, "Tahoma"
 BEGIN
     LTEXT           "Clip progress",IDC_PROGRESS_TXT,4,42,176,8
     CONTROL         "Progress1",IDC_PROGRESS_BAR,"msctls_progress32",
@@ -43,7 +43,7 @@ BEGIN
     CONTROL         "Progress1",IDC_PROGRESS_BAR2,"msctls_progress32",
                     WS_BORDER,4,16,163,6
     LTEXT           "Overall progress",IDC_PROGRESS_TXT2,5,3,176,8
-    LTEXT           ".....",IDP_PROGRESS_ETA,4,24,88,8
+    LTEXT           ".....",IDP_PROGRESS_ETA,4,24,87,8
     CONTROL         "Slow",IDP_SLOW_CHK,"Button",BS_AUTORADIOBUTTON,187,10,
                     31,8
     CONTROL         "Medium",IDP_NORM_CHK,"Button",BS_AUTORADIOBUTTON,187,19,
@@ -53,6 +53,7 @@ BEGIN
     GROUPBOX        "",IDC_STATIC,184,2,39,48
     CONTROL         "Quick",IDP_QUICK_CHK,"Button",BS_AUTORADIOBUTTON,187,29,
                     30,10
+    LTEXT           "",IDP_PARSING,170,15,10,8
 END
 
 
@@ -1573,7 +1574,7 @@ BEGIN
                 MENUITEM "Scroll JUMP Even More",       IDM_WHEEL_JUMP4
             END
             MENUITEM "Fast Back",                   IDM_NAV_INDEX
-            MENUITEM "Recalibrate",                 IDM_RECALIBRATE
+            MENUITEM "Reset Calibration",           IDM_RECALIBRATE
         END
         POPUP "Pop Up Msg"
         BEGIN

@@ -588,7 +588,8 @@ void Out_Fix_Hdr_Vid_SEQ()
   {
      lpMpeg_TMP = lpMpeg_ix3 + 3;
      uTmp1 = *lpMpeg_TMP & 0x0F;
-     *lpMpeg_TMP = (BYTE)(((iView_Aspect_Mode + 1) <<4) | uTmp1);
+     if (Mpeg_SEQ_Version == 2)
+        *lpMpeg_TMP = (BYTE)(((iView_Aspect_Mode + 1) <<4) | uTmp1);
   }
 
 
