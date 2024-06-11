@@ -3336,7 +3336,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          {
              VOL337_Volume_Bolder();
          }
-         break;
+         break; 
 
       case IDM_VOL_RETAIN:
          ToggleMenu('T', &iCtl_Volume_Retain, IDM_VOL_RETAIN);
