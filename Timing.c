@@ -67,6 +67,19 @@ void Timing_DropMore()
        ||  iFrame_Rate_int   >  33)         // High frame rate HD - auto Drop frames
       )
   {
+      if (PlayCtl.iFPS_Dec_Pct > 140
+      ||  PlayCtl.iMaxedOut
+   //   ||  PlayCtl.iBehindFrames <= 0
+      || (iWAVEOUT_Scheduled_Blocks > WAVEOUT_MAX_BLOCKS //WAVEOUT_MID_PKTS_CUSHION)
+                                           && iWAV_Init)
+         )
+      {
+         if (PlayCtl.iDrop_B_Frames_Flag > 0
+             && MParse.FastPlay_Flag < CUE_SLOW)
+             PlayCtl.iDrop_B_Frames_Flag--;
+      }
+      else
+
       if (PlayCtl.iFPS_Dec_Pct <= 50  //  (way down from nominal frame rate)
       || (iWAVEOUT_Scheduled_Blocks < WAVEOUT_LOW_PKTS_CUSHION
            && iWAV_Init))
@@ -85,22 +98,16 @@ void Timing_DropMore()
          else
               iTrig = 80;
 
-         if (iWAVEOUT_Scheduled_Blocks < WAVEOUT_MID_MID_PKTS_CUSHION)
+         if (iWAVEOUT_Scheduled_Blocks < WAVEOUT_MID_MID_PKTS_CUSHION
+         &&  PlayCtl.iBehindFrames > 1
+            )
          {
-             if (PlayCtl.iFPS_Dec_Pct < iTrig)
+             if (PlayCtl.iFPS_Dec_Pct < iTrig
+             &&  PlayCtl.iBehindFrames > 4)
                  PlayCtl.iDrop_B_Frames_Flag = 2;
              else
                  PlayCtl.iDrop_B_Frames_Flag = 1;
          }
-      }
-      else
-      if (PlayCtl.iFPS_Dec_Pct > 140
-          ||  (iWAVEOUT_Scheduled_Blocks > WAVEOUT_MAX_BLOCKS //WAVEOUT_MID_PKTS_CUSHION)
-                && iWAV_Init))
-      {
-         if (PlayCtl.iDrop_B_Frames_Flag > 0
-             && MParse.FastPlay_Flag < CUE_SLOW)
-             PlayCtl.iDrop_B_Frames_Flag--;
       }
 
 
@@ -137,7 +144,7 @@ int Store_Timing_Chk(int P_Overlay)
   unsigned char cAudNew;
 
   iResult = 0;
-  iRenderTime = 0;
+  iRenderTime = 0;  iQueVsNext = 0;
 
 // int iTmp1;
 
@@ -227,7 +234,78 @@ int Store_Timing_Chk(int P_Overlay)
      iSync_Diff_ms = iWavQue_ms - (int)(process.Delay_ms) - 20;
   }
   else */
-  if (iAudio_Lock && iPlayAudio && iWAV_Init)
+
+  if (!iAudio_Lock || !iPlayAudio || !iWAV_Init)
+  {
+    cAudNew = 'F';
+    iSync_Diff_ms = iFrame_Diff_ms;
+
+    //if (Frame_Number > 24) //  ||  ! iAudio_Lock)
+    // if (iWAV_Init)
+    if (PlayCtl.iFPS_Dec_Pct < 110)
+    {
+        if (!cpu.mmx) // Allow for ultra-slow old cpu
+           iSync_Diff_ms=0;  
+        else
+        if (PlayCtl.iFPS_Dec_Pct > 95)
+           iSync_Diff_ms--;
+        else
+        if (PlayCtl.iFPS_Dec_Pct > 90)
+           iSync_Diff_ms-=2;
+        else
+        if (PlayCtl.iFPS_Dec_Pct > 80)
+           iSync_Diff_ms-=3;
+        else
+        if (PlayCtl.iFPS_Dec_Pct > 70)
+           iSync_Diff_ms-=5;
+        else
+        if (PlayCtl.iFPS_Dec_Pct > 50)
+           iSync_Diff_ms-=7;
+        else
+        if (PlayCtl.iFPS_Dec_Pct > 40)
+           iSync_Diff_ms-=10;
+        else
+           iSync_Diff_ms-=20;
+
+        if (!cpu.sse2)
+           iSync_Diff_ms-=1;
+    }
+    else
+    if (PlayCtl.iFPS_Dec_Pct > 140)
+    {
+        if (PlayCtl.iFPS_Dec_Pct > 160)
+           iSync_Diff_ms+=2;
+        else
+        if (PlayCtl.iFPS_Dec_Pct > 200)
+           iSync_Diff_ms+=3;
+        else
+           iSync_Diff_ms++;
+    }
+
+/*
+    if (PREV_Pic_Type == B_TYPE && MPEG_Pic_Type == B_TYPE) // Expecting a P or I frame ?
+    {
+      if (PlayCtl.iFPS_Dec_Pct < 105)
+         iSync_Diff_ms = iSync_Diff_ms * 9 / 10;
+    }
+
+    if ((iGOPrelative+1) == iGOPtot && iGOPtot > 4)
+    {
+      if (PlayCtl.iFPS_Dec_Pct < 102)
+         iSync_Diff_ms = iSync_Diff_ms * 8 / 10;
+    }
+*/
+
+  } // END-IF Ignore Audio 
+  else
+  if (PlayCtl.iFPS_Dec_Pct < 50                             // Way-Slow
+  &&  iWAVEOUT_Scheduled_Blocks < WAVEOUT_HIGH_PKTS_CUSHION // Way-Ahead
+  &&  PlayCtl.iDrop_B_Frames_Flag > 1)
+  {
+     cAudNew = '0';
+     iSync_Diff_ms = 0;
+  }
+  else
   {
     while ( PlayedWaveHeadersCount > 0 )                // free used blocks ...
         WAV_Free_Memory();
@@ -244,7 +322,7 @@ int Store_Timing_Chk(int P_Overlay)
     if (process.iAudio_Interleave)
         iAudioInterAdj = process.iAudio_Interleave + 1;
     else
-        iAudioInterAdj = 30;
+        iAudioInterAdj = 30;  // roughly 1 second default
 
 
     iFramesTillNextAudio = iAudioInterAdj - process.iAudio_InterFrames;
@@ -289,7 +367,7 @@ int Store_Timing_Chk(int P_Overlay)
     )
     {
 
-        cAudNew = '2';
+        cAudNew = '2';  // Low Audio pool
 
         if (! MParse.FastPlay_Flag)
         {
@@ -301,7 +379,7 @@ int Store_Timing_Chk(int P_Overlay)
           else
           if (iWavQue_Frames < 5)
           {
-             cAudNew = '0';
+             cAudNew = 'Z';
              iSync_Diff_ms = iFrame_Diff_ms / 3;
           }
           else
@@ -336,6 +414,7 @@ int Store_Timing_Chk(int P_Overlay)
         //else
         //    iSync_Diff_ms = 0;
         //if (PlayCtl.iDrop_Behind || )
+        if (!PlayCtl.iMaxedOut)
             Timing_DropMore();
 
     }
@@ -355,9 +434,22 @@ int Store_Timing_Chk(int P_Overlay)
     {
         cAudNew = '5';
 
-        if (iQueVsNext < 3) // iQuePerInterleave < 25)
+        //if (cpu.sse2)  // Fast machine ?  (P4 or better)
+        //   iTmp1 = 2;
+        //else
+        //   iTmp1 = 3;
+
+        if (iQueVsNext < 3) // iTmp1) // iQuePerInterleave < 25)
         {
-          iSync_Diff_ms = iFrame_Diff_ms - 2; // Below Nominal
+          if (cpu.sse2)  // Fast machine ?  (P4 or better)
+              iTmp1 = 1;
+          else
+          if (cpu.mmx)  // Fast machine ?  (P4 or better)
+              iTmp1 = 2;
+          else
+              iTmp1 = 10;
+
+          iSync_Diff_ms = iFrame_Diff_ms - iTmp1; // Below Nominal
 
           if (iQueVsNext < 2) // iQuePerInterleave < 25)
           {
@@ -382,11 +474,11 @@ int Store_Timing_Chk(int P_Overlay)
           iSync_Diff_ms = iFrame_Diff_ms - 1; // almost Nominal
 
 
-        if (iWAVEOUT_Scheduled_Blocks < WAVEOUT_MID_PKTS_CUSHION)
-        {
-               cAudNew = '3';
-               iSync_Diff_ms = iSync_Diff_ms - 5;
-        }
+        //if (iWAVEOUT_Scheduled_Blocks < WAVEOUT_MID_FINE_PKTS_CUSHION)
+        //{
+        //       cAudNew = '3';
+        //       iSync_Diff_ms = iSync_Diff_ms - 5;
+        //}
 
         if (PlayCtl.iDrop_B_Frames_Flag > 1 && PlayCtl.iFPS_Dec_Pct > 190)
             PlayCtl.iDrop_B_Frames_Flag--;
@@ -528,52 +620,7 @@ int Store_Timing_Chk(int P_Overlay)
            PlayCtl.iDrop_B_Frames_Flag--;
 
     }  // END MIDDLE
-  }
-  else
-  {
-    cAudNew = 'F';
-    iSync_Diff_ms = iFrame_Diff_ms;
-
-    //if (Frame_Number > 24) //  ||  ! iAudio_Lock)
-    // if (iWAV_Init)
-    if (PlayCtl.iFPS_Dec_Pct < 110)
-    {
-        if (PlayCtl.iFPS_Dec_Pct < 97)
-           iSync_Diff_ms-=2;
-        else
-        if (PlayCtl.iFPS_Dec_Pct < 90)
-           iSync_Diff_ms-=3;
-        else
-           iSync_Diff_ms--;
-    }
-    else
-    if (PlayCtl.iFPS_Dec_Pct > 140)
-    {
-        if (PlayCtl.iFPS_Dec_Pct > 160)
-           iSync_Diff_ms+=2;
-        else
-        if (PlayCtl.iFPS_Dec_Pct > 200)
-           iSync_Diff_ms+=3;
-        else
-           iSync_Diff_ms++;
-    }
-
-/*
-    if (PREV_Pic_Type == B_TYPE && MPEG_Pic_Type == B_TYPE) // Expecting a P or I frame ?
-    {
-      if (PlayCtl.iFPS_Dec_Pct < 105)
-         iSync_Diff_ms = iSync_Diff_ms * 9 / 10;
-    }
-
-    if ((iGOPrelative+1) == iGOPtot && iGOPtot > 4)
-    {
-      if (PlayCtl.iFPS_Dec_Pct < 102)
-         iSync_Diff_ms = iSync_Diff_ms * 8 / 10;
-    }
-*/
-
-  } // END-ELSE
-
+  } // END Lock To Audio
 
 
 
@@ -586,10 +633,19 @@ int Store_Timing_Chk(int P_Overlay)
      ||  iGOPrelative  == 6)
      {
          cAudState = cAudNew;
-         iTmp1 = sprintf(szBuffer, "%c%+d Blks=%03d  %04dms ",
-                          cAudState, iQueVsNext,
-                          iWAVEOUT_Scheduled_Blocks, iWavQue_ms);
-         TextOut(hDC, 0, iMsgPosY, szBuffer, iTmp1);
+         iTmp1 = sprintf(szBuffer, "D%d   %c%+d q=%04dms:%03df B=%03d f=%02dms %02dms %d.%d.%d",
+                          PlayCtl.iDrop_B_Frames_Flag,
+                          cAudState, iQueVsNext, 
+                                          iWavQue_ms, iWavQue_Frames,
+                                                     iWAVEOUT_Scheduled_Blocks, 
+                                                iSync_Diff_ms, iPeriod_Adj,
+                                        iAudio_Lock, iPlayAudio, iWAV_Init);
+         //TextOut(hDC, 0, iMsgPosY, szBuffer, iTmp1);
+         ExtTextOut(hDC, 0, iMsgPosY, 
+                    0,	// text-output options 
+                 NULL,	// optional clipping and/or opaquing rectangle 
+             szBuffer, iTmp1,
+                 NULL); 	// pointer to array of intercharacter spacing values  
      }
   }
 
@@ -624,12 +680,16 @@ int Store_Timing_Chk(int P_Overlay)
         &&  iWAVEOUT_Scheduled_Blocks < WAVEOUT_HIGH_PKTS_CUSHION
         &&  iWAV_Init)
             iSync_Diff_ms = iSync_Diff_ms - 1; // Breathing space
+
         //else
         //if (PlayCtl.iFPS_Dec_Pct > 120)
         //    iSync_Diff_ms = iSync_Diff_ms + 1; // Rounding factor on fast machines
 
         if (iSync_Diff_ms > 0)
         {
+            if (PlayCtl.iBehindFrames > 0)
+                PlayCtl.iBehindFrames--;
+
             if (iFrame_Diff_ms < 0
             //  ||  (P_Overlay  && iAudio_Lock && !iDDO_Frame_Ready
                    //&& iSync_Diff_ms < iSleepTrigger_ms
@@ -653,16 +713,21 @@ int Store_Timing_Chk(int P_Overlay)
                    DBGout(szBuffer);
                }
                Sleep(iSync_Diff_ms);  // <=== MOVE THIS INTO SEPARATE THREAD for UpdateOverlay ******
-               iSync_Diff_ms = 0;
-               //process.iCatchUp  = 0;
+               iSync_Diff_ms = 0;     // process.iCatchUp  = 0;
             }
         }
+
+        PlayCtl.iMaxedOut = 0;
     //} // END-IF > 20000
   }
-
-  // Skip delta frames if way behind while playing
+  else
+  if (PlayCtl.iMaxedOut)
+      PlayCtl.iMaxedOut = 0;
   else
   {
+      // We are behind
+      PlayCtl.iBehindFrames++;
+
     /*
     if (iGOPtot > 5)
         process.iCatchUp  -= iSync_Diff_ms; // We are behind - remember for next time
@@ -670,13 +735,17 @@ int Store_Timing_Chk(int P_Overlay)
         process.iCatchUp  = iPeriod_Adj;
     */
 
+    // If WAY behind, skip delta frames 
+
     if (iSync_Diff_ms <= iDropTrigger_ms // Some frames are more complex than others, so big latitude
     && PlayCtl.iDrop_Behind
     && MPEG_Pic_Structure == FULL_FRAME_PIC // Not supported on non-interlace
     && MPEG_Pic_Type != I_TYPE)          // Not sure if this will handle TOP/BOT field encoded frames
     {
-       PlayCtl.iDropped_Frames++;
-       iResult = 1;
+       if (PlayCtl.iBehindFrames > 1)
+       {
+          PlayCtl.iDropped_Frames++;
+          iResult = 1;
 
                if (DBGflag)
                {
@@ -684,7 +753,7 @@ int Store_Timing_Chk(int P_Overlay)
                                  iSync_Diff_ms, iDropTrigger_ms);
                    DBGout(szBuffer);
                }
-               Sleep(iSync_Diff_ms);  // <=== MOVE THIS INTO SEPARATE THREAD for UpdateOverlay ******
+       }
     }
   }
 

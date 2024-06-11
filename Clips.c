@@ -3,8 +3,9 @@
 //
 
 #include "global.h"
-#include <commctrl.h>
 #include "Buttons.h"
+#include "TXT.h"
+#include <commctrl.h>
 
 #define true  1
 #define false 0
@@ -125,14 +126,22 @@ void C000_Clip_TOTAL_MB(char P_Act)
 // Set default clip selection
 //
 // Actions: 
-//   'o' = Open   = Select All (excluding preamble)
-//   'a' = Append = Conditionally update TO=oldEOF becomes TO=NewEOF
-//   'E' = EOF    = Unconditional set    TO=EOF
+//   'o' = Open  = Select All (excluding preamble)
+//   'a' = Add   = Conditionally update TO=oldEOF becomes TO=NewEOF
+//   'E' = EOF   = Unconditional set    TO=EOF
 //
 void C100_Clip_DEFAULT(char P_Act)
 {
   if (File_Limit)
   {
+     if (iCtl_Lum_Deselector && iLum_Deselected)
+     {
+         iLum_Deselected = 0; // Option to remove boosting when outside selection
+         Lum_Filter_Init(0);
+         Lum_Filter_Init(1);
+         RefreshVideoFrame();
+     }
+
      // FROM POINT
 
      if (P_Act == 'o')
@@ -523,7 +532,7 @@ void C352_Clip_ADD(char P_DescAbbr, int P_SizeChk)
   {
     iPrev = iEDL_ctr - 1;
 
-    C323_Clip2Clip(iPrev, 203);  // Save for UNDO
+    //C323_Clip2Clip(iPrev, 203);  // Save for UNDO
 
     if ( EDList.FromFile  [iPrev] == process.FromFile
       // && EDList.FromBlk   [iPrev] == process.FromBlk 
@@ -745,7 +754,7 @@ void  C550_Clip2Selection()
 void C500_Clip_UNDO()
 {
 
-  strcpy(szBuffer, "Sorry, I don't know what to UNDO");
+  strcpy(szBuffer, UNDO_SORRY); // "Sorry, I don't know what to UNDO");
 
   switch (Ed_Prev_Act)
   {
@@ -773,9 +782,10 @@ void C500_Clip_UNDO()
     case '+': // previous was Add
           if (iEDL_ctr > 0)
           {
-              C323_Clip2Clip(203, iEDL_ctr); 
-              sprintf(szBuffer, "Clip #%d REMOVED from EDL", iEDL_ctr);
+              sprintf(szBuffer, "Clip #%d REMOVED from EDL.   %c", 
+                                      iEDL_ctr, Ed_Prev_Act2);
               iEDL_ctr--;
+              C323_Clip2Clip(203, iEDL_ctr); 
           }
 
           //if (Add_Automation < 2)
@@ -783,10 +793,13 @@ void C500_Clip_UNDO()
           ||  Ed_Prev_Act2 == '[')
           {
               Ed_Prev_Act = Ed_Prev_Act2;  Ed_Prev_Act2 = 0;
+              if (Add_Automation != 2)
+                  break;
           }
           else
           {
               Ed_Prev_Act = ' ';  Ed_Prev_Act2 = 0;
+              break;
           }
           
           // break;
@@ -840,6 +853,14 @@ void C510_Sel_FROM_MARK(int P_External)
   if (P_External && iCtl_KB_NavStopPlay)
       MParse.Stop_Flag = 2;
 
+  if (iCtl_Lum_Deselector && iLum_Deselected)
+  {
+      iLum_Deselected = 0; // Option to remove boosting when outside selection
+      Lum_Filter_Init(0);
+      Lum_Filter_Init(1);
+      RefreshVideoFrame();
+  }
+
 //if (IsWindowEnabled(hTrack))
 //{
   if ( ! File_Limit)
@@ -862,6 +883,7 @@ void C510_Sel_FROM_MARK(int P_External)
 
 
      C320_Sel2Clip();
+     C323_Clip2Clip(iEDL_ctr, 203);  // Save for UNDO
 
      // New IN point after OUT point implies a NEW CLIP
      //   Note the NOT! operator...
@@ -999,6 +1021,14 @@ void C520_Sel_TO_MARK()
   else
   {
        SetFocus(hWnd_MAIN);
+       if (iCtl_Lum_Deselector && !iLum_Deselected)
+       {
+           iLum_Deselected = 1; // Option to remove boosting when outside selection
+           Lum_Filter_Init(0);
+           Lum_Filter_Init(1);
+           RefreshVideoFrame();
+       }
+
 
        if (iViewToolBar >= 256)
        {
@@ -1016,14 +1046,10 @@ void C520_Sel_TO_MARK()
        {
             C525_TO_Point();
 
+            Ed_Prev_Act2 = Ed_Prev_Act; Ed_Prev_Act = ']';
             if (Add_Automation > 1)
             {
                C350_Clip_ADD('+', 1);  // ADD the details into the list
-               Ed_Prev_Act2 = Ed_Prev_Act; Ed_Prev_Act = '+';
-            }
-            else
-            {
-               Ed_Prev_Act2 = Ed_Prev_Act; Ed_Prev_Act = ']';
             }
             //process.run = 0;
             //for (i=0; i<process.ToPadFile; i++)
@@ -1110,6 +1136,7 @@ void C525_TO_Point()
 
 
             C320_Sel2Clip(); // copy the details in case later undo
+            C323_Clip2Clip(iEDL_ctr, 203);  // Save for UNDO
 }
 
 
@@ -1156,6 +1183,7 @@ void  C600_Clip_Split()
        else
        {
             C352_Clip_ADD('0', 1); // Make sure current selection is added
+            C323_Clip2Clip(iEDL_ctr-1, 203);  // Save for UNDO
 
             // duplicate the clip points
             iNext = iEDL_ctr;

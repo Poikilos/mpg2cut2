@@ -43,15 +43,14 @@ int F100_IN_OPEN(char P_Act, int P_Trunc)
       cW_Action = 'o';
   cW_Act1 = cW_Action;
 
-  iPlayAudio = 0;
-  VOL305_Volume_Boost_Start();
+  VOL302_Maybe_Reset();
 
   switch (cW_Action)
   {
     case 'a':
       if (!File_Limit)
          cW_Action = 'o';
-      strcpy(szTitle, "APPEND Mpeg2 File"); 
+      strcpy(szTitle, "ADD Mpeg2 File"); 
       break;
 
     case 'G':
@@ -244,8 +243,8 @@ void F150_File_Begin(char P_Act)
         process.GoodLoc1 = MAXINT64;
         //MParse.SeqHdr_Found_Flag = 0;  <== PLANNED - Check downstream effect on Buffer flags
 
-        if (FromTC.hour < 0)  // Not Parm2Clip mode 
-           MPEG_processKick();
+        if (File_PreLoad <= 0) // FromTC.hour < 0)  // Not Parm2Clip mode 
+           MPEG_processKick(); 
     }
     
     else
@@ -315,7 +314,7 @@ int F500_IN_OPEN_TRY(char cP_Act)
   // Analyse Extension
 
   ext =   strrchr(szInput, '.');
-  if (ext) strcpy(szInExt,ext+1);
+  if (ext) strncpy(szInExt,ext+1,8);
   else     strcpy(szInExt,"");
 
   if (!stricmp(szInExt,"EDL") )
@@ -479,17 +478,17 @@ int F505_IN_OPEN_TST(char cP_Act)
   }
   else
   {
-      strcpy(cInExt, szInExt);
+      strncpy(szInExt3_lowercase, szInExt,3);
 
       // Force Lowercase
-      if (cInExt[0] >= 'A' && cInExt[0] <= 'Z')
-          cInExt[0] |=  0x20;
-      if (cInExt[1] >= 'A' && cInExt[1] <= 'Z')
-          cInExt[1] |=  0x20;
-      if (cInExt[2] >= 'A' && cInExt[2] <= 'Z')
-          cInExt[2] |=  0x20;
+      if (szInExt3_lowercase[0] >= 'A' && szInExt3_lowercase[0] <= 'Z')
+          szInExt3_lowercase[0] |=  0x20;
+      if (szInExt3_lowercase[1] >= 'A' && szInExt3_lowercase[1] <= 'Z')
+          szInExt3_lowercase[1] |=  0x20;
+      if (szInExt3_lowercase[2] >= 'A' && szInExt3_lowercase[2] <= 'Z')
+          szInExt3_lowercase[2] |=  0x20;
 
-      if (cInExt[0] == 'v')
+      if (szInExt3_lowercase[0] == 'v')
           iIn_VOB = 1;
       else
           iIn_VOB = 0;
@@ -747,7 +746,7 @@ void F300_DropFilesProc( WPARAM wParam)
 
   iEDL_Reload_Flag = 0;
 
-  strcpy(szMsgTxt,"Accessing...");
+  strcpy(szMsgTxt,FILE_ACCESSING); // "Accessing..."
   DSP1_Main_MSG(0,0);
   iMsgLife = 0;  szMsgTxt[0] = 0;
   UpdateWindow(hWnd_MAIN);
@@ -757,7 +756,7 @@ void F300_DropFilesProc( WPARAM wParam)
   {
     case 1:
        W_Action = 'a';
-       strcpy(szMsgTxt, "Appended");
+       strcpy(szMsgTxt, "Added");
        break;
     case 2:
        W_Action = 'o';
@@ -767,8 +766,9 @@ void F300_DropFilesProc( WPARAM wParam)
       W_Action = 'o';
       if (File_Limit)
       {
-        iRC = MessageBox(hWnd_MAIN, "APPEND to current file ? ", szAppName, 
-                             MB_YESNOCANCEL );
+        iRC = MessageBox(hWnd_MAIN, FILE_ADD_QRY, // "ADD to current file list ? ",
+                                    szAppName, 
+                                    MB_YESNOCANCEL );
         if (iRC == IDYES  || iRC == IDOK )  
             W_Action = 'a';
         else
@@ -786,14 +786,7 @@ void F300_DropFilesProc( WPARAM wParam)
   DragFinish((HDROP)wParam);
   SetForegroundWindow(hWnd_MAIN);
 
-  iPlayAudio = 0;
-  VOL305_Volume_Boost_Start();
-
-  if (iCtl_Volume_BOLD)
-      iVolume_BOLD = iVolume_Boost;
-  else
-      iVolume_BOLD = 0;
-
+  VOL302_Maybe_Reset();
 
 
   if (W_Action != 'z')
@@ -1432,12 +1425,103 @@ Baddie:
 
 
 
+//---------
+
+int F594_TS_Warn_Msg()    // tsmpg
+{
+  int iRC, *lpTmp1;
+  //int iTmp1;
+  unsigned int uTmp2;
+  char *lpDesc;
+  //int iDBG1, iDBG2, iDBG3, iDBG4;
+
+  //Chg2RGB24(0,0);
+
+  MParse.SystemStream_Flag = -1;
+  Mpeg_PES_Version = 2;  process.Mpeg2_Flag = 4;
+
+  //iDBG1 = stricmp(szInExt3_lowercase,"ts");
+  //iDBG2 = !iDBG1;
+  //iDBG3 = stricmp(szInExt3_lowercase,"m2t");
+  //iDBG4 = !iDBG3;
+  //iDBG1 = iDBG2 && iDBG4;
+
+  if (stricmp(szInExt3_lowercase,"ts")
+  &&  stricmp(szInExt3_lowercase,"m2t") )
+  {
+          lpTmp1 = &iCtl_WarnTSmpg;
+          uTmp2  = IDM_WARN_FMT_TS;
+          lpDesc = &"TS format inside .MPG";
+  }
+  else
+  {
+          lpTmp1 = &iCtl_WarnTS;
+          uTmp2  = IDM_WARN_FMT_TSMPG;
+          lpDesc = &"Transport Stream";
+  }
+      
+
+  iRC = F591_Ask_Trojan(1, lpDesc, lpTmp1, uTmp2);
+
+  return iRC;
+
+}
+
+
+//---------
+
+int F595_NotMpeg2_Msg(int P_Stage)
+{
+  int iRC;
+
+  iRC = IDOK; 
+ 
+  S100_Stats_Hdr_Main(0);
+
+  if (iCtl_WarnMpeg1 || P_Stage)
+      sprintf(szMsgTxt, NON_Mpeg2_PS,
+                          (int)(process.PACK_Loc), StatsPrev.VobTxt);
+  else
+      strcpy(szMsgTxt, NOT_MPEG2_BRIEF);
+
+  if (! Mpeg_Version_Alerted || P_Stage)
+  {
+     if (!MParse.SeqHdr_Found_Flag || P_Stage)
+     {
+        if (iCtl_WarnMpeg1 && Mpeg_Version_Alerts_Session < 3)
+        {
+           Mpeg_Version_Alerts_Session++;
+           iRC = //MessageBox(hWnd_MAIN, szMsgTxt, "Mpg2Cut2 - CONFIRM", MB_OKCANCEL);
+                 Warning_Box(&szMsgTxt[0], 0, &iCtl_WarnMpeg1, IDM_WARN_MPEG1, MB_OKCANCEL);
+
+        }  
+        else
+           iRC = 1;
+     }
+
+     Mpeg_Version_Alerted++;
+  }
+
+  if (iRC == 1 && !P_Stage)
+  {
+           Set_Toggle_Menu('S', &iPES_Mpeg_Any, IDM_MPEG_ANY);
+           //Chg2RGB24(1,0);
+  }
+  
+  DSP1_Main_MSG(0,0);
+  
+  return iRC;
+}
+
 
 //-----------------------------------
 
 int F550_FileTrojan_Chk()
 {
-  int iRC, iTmp1;
+  int iRC, iTmp1; //, *lpTmp1;
+  // unsigned int uTmp2;
+  // char *lpDesc;
+  // unsigned int uTmp1, uTmp2, uTmp3;
 
 
   iRC = 0;
@@ -1445,18 +1529,38 @@ int F550_FileTrojan_Chk()
   // Should make the following checks available during Garbage scan !
   // As non-interactive displays. 
 
+  if ( *(DWORD*)(&uHeader[0]) == uPACK_START_CODE)   // Mpeg Pack Header
+  {
+      MParse.SystemStream_Flag = 1;
+      if ( (*(char*)(&uHeader[4]))& 0xC0 == 0x40) // Mpeg-2 pack
+      {
+         Mpeg_PES_Version = 2;  //process.Mpeg2_Flag = 4;
+      }
+  }
+  else
+  if ( *(DWORD*)(&uHeader[0]) == uSYSTEM_START_CODE) // Mpeg System Hdr
+  {
+      MParse.SystemStream_Flag = 1;
+  }
+  else
+  if ( *(DWORD*)(&uHeader[0]) == uVIDPKT_STREAM_1)   // Mpeg PES Vid Header
+  {
+      MParse.SystemStream_Flag = 1;
+      if ( (*(char*)(&uHeader[6]))& 0xC0 == 0x80) // Mpeg-2 PES 
+      {
+         Mpeg_PES_Version = 2;  //process.Mpeg2_Flag = 4;
+      }
+  }
+  else
   if ( *(char*)(&uHeader[0]) == 0x47) // Mpeg-2 Transport Stream 
   {
-      //Chg2RGB24(0,0);
-      iRC = F591_Ask_Trojan(1, &"Transport Stream");
-      MParse.SystemStream_Flag = -1;
-      Mpeg_PES_Version = 2;  process.Mpeg2_Flag = 4;
+      iRC = F594_TS_Warn_Msg();
   }
   else
   if ( *(short*)(&uHeader[0]) == 0x5641) // 'AV' = PVA Transport Stream 
   {
       //Chg2RGB24(0,0);
-      iRC = F591_Ask_Trojan(1, &"PVA Stream");
+      iRC = F591_Ask_Trojan(1, &"PVA Stream", &iCtl_WarnTS, IDM_WARN_FMT_TS);
       MParse.SystemStream_Flag = -2;
       Mpeg_PES_Version = 2;  process.Mpeg2_Flag = 4;
   }
@@ -1475,7 +1579,7 @@ int F550_FileTrojan_Chk()
          iTmp1 = 0;
       }
 
-      iRC = F591_Ask_Trojan(iTmp1, &szTmp32[0]);
+      iRC = F591_Ask_Trojan(iTmp1, &szTmp32[0], &iCtl_WarnCDXA, IDM_WARN_FMT_CDXA);
 
       if (process.iOut_DropCrud)
           iRC = 0;
@@ -1483,66 +1587,111 @@ int F550_FileTrojan_Chk()
   else
   if ( (uHeader[0]) == 0x75B22630) // ASF Sentinel 
   {
-        iRC = F591_Ask_Trojan(0, &"ASF");
+        iRC = F591_Ask_Trojan(0, &"ASF", NULL, 0);
   }
   else
   if ( (uHeader[0]) == 0x464D522E) // '.RMF') 
   {
-       iRC = F591_Ask_Trojan(0, &"RealMedia");
+       iRC = F591_Ask_Trojan(0, &"RealMedia", NULL, 0);
   }
   else
   if ( (uHeader[1]) == 0x766F6F6D) // 'moov') 
   {
-       iRC = F591_Ask_Trojan(0, &"Quicktime MOV");
+       iRC = F591_Ask_Trojan(0, &"Quicktime MOV", NULL, 0);
   }
   else
   if ( (uHeader[0])&0x00FFFFFF == 0x00334449) // 'ID3x') 
   {
-       iRC = F591_Ask_Trojan(0, &"MP3");
+       iRC = F591_Ask_Trojan(0, &"MP3", NULL, 0);
   }
   else
   if ( (uHeader[2])&0x00FFFFFF == 0x0034706D) // 'MP4x') 
   {
-       iRC = F591_Ask_Trojan(0, &"Mpeg-4");
+       iRC = F591_Ask_Trojan(0, &"Mpeg-4", NULL, 0);
+  }
+  else
+  if ( (uHeader[1]           ) == 'pytf'  //   ftyp 
+    || (uHeader[2]&0x0000FFFF) == 'G3')   //   3GP, 3GG, 3G2
+  {
+        iRC = F591_Ask_Trojan(0, &"3G media", NULL, 0);
   }
   else
   if ( (uHeader[2]&0x00FFFFFF) == 0x002f2f3a  //   '://') 
     || (uHeader[2]&0x0000FFFF) == 0x00002f2f) //   '//') 
   {
-        iRC = F591_Ask_Trojan(0, &"Net URL");
+        iRC = F591_Ask_Trojan(0, &"Net URL", NULL, 0);
   }
   else
   if ( (uHeader[0]) == 0x6d74683c      //   '<htm'
-  ||   (uHeader[0]) == 0x4d54483c       //   '<HTM'
-  ||   (uHeader[0]) == 0x00088b1f )    //   ASP marker  
+  ||   (uHeader[0]) == 0x4d54483c)       //   '<HTM'
   {
-        iRC = F591_Ask_Trojan(0, &"WEB PAGE");
+        iRC = F591_Ask_Trojan(0, &"WEB PAGE", NULL, 0);
   }
   else
   if ( (uHeader[0] & 0xFFFF) == 'KP'      //   'PK'  - PKZIP
   ||   (uHeader[0] & 0xFFFF) == 'Z7' )    //    '7Z'  - 7ZIP
   {
-        iRC = F591_Ask_Trojan(0, &"ZIP compressed");
+        iRC = F591_Ask_Trojan(0, &"ZIP compressed", NULL, 0);
   }
   else
-  if ( (uHeader[0] & 0xFFFFFF) == 'raR')    //   'Rar'  - RAR
+  if ( (uHeader[0] & 0xFFFFFF) == 'raR', NULL, 0)    //   'Rar'  - RAR
   {
-        iRC = F591_Ask_Trojan(0, &"RAR compressed");
+        iRC = F591_Ask_Trojan(0, &"RAR compressed", NULL, 0);
+  }
+  else
+  if ( (uHeader[0] & 0xFFFFFF) == 0x00088b1F)    //   1F8b08  - GZIP
+  {
+        iRC = F591_Ask_Trojan(0, &"GZip compressed", NULL, 0);
   }
   else
   if ( (uHeader[0] ) == 'FDP%')    //   'PDF' 
   {
-      iRC = F591_Ask_Trojan(0, &"PDF Document");
+      iRC = F591_Ask_Trojan(0, &"PDF Document", NULL, 0);
   }
   else
   if ( (uHeader[0] & 0x0000FFFF) == 'ZM')    //   'MZ'  EXE file
   {
-        iRC = F591_Ask_Trojan(0, &EXE_PGM);
+        iRC = F591_Ask_Trojan(0, &EXE_PGM, NULL, 0);
+  }
+  else
+  if ( (uHeader[0] & 0xFFFF) == 0xFECA)      //   xCAFE - JAVA
+  {
+        iRC = F591_Ask_Trojan(0, &"JAVA program", NULL, 0);
   }
   else
   if ( (uHeader[0] & 0xFFFFFF) == 'VLF')    //   'FLV'  FLASH VIDEO
   {
-        iRC = F591_Ask_Trojan(0, &"FLASH Video");
+        iRC = F591_Ask_Trojan(0, &"FLASH Video", NULL, 0);
+  }
+  else
+  if ( (uHeader[0]           ) == '8FIG')    //   GIF8 - GIF pic
+  {
+        iRC = F591_Ask_Trojan(0, &"GIF image", NULL, 0);
+  }
+  else
+  if ((    (uHeader[0] & 0xFFFF) == 0xd8FF   //  xFFD8 - JPEG
+        && (uHeader[2] & 0xFFFF) == 'FI'     //   ..IF - JPEG
+      )
+   && (    (uHeader[1] >>16    ) == 'FJ'     //   JFIF - JPEG
+        || (uHeader[1] >>16    ) == 'XE'     //   EXIF - JPEG
+      ))
+  {
+        iRC = F591_Ask_Trojan(0, &"JPEG image", NULL, 0);
+  }
+  else
+  if ( (uHeader[0] & 0xFFFFFF00) == 0x474e5000)   //   xPNG pic
+  {
+        iRC = F591_Ask_Trojan(0, &"PNG image", NULL, 0);
+  }
+  else
+  if ( (uHeader[0] & 0xFFFF) == 'MB')      //   BMxx = BMP file
+  {
+        iRC = F591_Ask_Trojan(0, &"BMP image", NULL, 0);
+  }
+  else
+  if ( (uHeader[0]        ) == 0xe011cfd0)  // D0 CF 11 E0 = MS DOC file
+  {
+        iRC = F591_Ask_Trojan(0, &"MS DOC ", NULL, 0);
   }
 
   
@@ -1562,15 +1711,22 @@ int F550_FileTrojan_Chk()
 
 
 //-------------------------------
-int F591_Ask_Trojan(const int P_Level, const void *P_Desc)
+int F591_Ask_Trojan(const int P_Level, const void *P_Desc,
+                    int *P_Ctl, const unsigned int P_MenuId)
 {
   char *lsCategory[2] = {"*** Trojan ",      ""      };
   char *lsLevel[2]    = {"",                 " FULLY"};
   char *lsAction[2]   = {"\n\nFILE SKIPPED", ""      };
 
-  int iRC, iDummy;
-  int *lpFlag;
+  int iRC, iZero;
+  int *lpCTL_FLAG;
   szBuffer[_MAX_PATH*10];
+
+  iZero = 0;
+  if (P_Level > 0)
+      lpCTL_FLAG = P_Ctl;
+  else
+      lpCTL_FLAG = &iZero;
 
   sprintf(szBuffer, "%s %s file ***\n\nFORMAT NOT%s SUPPORTED\n\n%s%s", 
                           lsCategory[P_Level], P_Desc,   
@@ -1578,20 +1734,15 @@ int F591_Ask_Trojan(const int P_Level, const void *P_Desc)
                             lsAction[P_Level]);
 
   if (P_Level
-  && (iSuppressWarnings || !iCtl_WarnMpeg1))
+  && (iSuppressWarnings || !(*lpCTL_FLAG)) )
   {
       strcpy(szMsgTxt, szBuffer);
       iRC  = IDOK;
   }
   else
   {
-    if (P_Level)
-      lpFlag = &iCtl_WarnMpeg1;
-    else
-      lpFlag = &iDummy;
-
     iRC = //MessageBox(hWnd_MAIN, szBuffer, "Mpg2Cut2 - Warning", MB_OK);
-          Warning_Box(&szBuffer[0], 0, lpFlag, IDM_WARN_MPEG1, MB_OKCANCEL);
+          Warning_Box(&szBuffer[0], 0, lpCTL_FLAG, P_MenuId, MB_OKCANCEL);
   }
 
   if (iRC == IDYES)

@@ -212,11 +212,13 @@ int  Out_Fix_SysHdr(BYTE *P_lpSYS, char P_Type[4], int P_Write)
       if (process.iBadSYSAlerted)
           iRC = process.iBadSYSAlerted;
       else
-      if (iPkt_Between_Len == 0x15 || iPkt_Between_Len == 0x0C) // Safety allowance for BUG@6117
+      if (iPkt_Between_Len == 0x15 || iPkt_Between_Len == 0x0C // Safety allowance for BUG@6117
+      ||  iCtl_WarnBadSysHdr == 0)
           iRC = IDOK;
       else
       {
-          iRC = MessageBox(hWnd_MAIN, szBuffer, "Mpg2Cut2", MB_OKCANCEL);
+          //iRC = MessageBox(hWnd_MAIN, szBuffer, "Mpg2Cut2", MB_OKCANCEL);
+            iRC = Warning_Box(&szBuffer[0], 0, &iCtl_WarnBadSysHdr, IDM_WARN_BAD_SYSHDR, MB_OKCANCEL);
       }
 
       if (iRC == IDOK)

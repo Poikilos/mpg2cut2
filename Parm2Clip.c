@@ -15,7 +15,7 @@ void C990_Read_8k()
   _lseeki64(FileDCB[File_Ctr], process.startLoc, SEEK_SET );
 
   RdEOB    = RdPTR = RdBFR;
-  iReadLen = Mpeg_READ_Buff(File_Ctr,  // _read(FileDCB[File_Ctr],  
+  iReadLen = Mpeg_READ_Buff(File_Ctr,  // _read(FileDCB[File_Ctr],
                            RdEOB, 8192, 9966);
   RdEOB   += iReadLen;  RdEOB_4 = RdEOB-4;  RdEOB_8 = RdEOB-8;
 }
@@ -40,36 +40,36 @@ int C920_Get_SCR(__int64 *lpP_SCR)
   iRC = 0;
 
 Part_0_Entry: // Optimization target for skip non-zero
-  if (RdPTR < RdEOB) 
+  if (RdPTR < RdEOB)
   {
-      if (*RdPTR++) 
-          goto Part_0_Entry; // Optimize compilation 
+      if (*RdPTR++)
+          goto Part_0_Entry; // Optimize compilation
       else
       {
-         if (RdPTR < RdEOB) 
+         if (RdPTR < RdEOB)
          {
-            if (*RdPTR++) 
-               goto Part_0_Entry;  
+            if (*RdPTR++)
+               goto Part_0_Entry;
             else
             {
 Part_2_Entry:
-               if (RdPTR < RdEOB) 
+               if (RdPTR < RdEOB)
                {
                   if (*RdPTR > 1)
                   {
                      RdPTR++;
-                     goto Part_0_Entry; 
+                     goto Part_0_Entry;
                   }
                   else
                   if (*RdPTR == 0)
                   {
                      RdPTR++;
-                     goto Part_2_Entry; 
+                     goto Part_2_Entry;
                   }
                   else
                   {
                      RdPTR++;
-                     if (RdPTR < RdEOB) 
+                     if (RdPTR < RdEOB)
                      {
                         if (*RdPTR != 0xBA) // PACK HDR
                             goto Part_0_Entry; // Optimize compilation
@@ -112,7 +112,7 @@ void C980_TC2RBA(TC_HMSFR *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
 
   int iProbeLimit;
 
-  *lpFile = 0; 
+  *lpFile = 0;
   *lpLoc  = 0;
 
   iProbeLimit = 64;
@@ -139,21 +139,21 @@ void C980_TC2RBA(TC_HMSFR *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
 
   if (iFromTC_Style)
       i64_Want_SCR += i64OrgSCR;
-  
+
   if (DBGflag)
-      DBGln4("REL=%d   ABS=%d ORG=%d  END=%d", 
+      DBGln4("REL=%d   ABS=%d ORG=%d  END=%d",
              i64TMP, i64_Want_SCR, i64OrgSCR, i64EndSCR);
 
   if (i64_Want_SCR < i64OrgSCR)
   {
-      sprintf(szBuffer, "SELECTED TIME preceeds first SCR on file.\n\nSEL=%d\nORG=%d", 
+      sprintf(szBuffer, "SELECTED TIME preceeds first SCR on file.\n\nSEL=%d\nORG=%d",
                 (int)i64_Want_SCR, (int)i64OrgSCR);
       MessageBox(hWnd_MAIN, szBuffer, szAppName,  MB_OK);
       i64_Want_SCR = i64OrgSCR;
   }
   if (i64_Want_SCR > (i64EndSCR + 45000))
   {
-      sprintf(szBuffer,"SELECTED TIME exceeds last SCR on file.\n\nSEL=%d\nEof=%d",  
+      sprintf(szBuffer,"SELECTED TIME exceeds last SCR on file.\n\nSEL=%d\nEof=%d",
                 (int)i64_Want_SCR, (int)i64EndSCR);
       MessageBox(hWnd_MAIN,  szBuffer, szAppName,  MB_OK);
       if (P_End)
@@ -166,7 +166,7 @@ void C980_TC2RBA(TC_HMSFR *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
   }
 
   // Do a weighted binary search
- 
+
   i64LowSCR  = i64OrgSCR;
   i64HighSCR = i64EndSCR;
 
@@ -178,7 +178,7 @@ void C980_TC2RBA(TC_HMSFR *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
 
 Probe:
   i64PrevLoc = process.startLoc;
-  process.startLoc = (( (i64_Want_SCR - i64LowSCR) 
+  process.startLoc = (( (i64_Want_SCR - i64LowSCR)
                       * (i64HighLoc   - i64LowLoc))
                       / (i64HighSCR   - i64LowSCR))
                                       + i64LowLoc;
@@ -212,7 +212,7 @@ Probe:
 
   }
 
-  *lpFile = 0; 
+  *lpFile = 0;
   *lpLoc  = process.startLoc;
 
 }
@@ -261,8 +261,8 @@ void C905_Parm2Clip()
   // Check that SCR is at least a littl bit sensible
   if (i64EndSCR <= i64OrgSCR)
   {
-      MessageBox(hWnd_MAIN, 
-        "SCR on input file is NOT a consistent time base.\n\nNOT COMPATIBLE WITH THIS MODE.", 
+      MessageBox(hWnd_MAIN,
+        "SCR on input file is NOT a consistent time-base.\n\nNOT COMPATIBLE WITH THIS MODE.",
                                                         szAppName,  MB_ICONSTOP | MB_OK);
       return;
   }
@@ -308,26 +308,29 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n)
   int iPre;
 
   // Load each file name previously extracted from the parameter line
-  for (iPre = 0; iPre < File_PreLoad; iPre++)
+  iPre = 0;
+  while (iPre < File_PreLoad)
   {
-     strcpy(szInput, File_Name[iPre]);  
+     strcpy(szInput, File_Name[iPre]);
      F100_IN_OPEN('a', 0);
      Sleep(25);
+     iPre++;
   }
   iParmConfirm = 1;
 
 
   // Process Selection Info extracted from Parm area, if present
 
-  if (FromTC.hour >= 0   &&  File_Limit)
+  //if (FromTC.hour >= 0   &&  File_Limit)  // PRE-9a30
+  if (File_Limit)  // 9a30
   {
      // Check that there is no decode in progress
 
      dRC = WaitForSingleObject(hThread_MPEG, 0);
-     if (dRC != WAIT_OBJECT_0 
+     if (dRC != WAIT_OBJECT_0
      &&  dRC != 0xFFFFFFFF )
      {
-         sprintf(szMsgTxt, "* MPEG Wait RC=x%04X",  dRC);
+         sprintf(szMsgTxt, "*ERROR*  MPEG Wait RC=x%04X",  dRC);
          if (DBGflag)
              DBGout(szMsgTxt);
 
@@ -335,17 +338,44 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n)
      }
      else
      {
-         C905_Parm2Clip();
+         if (FromTC.hour >= 0
+            || ToTC.hour >= 0)
+             C905_Parm2Clip();
           
-         // SAVE the Selection
+         if (szOutParm[0] > ' ')
+             strcpy(szOutput, szOutParm);
+        
+         // Display picture immediately
+         //      MAY cause interference with AutoSave  //9a30
+         iKick.Action = ACTION_INIT;
+         MPEG_processKick();
+ 
+         // optionally AutoSave the Selection
+         /*
+         if ((szOutParm[0] > ' ' || iEDL_ctr > 0)
+         &&  iOutNow >= 0)
+         {
+             // Sleep(500);
+             if (dRC != WAIT_OBJECT_0
+             &&  dRC != 0xFFFFFFFF )
+             {
+                sprintf(szMsgTxt, "*ERROR*  MPEG Wait RC=x%04X",  dRC);
+                if (DBGflag)
+                    DBGout(szMsgTxt);
 
-         if (szOutParm[0])
-             strcpy(szOutput, szOutParm);           
-         OUT_SAVE('L') ;  // SAVE ALL CLIPS in EDL
+                DSP1_Main_MSG(0,0);
+             }
+             else
+                OUT_SAVE('L');  // SAVE ALL CLIPS in EDL
+         }
+         */
+
+
+
      }
   }
 
-  FromTC.hour = -1;  ToTC.hour = -1; 
+  FromTC.hour = -1;  ToTC.hour = -1; File_PreLoad = 0;
 
   if (DBGflag)
       DBGctl();
@@ -359,7 +389,7 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n)
 
 /*
     iKick.File    = ?? ;
-    iKick.Loc     = process.?? - 8192; 
+    iKick.Loc     = process.?? - 8192;
 
     if (iKick.Loc >= process.length[iKick.File])
     {
@@ -372,3 +402,4 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n)
 
     MPEG_processKick();
 */
+

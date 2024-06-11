@@ -4,8 +4,8 @@
 #include "global.h"
 #define true 1
 #define false 0
-#include <commctrl.h>
-#include "DDRAW_CTL.h"
+// #include <commctrl.h>
+// #include "DDRAW_CTL.h"
 
 //char szAbbr1[4], szAbbr2[4], szAbbr3[4], szAbbr4[4], szAbbr5[4], szAbbr6[4];
 
@@ -225,18 +225,19 @@ void DSP3_Main_TIME_INFO()
 {
   int iTmp, iLen, iOverrideX;
   unsigned int uTmp1;
-  char szHour[8];
+  char szHour[8], szTOD[24];
 
   //ShowTC_AM_PM[0] = 0;
 
   process.szDelay[0] = 0;
+  szTOD[0] = 0;
 
   iOverrideX = iTimeX;  
 
   if (iViewToolBar >= 256)  
   {
     if (process.Delay_Sign[0] != '?') 
-        sprintf(process.szDelay, "A%c%dms", process.Delay_Sign[0], 
+        sprintf(process.szDelay, "a%c%dms", process.Delay_Sign[0], 
                                             process.Delay_ms);
     else
     if (MParse.SystemStream_Flag > 0  // Program Stream
@@ -245,13 +246,12 @@ void DSP3_Main_TIME_INFO()
         strcpy(process.szDelay, "NO PTS");
   }
 
-
   if ( !iView_TC_Format // Show block number instead of time
   || (CurrTC.RunFrameNum < 1 
        && process.CurrLoc > 0 && ! iPES_Mpeg_Any))
   {
       iTmp = (int) (process.CurrLoc / MPEG_SEARCH_BUFSZ);
-      iLen = sprintf(szTemp, "Blk#%06X  %c  %s      ",
+      iLen = sprintf(szTemp, "Blk#%06X  %c  %s       ",
                 // process.CurrFile,
                 iTmp,
                 Coded_Pic_Abbr[MPEG_Pic_Type],
@@ -261,7 +261,7 @@ void DSP3_Main_TIME_INFO()
   if (iView_TC_Format == 5) // Show in HEX
   {
       iTmp = (int) (process.VideoPTSM & PTS_MASK_0);
-      iLen = sprintf(szTemp, "x%08x  %c  %s       ",
+      iLen = sprintf(szTemp, "x%08x  %c  %s             ",
                               iTmp,
                 Coded_Pic_Abbr[MPEG_Pic_Type],
                 process.szDelay);
@@ -274,13 +274,26 @@ void DSP3_Main_TIME_INFO()
       Relative_TOD(); 
 
       iLen = sprintf(szTemp, " %02d:%02d :%02d %s %02df  %c  %s      ",
-                   ShowTC.hour, ShowTC.minute, ShowTC.sec, 
-                                         ShowTC_AM_PM, ShowTC.frameNum,
+                   ShowTC.hour, ShowTC.minute, ShowTC.sec, ShowTC_AM_PM, ShowTC.frameNum,
                                          Coded_Pic_Abbr[MPEG_Pic_Type],
                                          process.szDelay );
   }
   else
   {
+     if (iView_TC_Format == 7) // Show both REL and TOD
+     {
+        RelativeTC_SET();
+        Relative_TOD();
+  
+        iOverrideX-=4;
+  
+        iLen = sprintf(szTOD, " %02d:%02d:%02d%s  ",
+                                ShowTC.hour, ShowTC.minute, ShowTC.sec, 
+                                                          ShowTC_AM_PM);
+        memcpy(&ShowTC, &RelativeTC, sizeof(ShowTC));
+
+     }
+     else
      if (iView_TC_Format == 1) // Show time relative to start
      {
               RelativeTC_SET();
@@ -294,8 +307,8 @@ void DSP3_Main_TIME_INFO()
      else
      if (iView_TC_Format  == 3)  // Show time from PTS without adjustment
      {
-        if (PktStats.iChk_AudioPackets >  25
-        ||  PktStats.iChk_AnyPackets   > 600)
+        if (PktStats.iChk_AudioPackets > PktChk_Audio
+        ||  PktStats.iChk_AnyPackets   > PktChk_Any)
             uTmp1 = process.AudioPTS;
         else
             uTmp1 = process.VideoPTS;
@@ -328,15 +341,17 @@ void DSP3_Main_TIME_INFO()
      ||  ShowTC.frameNum >  999)
          ShowTC.frameNum =  999;
 
-     iLen = sprintf(szTemp, " %s %02dm %02ds %02df %c   %s      ",
+     iLen = sprintf(szTemp, "%s %s %02dm %02ds %02df %c   %s   ",
+                 szTOD,
                  szHour, ShowTC.minute, ShowTC.sec, ShowTC.frameNum,
                          Coded_Pic_Abbr[MPEG_Pic_Type],
                          process.szDelay );
   }
 
 
+
   // Hiding Toolbar  makes Time less intrusive
-  if (iViewToolBar < 256)  
+  if (iViewToolBar < 256 && iView_TC_Format  != 7)  
   {
     if (iMainWin_State > 0)  
       iOverrideX = VGA_Width - (((iLen-13)/2)*18) - 3;  // Maximizing Window also makes Time less intrusive
@@ -860,10 +875,11 @@ int xPos, yPos;
 void View_MOUSE_CHK(LPARAM lParam)
 {
 
+  //HMENU hPopUp;
   int iOverrideX;
 
-  const char *TimeFmtName[7] // for iView_TC_Format
-                 = { "BLK",  "Rel",  "GOP",   "PTS",  "TOD", "PTS", "SCR"}; 
+  const char *TimeFmtName[8] // for iView_TC_Format
+      = { "BLK",  "Rel",  "GOP",   "PTS",  "TOD", "HEX", "SCR", "   "}; 
   
 
   xPos = (int)(LOWORD(lParam));
@@ -877,7 +893,23 @@ void View_MOUSE_CHK(LPARAM lParam)
 
           if (xPos >= iOverrideX)  // Mouse on Time Coordinate ?
           {
-            if (iView_TC_Format < 6)
+            /*
+            HMENU GetSubMenu(
+                             HMENU hMenu,	// handle of menu
+                               int nPos	// menu item position
+                             );
+            //  IDR_TIME_FMT_MENU
+            BOOL TrackPopupMenu(
+                 HMENU hMenu,	    // handle of shortcut menu
+                  UINT 0,	        // screen-position and mouse-button flags
+                   int (iOverrideX-10),   // horizontal position, in screen coordinates
+                   int (iTopMargin+10),  // vertical position, in screen coordinates
+                   int nReserved,	   // reserved, must be zero
+                  HWND hWnd_MAIN,	   // handle of owner window
+                       NULL);	
+            */
+
+            if (iView_TC_Format < 7)
                 iView_TC_Format++;
             else
                 iView_TC_Format = 0;
@@ -985,10 +1017,14 @@ void DSP_Msg_Clear()
 {
   RECT msgrect;
 
-  int iWidth;
+  int iWidth, iShared;
+  HBRUSH hBrush;
 
-  //if (iViewToolBar < 256)
-  //    SetBkColor(hDC, iCtl_Mask_Colour);  // Background = Overlay key
+  if (iViewToolBar >= 256          
+  || (!iMainWin_State && iViewToolBar > 1) ) 
+     iShared = 0;   // Message area is separate from picture area
+  else
+     iShared = 1;   // Message is superimposed on picture area
   
   if (MParse.iColorMode == STORE_RGB24
   //||  iCtl_Back_Colour  != iCtl_Mask_Colour
@@ -1004,18 +1040,25 @@ void DSP_Msg_Clear()
       else
           iWidth = iTimeX;
 
-      SetRect(&msgrect, 0, iMsgPosY, iWidth, (iMsgPosY+(iTool_Ht))); //  iTool_Ht * 4 / 5)) );
-      FillRect(hDC, &msgrect, hBrush_MSG_BG); 
+      SetRect(&msgrect, 0, iMsgPosY, iWidth, (iMsgPosY+(uFontHeight+2)));
+      if (iShared)          // Message area is shared with video area
+        hBrush = hBrush_MASK;
+      else
+        hBrush = hBrush_MSG_BG;
+      FillRect(hDC, &msgrect, hBrush); 
   }
 
   iMsgLen  =  0; 
 
+  // Conditionally restore selection info
   if (process.Action != ACTION_RIP    // Hide boring stuff while playing
   ||  iPreview_Clip_Ctr <= 500        // Not a ClipList Preview
-  ||  iViewToolBar >= 256
-  || (!iMainWin_State && iViewToolBar > 1) ) 
+  ||  !iShared)                       // Message area is separate
   {
      DSP2_Main_SEL_INFO(1); // Repair Clip info
+     if (MParse.SystemStream_Flag > 0)  // Program Stream
+         DSP3_Main_TIME_INFO();
+
   }
 
   //if (! iViewToolBar)

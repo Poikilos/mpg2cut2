@@ -28,7 +28,7 @@ unsigned char *RdPTR, *RdEndPkt, *Rd_NextPacket, *RdEndPktHdr,
 //unsigned char  RdBFR[MPEG_SEARCH_BUFSZ];  // Consider GetMain
 unsigned char *RdBFR;
 
-int iAUD_Enough;
+int iAUD_Enough, iDrop_B_Now_flag;
 
 //__forceinline static unsigned int Get_Bits(unsigned int N);
 //__forceinline static 

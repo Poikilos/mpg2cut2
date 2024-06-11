@@ -6,8 +6,8 @@
 #define true 1
 #define false 0
 
-const int TRK_FLD[9] =  {0, TRKS_MPG_0, TRKS_MPG_1, TRKS_MPG_2, TRKS_MPG_3, 
-                            TRKS_MPG_4, TRKS_MPG_5, TRKS_MPG_6, TRKS_MPG_7};
+const int TRK_FLD[8] =  {TRKS_MPG_0, TRKS_MPG_1, TRKS_MPG_2, TRKS_MPG_3, 
+                         TRKS_MPG_4, TRKS_MPG_5, TRKS_MPG_6, TRKS_MPG_7};
 
 unsigned int TRK_TXT[9] = {0, TRK_TXT_0, TRK_TXT_1, TRK_TXT_2, TRK_TXT_3, 
                               TRK_TXT_4, TRK_TXT_5, TRK_TXT_6, TRK_TXT_7};
@@ -102,7 +102,7 @@ LRESULT CALLBACK Out_Part_Dialog(HWND hDialog_P, UINT message,
                                 WPARAM wParam, LPARAM lParam)
 {
 
-  int i, iTmp1;
+  int i, iTmp1, iTicked;
 
   unsigned uField, uAct; //, uChk;
 
@@ -134,15 +134,15 @@ LRESULT CALLBACK Out_Part_Dialog(HWND hDialog_P, UINT message,
           case IDOK:
                iOut_DoIt = 1;
 
-               // calculate whch streams wanted
+               // calculate which stream-ids wanted
                ZeroMemory(&cOut_SubStreamWanted,  sizeof(cOut_SubStreamWanted));
                for (i=0;i<8;i++)
                {
+                 iTmp1 = cAudio_Track_Stream[i+1];
                  if (iOut_Audio_TrkSel[i])
-                 {
-                     iTmp1 = uAudio_Track_Stream[i];
                      cOut_SubStreamWanted[iTmp1] = 1;
-                 }
+                 //else
+                 //    cOut_SubStreamWanted[iTmp1] = 0;
                }
 
                iEnough = 2;
@@ -195,43 +195,84 @@ LRESULT CALLBACK Out_Part_Dialog(HWND hDialog_P, UINT message,
 
           case TRKS_MPG_0:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[1] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_0, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[0]             = iTicked;
+               // cOut_SubStreamWanted[0xC0]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3]    = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS]    = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM]    = iTicked;
                break;
+
           case TRKS_MPG_1:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[2] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_1, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[1]             = iTicked;
+               // cOut_SubStreamWanted[0xC1]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3+1]  = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS+1]  = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM+1]  = iTicked;
                break;
           case TRKS_MPG_2:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[3] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_2, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[2]             = iTicked;
+               // cOut_SubStreamWanted[0xC2]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3+2]  = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS+2]  = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM+2]  = iTicked;
                break;
           case TRKS_MPG_3:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[4] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_3, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[3]             = iTicked;
+               // cOut_SubStreamWanted[0xC3]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3+3]  = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS+3]  = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM+3]  = iTicked;
                break;
           case TRKS_MPG_4:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[5] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_4, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[4]             = iTicked;
+               // cOut_SubStreamWanted[0xC4]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3+4]  = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS+4]  = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM+4]  = iTicked;
                break;
           case TRKS_MPG_5:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[6] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_5, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[5]             = iTicked;
+               // cOut_SubStreamWanted[0xC5]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3+5]  = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS+5]  = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM+5]  = iTicked;
                break;
           case TRKS_MPG_6:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[7] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_6, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[6]             = iTicked;
+               // cOut_SubStreamWanted[0xC6]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3+6]  = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS+6]  = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM+6]  = iTicked;
                break;
           case TRKS_MPG_7:
                iOut_Audio_All = 0; uAct = 0xFFFFFF;
-               iOut_Audio_TrkSel[8] = (SendDlgItemMessage(hDialog,
+               iTicked = (SendDlgItemMessage(hDialog,
                         TRKS_MPG_7, BM_GETCHECK, 1, 0) == BST_CHECKED);
+               iOut_Audio_TrkSel[7]             = iTicked;
+               // cOut_SubStreamWanted[0xC7]       = iTicked;
+               // cOut_SubStreamWanted[SUB_AC3+7]  = iTicked;
+               // cOut_SubStreamWanted[SUB_DTS+7]  = iTicked;
+               // cOut_SubStreamWanted[SUB_PCM+7]  = iTicked;
                break;
          }
 

@@ -1,11 +1,11 @@
-/* 
-  MPEG2DEC - Copyright (C) 1996, MPEG Software Simulation Group. All Rights Reserved. 
+/*
+  MPEG2DEC - Copyright (C) 1996, MPEG Software Simulation Group. All Rights Reserved.
   DVD2AVI -  Copyright (C) Chia-chen Kuo - April 2001
   Mpeg2Cut - Dark Avenger and others
   Mpg2Cut2 - RocketJet and others
-*/ 
-    
-/*     
+*/
+
+/*
  * Disclaimer of Warranty
  *
  * These software programs are available to the user without any license fee or
@@ -33,10 +33,10 @@
  *
  */
 #include <windows.h>
-//#include <commctrl.h> 
+//#include <commctrl.h>
 #include <stdio.h>
 
-#include <winreg.h> 
+#include <winreg.h>
 //#include <direct.h>
 #include <io.h>
 //#include <fcntl.h>
@@ -48,13 +48,13 @@
 
 char szAppTitle[50]; // "Mpg2Cut2 - Development Version 2.8.5c" // You don't expect this to work do you ?"
 
-// When changing version, 
+// When changing version,
 // remember to change version strings in Resources as well.
 #define APP_VER 20805
 #define API_VER 20802
 char szAppVer[8]
 #ifdef GLOBAL
- = "2.8.5c"
+ = "2.8.5e"
 #endif
 ;
 
@@ -62,14 +62,14 @@ char szAppVer[8]
 
 //#define 1MB  1048576
 #define MAXINT64 1>>62 - 1
-#define MAXINT31 0x7FFFFFFF 
+#define MAXINT31 0x7FFFFFFF
 
 #define MAX_FILE_NUMBER     128
 #define CHANNELS_MAX      8
 
 #define K_8MB   8*1024*1024
 #define K_4MB   4*1024*1024
-#define K_1MB     1024*1024 
+#define K_1MB     1024*1024
 #define K_256KB    256*1024
 
 #define SetMemory memset
@@ -108,36 +108,34 @@ DWORD OUT_threadId;
 // MAJOR FILE CONTROLS
 int   FileDCB[MAX_FILE_NUMBER+1];
 char *File_Name[MAX_FILE_NUMBER+1];
-unsigned cStartSCR[MAX_FILE_NUMBER][2]; 
-unsigned cEndSCR[MAX_FILE_NUMBER][2]; 
+unsigned cStartSCR[MAX_FILE_NUMBER][2];
+unsigned cEndSCR[MAX_FILE_NUMBER][2];
 int /* FILETIME */ File_Date[MAX_FILE_NUMBER+1]; //[3];  WIN32 API FORMAT
 typedef int /* __int64 */ IFILEDATE;
-struct tm File_Greg[MAX_FILE_NUMBER+1]; 
+struct tm File_Greg[MAX_FILE_NUMBER+1];
 
 int iCtl_Date_Internationale, iCtl_Readability, iCtl_ToolTips;
 int iCtl_Wheel_Scroll;
 int iToolButton_Cnt;
 
 
-
-char  cInExt[4]; 
 char *lpLastSlash(char *);
 char *lpDOT(char *);
- 
-char szAppName[256];  
+
+char szAppName[256];
 
 char szTmp32[32], szTmp80[80], szTmp100[100], szTmp256[256];
 char szMsgTxt[_MAX_PATH*6], szBuffer[_MAX_PATH*10];
-char szDBGln[512]; 
-char szMPG_ErrTxt[16];   
+char szDBGln[512];
+char szMPG_ErrTxt[16];
 
-char szTemp[_MAX_PATH+32]; 
+char szTemp[_MAX_PATH+32];
 char szTMPname[_MAX_PATH+32];
 char BLANK44[45]; //  "                                            "
 #define BLANK0 ""
 
-struct _stati64 TmpStat;  
-struct tm *TmpGregTime; 
+struct _stati64 TmpStat;
+struct tm *TmpGregTime;
 
 /* code definition */
 #define PICTURE_START_CODE      0x0100
@@ -146,7 +144,7 @@ struct tm *TmpGregTime;
 #define uPICTURE_START_CODE     0x00010000 // PIC
 
 #define SLICE_START_CODE_MIN    0x0101
-#define SLICE_START_CODE_MAX    0x01AF 
+#define SLICE_START_CODE_MAX    0x01AF
 
 #define USER_DATA_START_CODE    0x1B2
 
@@ -154,7 +152,7 @@ struct tm *TmpGregTime;
 #define uSEQ_HDR_CODE           0xB3010000   // SEQ
 #define sSEQ_HDR_CODE           0xB301       // SEQ
 #define cSEQ_HDR_CODE           0xB3         // SEQ
- 
+
 #define EXTENSION_START_CODE    0x1B5
 #define sEXTN_HDR_CODE          0xB501       // Extension
 #define cEXTN_HDR_CODE          0xB5         // Extension
@@ -176,9 +174,10 @@ struct tm *TmpGregTime;
 #define uSYSTEM_START_CODE    0xBB010000 // System_Header (FULL)
 
 #define PRIVATE_STREAM_1      0x01BD    // Usually DVD audio
+#define cPRIVATE_STREAM_1     0xBD      // Usually DVD audio
 #define PRIVATE_STREAM_2      0x01BF    // DVD Nav Pack OR DTV Audio
 
-#define uVIDPKT_STREAM_1  0xE0010000 
+#define uVIDPKT_STREAM_1  0xE0010000
 
 #define VIDEO_ELEMENTARY_STREAM_1  0x1E0
 #define VIDEO_ELEMENTARY_STREAM_2  0x1E1
@@ -213,12 +212,14 @@ struct tm *TmpGregTime;
 #define AUDIO_ELEMENTARY_STREAM_7  0x1C7
 #define AUDIO_ELEMENTARY_STREAM_15 0x1CF
 
-#define SUB_SUBTIT        0x20 
+#define SUB_SUBTIT        0x20
 #define SUB_AC3           0x80
 #define SUB_DTS           0x88
 #define SUB_PCM           0xA0
 #define SUB_PS2           0xBF
 #define SUB_DDPLUS        0xC0
+//                        DDPLUS sub-code is same as Mpeg-Audio Stream-id
+//                        Hopefully won't find the 2 types intermixed.
 
 /* extension start code IDs */
 #define SEQUENCE_EXTENSION_ID           1
@@ -244,7 +245,7 @@ struct tm *TmpGregTime;
 #define MC_FRAME    2
 #define MC_16X8     2
 #define MC_DMV      3
- 
+
 #define MV_FIELD    0
 #define MV_FRAME    1
 
@@ -266,8 +267,8 @@ struct tm *TmpGregTime;
 #define IDCT_SSE2   5
 
 
- 
-#define FO_NONE     0  
+
+#define FO_NONE     0
 #define FO_FILM     1
 #define FO_SWAP     2
 
@@ -277,7 +278,7 @@ struct tm *TmpGregTime;
 #define SRC_HIGH    3
 #define SRC_UHIGH   4
 
-#define TRACK_PITCH     480  
+#define TRACK_PITCH     480
 #define MIN_D2V_WIDTH     288
 #define MIN_D2V_HEIGHT    128
 
@@ -300,12 +301,12 @@ D2VData d2v_bwd, d2v_fwd, d2v_curr;
 
 #define ACTION_NOTHING -696969
 
-#define ACTION_BWD_FAST4 -40
-#define ACTION_BWD_FAST2 -20
-#define ACTION_BWD_FAST  -10
+#define ACTION_BWD_JUMP4 -40
+#define ACTION_BWD_JUMP2 -20
+#define ACTION_BWD_JUMP  -10
 #define ACTION_BWD_GOP2   -5
 #define ACTION_BWD_GOP    -1
- 
+
 #define ACTION_FWD_GOP     1
 
 #define ACTION_FWD_FRAME   66
@@ -315,14 +316,14 @@ D2VData d2v_bwd, d2v_fwd, d2v_curr;
 
 
 #define ACTION_FWD_GOP2   200
-#define ACTION_FWD_FAST   250
-#define ACTION_FWD_FAST2  290
-#define ACTION_FWD_FAST4  294
+#define ACTION_FWD_JUMP   250
+#define ACTION_FWD_JUMP2  290
+#define ACTION_FWD_JUMP4  294
 
-#define ACTION_INIT         300 
+#define ACTION_INIT         300
 #define ACTION_NEW_CURRLOC  301
 #define ACTION_NEW_RUNLOC   302
-#define ACTION_SKIP_FILE    303 
+#define ACTION_SKIP_FILE    303
 
 
 struct PROCESS {  // process.
@@ -368,10 +369,11 @@ struct PROCESS {  // process.
   __int64     ALTPID_Loc;   // ptr to ALternate PID I-FRAME Location
 
   __int64     PREV_Pack_Loc;    // ptr to PREVIOUS pack header
+  __int64     PREV_Curr_Loc;    // ptr to PREVIOUS CurrLoc
 
    __int64  Last_Gop_Loc_Est ;  // Approx ptr to final GOP
 
-  __int64   kBitRateAvg;        // usually measured from data
+  __int64   kBitRateAvg, i64NewByteRate; // usually measured from data
   __int64   ByteRateAvg[MAX_FILE_NUMBER];
 
 
@@ -386,7 +388,7 @@ struct PROCESS {  // process.
   int       endFile;
 
   int       CurrFile;
-  __int64   DUMMYc; 
+  __int64   DUMMYc;
   unsigned  CurrPTS;
   unsigned char Curr_TSM[5];
 
@@ -412,12 +414,12 @@ struct PROCESS {  // process.
   unsigned int  elapsed;
   unsigned int  remain;
 
-#define PTS_NOT_FOUND  1 // Cannot use -1 because PTS is unsigned 
-#define PTS_MASK_0       0xFFFEFF0E // 0x000100F1  
-#define i64PTS_MASK_0  0xFEFFFEFF0E 
+#define PTS_NOT_FOUND  1 // Cannot use -1 because PTS is unsigned
+#define PTS_MASK_0       0xFFFEFF0E // 0x000100F1
+#define i64PTS_MASK_0  0xFEFFFEFF0E
 #define SCR_MASK_0       0xFFFBFF3B // 0011 1011 1111 1111 1111 1011 1111 1111 1111 1011 1111 1110
 
-  unsigned int VideoPTS, VideoPTSM, VideoDTS;
+  unsigned int VideoPTS, VideoPTSM, VideoDTS, VideoPrevPTS;
   unsigned int ViewPTS,  ViewPTSM,  ViewDTS;
   unsigned int AudioPTS, DelayPTS, Delay_ms, SkipPTS, uGOPbefore;
 
@@ -428,10 +430,12 @@ struct PROCESS {  // process.
   unsigned char CurrSSCRM[6],  ViewSSCRM[6], PrevSSCRM[6];
   unsigned int uViewSCR;
 
-  int iGOP_Ctr, iAudio_InterFrames, iAudio_Interleave, iAudio_SelStatus;
+  int iGOP_Ctr;
+  int iAudio_Ovfl_Ctr, iAudio_SelStatus, iAudioAC3inMPA;
+  int iAudio_InterFrames, iAudio_Interleave;
   int iSEQHDR_NEEDED_clip1, iPreamblePackAtStart, iLongGOP;
   int iVid_PTS_Frames, iVid_PTS_Resolution;
-  unsigned int uVid_PTS_Seq_Prev;  
+  unsigned int uVid_PTS_Seq_Prev;
   int iVid_PTS_Seq_Diff, iVid_PTS_Diff;
 
   float     percent;
@@ -445,7 +449,7 @@ struct PROCESS {  // process.
   int       Pack_Offset;
 
   //int       from_Offset;
-  //int       to_Offset; 
+  //int       to_Offset;
 
   int     PAT_File;     // ptr to FIRST TS PAT header
   int     NAV_File;     // ptr to MOST RECENT VOB NAV pack header
@@ -456,20 +460,20 @@ struct PROCESS {  // process.
   int     KEY_File;     // ptr to MOST RECENT KEY FRAME (I-Frame)
   int     PIC_File;     // ptr to MOST RECENT PIC
   int     KILL_File;    // ptr to MOST RECENT END-PROCESS
-  int     ALTPID_File;  // ptr to ALternate PID 
+  int     ALTPID_File;  // ptr to ALternate PID
   int     TMP_File;     // ptr to
   int     PREV_Pack_File;   // ptr to PREVIOUS pack header
 
-  int     PrevAct;  
- 
+  int     PrevAct;
+
   char    Broken_start_type;  // test for missing GOP header at start
   int     iUnique;
-  int     iOutUnMux, iOutParseMore, iOutFolder;
+  int     iOutUnMux, iOutParseMore, iOutFolder_Flag;
   int     iOut_Part_Ctr, iOut_AutoSPLIT;
 
   int     Pack_Prev_Size, Pack_Max_Size, Pack_Min_Size, Pack_Avg_Size;
   int     PACK_Sample_Ctr;
-  __int64 i64Pack_Sum_Size; 
+  __int64 i64Pack_Sum_Size;
 
   int Mpeg2_Flag;        // Mpeg Version - Hopefully Mpeg2
   int iOut_DropCrud;     // Drop CDXA RIFF Wrapper (Non-Mpeg Data)
@@ -485,7 +489,7 @@ struct PROCESS {  // process.
   int iWavQue_Len, iWavBytesPerMs;
   int iPMM_Ctr, iPSD_Ctr;
   int iCatchUp;
-  int iAudio_PS1_Found; 
+  int iAudio_PS1_Found, iAC3_used;
   int iAudio_MPA_Found;
 
   BYTE Preamble_PackHdr[24],  Preamble_SysHdr[64];
@@ -505,35 +509,38 @@ struct PROCESS {  // process.
 
 struct PLAY_CTLS{
   int uPrev_Frames,  iPlayed_Frames, iUnReportedFrames;
-  int iShown_Frames, iDropped_Frames;
+  int iShown_Frames, iDropped_Frames, iBehindFrames;
   int iDecoded_hFPS, iFPS_Dec_Pct;
   int iDrop_Behind, iDrop_PTS_Flag;
-  int iDrop_B_Frames_Flag, iErrMsg;
+  int iDrop_B_Frames_Flag, iErrMsg, iMaxedOut;
   unsigned int  uPrev_Time_ms[2],  uPrev_Time10_ms;
   DWORD iVideoTime_DIFF_ms, iAudioTime_DIFF_ms;
   unsigned int uPrev10_Time_ms;
-  int iAudio_Warp_Accum;
+  int iAudio_Warp_Accum, iPalTelecide_ctr;
   int iAudioFloatingOvfl;
   unsigned int uAud_Packets, uAudioOvflPkts;
   int iEOFhit, iStopNextFrame;
   int iAC3_Attempted, iPCM_Remainder, iPCM_Orphan;
   int iGOP_Ctr, iAudio_SelStatus;
   int iWarpDone, iWarpToggle;
-  int iPendingSeq[4];
+  unsigned int uPendingSeq[4];
   //unsigned int uAngle;
 } PlayCtl;
 
 typedef struct {
   unsigned int iVid_Packets, iPad_Packets, iUnk_Packets, iSubTit_Packets;
   unsigned int iMPA_Packets, iPS1_Packets, iPS2_Packets;
-  unsigned int iChk_AnyPackets, iChk_AudioPackets;
+           int iChk_AnyPackets, iChk_AudioPackets;
   unsigned int iTS_Packets, iTS_ReSyncs, iTS_BadBytes;
   unsigned int uPrevTimeUpd;
   int iAudDelayBytes;
 } PACKET_CTRS;
- 
+
 PACKET_CTRS PktStats;
 
+int PktChk_Audio, PktChk_Any;
+#define PKTCHK_AUDIO_TS 1000
+#define PKTCHK_ANY_TS  24000
 
 
 int  Stream_Header_Len;
@@ -570,9 +577,9 @@ int  iMpeg_Copy_BufSz, iCtl_Copy_BufSz_Ix;  // default 4 MB
 BYTE *lpMpeg_Copy_Buffer, *lpMpeg_Copy_MALLOC;  // Big buffer for file copy
 unsigned char *lpMpeg_TC_ix2;
 
-char szStartDesc[7]; 
+char szStartDesc[7];
 
- 
+
 
 int iOut_PostProc_OK;
 //int iOut_KeepFileDate;
@@ -606,7 +613,7 @@ int iViewToolBar, iCtl_ViewToolbar[2];
 
 struct
 {
-int FO_Flag; 
+int FO_Flag;
 int iDCT_Flag;
 int Rip_Flag;
 int PC_Range_Flag;
@@ -614,7 +621,7 @@ int ShowStats_Flag;
 int Pause_Flag, SlowPlay_Flag, FastPlay_Flag, FastPart;
 int Summary_Section, Summary_Adjust;
 __int64 NextLoc;
-int Anti_Phase, Karaoke_Flag; 
+int Anti_Phase, Karaoke_Flag;
 int Fault_Flag, Fault_More, Fault_Prev;
 int Stop_Flag,  iMultiRqst;
 int iColorMode;
@@ -624,13 +631,13 @@ int Tulebox_SingleStep_flag;
 int Tulebox_prev_frame_number;
 int EDL_AutoSave;
 int iVOB_Style, iGOPsSinceNAV;
-} MParse; 
+} MParse;
 
 #define MAX_WARP 4
 #define CUE_SLOW  MAX_WARP+1
 int iCtl_CUE_BUTTON_Speed, iCtl_NotSoFast;
 
-int iWarnBadDate;
+int iWarnBadDate, iWarnAC3inMPA;
 int ClipResize_Flag;
 
 void Store_RGB24(unsigned char *src[], int P_SnapOnly); //, DWORD frame); //RJSUS3a29
@@ -642,9 +649,12 @@ void  UpdInfo(), MainPaint();
 int  Loc_Method; // 0= Original Block method; 1=Header Pointers
 int  iCtl_To_Pad;
 
+// Keyboard options
 int iCtl_KB_NavOpt, iCtl_KB_MarkOpt, iCtl_KB_NavStopPlay;
-int iKB_MARK_FROM, iKB_MARK_TO, iCtl_F3_Names;
-int iNav_Index;
+int iKB_MARK_FROM, iKB_MARK_TO;
+int iCtl_F3_Names, iCtl_F5_Toggler;
+
+int iCTL_FastBack;
 int iBusy, iCtl_Drv_Segments;
 
 int iJumpSecs[6];
@@ -676,22 +686,23 @@ int    iTmp16k_len;
 char cPassed1, cTK_Delim, szOutParm[_MAX_PATH];
 
 char szInput[_MAX_PATH], *lpFName;
-char szInFolder[_MAX_PATH]; 
+char szInFolder[_MAX_PATH];
 
 #define MAX_LIKE_LEN 42
-char szFile_Prefix[MAX_LIKE_LEN+8];  
+char szFile_Prefix[MAX_LIKE_LEN+8];
 
-char szOutput[_MAX_PATH]; // , *lpOut_DOT; 
+char szOutput[_MAX_PATH]; // , *lpOut_DOT;
 char szOutFolder[_MAX_PATH];
 char szName[_MAX_PATH]; //, szOutFolder_DEF[_MAX_PATH];
-char szInExt[8], szOut_Xtn_RULE[8], szOut_Xtn_DEF[8] ;
+char szInExt3_lowercase[4], szInExt[8];
+char szOut_Xtn_RULE[8], szOut_Xtn_DEF[8] ;
 char szOut_Xtn_AUD[8];
 
 char szLOAD_Path[MAX_PATH], szINI_Path[_MAX_PATH];
-char szEDLname[_MAX_PATH], szEDLprev[_MAX_PATH]; 
- 
-int iMsgLife, iMsgLen;  
-int iAutoPlay;
+char szEDLname[_MAX_PATH], szEDLprev[_MAX_PATH];
+
+int iMsgLife, iMsgLen;
+int iAutoPlay, iOutNow;
 
 //#include "OpenDVD_0.h"
 
@@ -770,8 +781,8 @@ int ScanMode_code;
 static char *ScanMode_Name[2] = {"interlaced", "progressive"};
 
 int Second_Field;
-int Top_Field_Built, Bot_Field_Built; 
-int Pic_Started; 
+int Top_Field_Built, Bot_Field_Built;
+int Pic_Started;
 
 char MPEG_Seq_chroma_Desc[5][7]
 #ifdef GLOBAL
@@ -782,7 +793,7 @@ char MPEG_Seq_chroma_Desc[5][7]
 int MPEG_Profile;
 char *MPEG_Profile_Desc[8]
 #ifdef GLOBAL
-= { "", "HP", "SS",  "SNR", "MP", "SP", "6P", "7P"} 
+= { "", "HP", "SS",  "SNR", "MP", "SP", "6P", "7P"}
 #endif
 ;
 
@@ -793,7 +804,7 @@ char *MPEG_Level_Desc[16]
 #ifdef GLOBAL
 = { "",   "H1L", "H2L",   "H3L",
     "HL", "H5L", "H1440", "H7L",
-    "ML", "M9L", 
+    "ML", "M9L",
     "LL", "LBL", "LCL", "LDL",   "LEL", "LFL" }
 #endif
 ;
@@ -802,13 +813,16 @@ char Coded_Pic_Abbr[8]
 #ifdef GLOBAL
  = {'0', 'i', 'p', 'b', '4', '5', '6', '7'}
 #endif
-; 
+;
 
-float frame_rate, fFrame_Rate_Orig;
+double fFrame_rate, fFrame_Rate_Orig;
+double fFrame_rate_extension_n, fFrame_rate_extension_d;
+
 int iFrame_Period_ms, iFrame_Period_ps;
 int iDropTrigger_ms, iSleepTrigger_ms;
 int iFrame_Rate_ms, iFrame_Rate_int, iFrame_Rate_dsp, iFrame_Rate_mantissa;
-int iRender_TimePrev, iFrame_Rate_Code;
+int iFrame_Rate_Code;
+int iRender_TimePrev;
 
 int Video_Type, FILM_Purity, NTSC_Purity ;
 
@@ -819,11 +833,11 @@ int Clip_Top, Clip_Bottom, Clip_Left, Clip_Right;
 int Squeeze_Width, Squeeze_Height;
 
 int iView_Aspect_Mode, iCtl_Aspect_Retain;
-int iView_FrameRate_Code;
+int iView_FrameRate_Code, iOverride_FrameRate_Code;
 int iView_Centre_Crop;
 int iField_Drop, iField_Experiment;
 int iCtl_View_Aspect_Mpeg1_Force, iCtl_View_Aspect_Adjust;
-int iView_SwapUV, iView_Negative, iView_Invert;  
+int iView_SwapUV, iView_Negative, iView_Invert;
 int iCtl_VHS_Threshold, iCtl_SinThreshold;
 int iCtl_View_Fast_YUV, iView_Fast_YUV;
 int iView_Limit2k, iCtl_View_Limit2k;
@@ -835,15 +849,15 @@ int iCtl_View_Centre_Crop, iCtl_AspMismatch;
 int iAspectIn, iAspectOut, iVertInc, iAspVert, iAspHoriz;
 int iView_Width,  iATI_BugMe;
 ;
- 
+
 int iView_TC_Format;
 int iCtl_Play_Info;
 
-//#define MASKCOLOR 			RGB(0, 6, 0)
+//#define MASKCOLOR       RGB(0, 6, 0)
 //#define MASK_TWINHAN RGB(212, 208, 200)
 
-int iColor_Menu_Bk;
-int iCtl_Text_Colour, iCtl_Back_Colour, iCtl_Mask_Colour;
+int iColor_Menu_BG, iColor_Msg_BG;
+int iCtl_Text_Colour, iCtl_Back_Colour, iCtl_Mask_Colour, iCtl_Mask_Fallback;
 int iCtl_BMP_Aspect, iCtl_BMP_Preview, iBMP_Preview;
 
 
@@ -873,7 +887,7 @@ int Deint_VIEW, Deint_Auto_CURR, Deint_AUTO_View, Deint_SNAP, Deint_VOB;
 
 int  Restore_X, Restore_Y, Restore_Width, Restore_Height;
 
- 
+
 int iOut_Fix_SD_Hdr, iOut_Fix_Hdrs_Vid, iIn_VOB;
 int iPES_Mpeg_Any;
 
@@ -912,10 +926,10 @@ int MPEG_Seq_load_chroma_non_intra_quantizer_matrix;
 /* ISO/IEC 13818-2 section 6.2.3: gothdr_PICTURE() */
 
 int MPEG_Pic_Type, PREV_Pic_Type;
-#define I_TYPE      1 
+#define I_TYPE      1
 #define P_TYPE      2
 #define B_TYPE      3
-unsigned  MPEG_Pic_Temporal_Ref;
+unsigned int MPEG_Pic_Temporal_Ref;
 /* ISO/IEC 13818-2 section 6.2.3.1: picture_coding_extension() header */
 int MPEG_Pic_f_code[2][2];
 int MPEG_Pic_Structure;
@@ -949,7 +963,7 @@ char *Mpeg2_Aspect_Ratio_Name[16]
 // For Mpeg-1 Aspect is actually Pixel aspect, not Frame Aspect.
 char *Mpeg1_Aspect_Ratio_Name[16]
 #ifdef GLOBAL
-   = { "asp0",     "VGA",     "a.6735",   "a.7031",  
+   = { "asp0",     "VGA",     "a.6735",   "a.7031",
        "a.7615",   "a.8055",  "a.8437",   "a.8935",
        "a.9375",   "a.9815",   "a1.0255", "a1.0695",
        "a1.1250",  "a1.1575",  "a1.2015", "asp15"}
@@ -981,7 +995,7 @@ void Pic_DECODE(void);
 void GetBlk_RdAHD_RESET();
 
 //int Packet_Length, Packet_Header_Length, getAudio_size;
-unsigned int getbit_AUDIO_ID; 
+unsigned int getbit_AUDIO_ID;
 int getbit_VOBCELL_Count;
 int /*unsigned short*/ getbit_VOB_ID, getbit_CELL_ID;
 
@@ -989,9 +1003,9 @@ int /*unsigned short*/ getbit_VOB_ID, getbit_CELL_ID;
 //void Get_Next_Packet_Start();
 void getBLOCK_Packet(int);
 
-int Mpeg_READ_Buff(int P_FileNum, unsigned char *P_Buffer, int P_iRqstLen, int P_Caller); 
+int Mpeg_READ_Buff(int P_FileNum, unsigned char *P_Buffer, int P_iRqstLen, int P_Caller);
 
- 
+
 void  Mpeg1_PesHdr();
 
 
@@ -1014,7 +1028,7 @@ unsigned Get_PTS(int P_Char1);
 unsigned int getbit_StreamID, getbit_SubStreamID;
 
 int getbit_PES_Gate, iPS_Frame_Offset;
-int getbit_iPkt_Len_Remain; 
+int getbit_iPkt_Len_Remain;
 int getbit_iPkt_Hdr_Len, getbit_iPkt_Hdr_Len_Remaining;
 int getbit_iDropPkt_Flag, Mpeg_PES_Byte1;
 
@@ -1024,7 +1038,7 @@ char     PTS_Flag[4];
 
 
 // GetAudio.c
-void GetDelay();  
+void GetDelay();
 void Packet_Aud_Inc();
 void Got_PrivateStream();
 void Got_MPA_Pkt();
@@ -1152,12 +1166,12 @@ struct
   __int64   FromLoc [204];
   unsigned  FromPTS [204],  FromPTSM[204]; //, FromSSCR[204];
   unsigned int uFrom_TCorrection[204], uFrom_FPeriod_ps[204];
-  
-  int       ToPadFile[204]; 
+
+  int       ToPadFile[204];
   //__int64   ToPadBlk [204];
   __int64   ToPadLoc [204];
   unsigned  ToPadPTS [204], ToPadPTSM[204]; //, ToPadSSCR[204];
-  
+
   int       ToViewFile[204];
   //__int64   ToViewBlk [204];
   __int64   ToViewLoc [204];
@@ -1165,7 +1179,7 @@ struct
 
 
   unsigned  uClip_MB[204], uClip_Secs[204];
-  
+
 } EDList;
 
 
@@ -1201,30 +1215,29 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n);
 void D100_CHECK_Overlay(void);
 void D200_UPD_Overlay();
 void D300_FREE_Overlay();
-void Chg2RGB24(int, HWND), Chg2YUV2(int, HWND), DD_OverlayMask();
+void Chg2RGB24(int, HWND), Chg2YUV2(int, HWND), DD_OverlayMask(int);
 void VGA_GetSize(), Calc_PhysView_Size();
 void DD_PtrLost_Box(const char *P_PtrDesc);
 void Flag2RGB();
-void Set_OVL_Notify(int P_NewSetting);   
- 
+void Set_OVL_Notify(int P_NewSetting);
+
 HBRUSH hBrush_MASK, hBrush_MSG_BG;
 
 DWORD WindowsVersion;  // OLD FORMAT stupid Version number from GetVersion()
 
 OSVERSIONINFO winVer;  // NEW FORMAT sensible Version number from GetVersionEx(&winVer)
-  
-RECT wrect, crect, orect, prect, srect; 
+
+RECT wrect, crect, orect, prect, srect;
 int DDraw_Surface_Size, DDraw_Canvas_Size, DDraw_lPitch, DDraw_dwWidth;
 int iVistaOVL_mod, iCtl_VistaOVL_mod;
 
-  
- 
+
+
 // DISP_WIN.cpp
 void DSP1_Main_MSG(const int, const int),      DSP5_Main_FILE_INFO();
 void DSP2_Main_SEL_INFO(int), DSP3_Main_TIME_INFO();
 void DSP_Msg_Clear();
 //void DSP_Blank_Msg_Clean();
-int  B195_NotMpeg2_Msg(int);
 void DSP_Button_Abbr();
 void DSP_ButtonFont_Sizing();
 void MainWin_Rect();
@@ -1232,7 +1245,7 @@ void MainWin_Rect();
 HFONT hFont1
 #ifdef GLOBAL
  = 0
-#endif 
+#endif
 ;
 HFONT hFont2
 #ifdef GLOBAL
@@ -1250,10 +1263,11 @@ void AddButton_Create();
 void MarkLeftButton_Create();
 void MarkRightButton_Create();
 
+unsigned int uFontHeight; //, uDGF_Height;
 int iTool_Ht, iTool_Wd, iTrackBar_PosY, iPlayBar_PosY, iSkipBar_PosY;
 int iToolbarWidth, iTrack_Wd;
 int iTopMargin;
-int iTimeX, iTimeY, iMsgPosY, iSelMsgX;  
+int iTimeX, iTimeY, iMsgPosY, iSelMsgX;
 int Client_Width, Client_Height;
 int iCentre_Cropped;  // iCenter_Cropped
 int iConverge_Red_H,  iConverge_Red_V;
@@ -1288,20 +1302,30 @@ struct
 char ShowTC_AM_PM[4];
 
 
-// LUM_WIN.c 
+// LUM_WIN.c
 
-HWND  hLumDlg;
-int iLumEnable_Flag[2]; // WAS Luminance_Flag
+HWND hLumDlg;
+int iLumEnable_Flag[2];  // WAS Luminance_Flag
+int iCtl_Lum_Deselector, iLum_Deselected; // Option to remove boosting when outside selection
 int iLumLock_Flag, iSatLock_Flag;          // Slider Lock RJ
-int iSat_VHS, iSat_Sine; 
+int iSat_VHS, iSat_Sine;
 int iSatAdj_Flag, iSatAdd_U[2], iSatAdd_V[2], iSatGain[2]; // Color UV-Hue Saturation
+int iCtl_SAT_Retain;
 int iBMP_Wanted;
 
-
-int iLumOffset[5], iLumGain[5], iLumGamma[5];
+// iLum [0]=RecentYUV; [1]=RecentRGB; [2]=[D]; [3]=[B]; [4]=[C]; [5]=[A];
+int iLumOffset[6], iLumGain[6], iLumGamma[6];
 int iColorSpaceTab;
 
 LRESULT CALLBACK Luminance_Dialog(HWND, UINT, WPARAM, LPARAM);
+HCURSOR hCSR_CROSS;
+
+void Lum_Swap_UV(const int P_Reshow);
+void Lum_Negative(const int P_Reshow);
+void Lum_Bold();
+void Lum_C();
+void Lum_Default();
+//void Lum_BC_Adj(int P_Adj);
 
 //unsigned char GammaMask[256];
 
@@ -1309,7 +1333,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND, UINT, WPARAM, LPARAM);
 //DBG.c
 
 FILE *DBGfile;
- 
+
 int  DBGflag,iDBGsuffix, iAudioDBG;
 int bDBGStr;  // For DbgView
 void DBGln2(char[256], __int64, __int64) ;
@@ -1325,7 +1349,7 @@ void DBGAud(void *P_Text);
 void Msg_LastError(char[32], int, char);
 void ERRMSG_File(char[32], char, int, char[_MAX_PATH], int, int) ;
 void Err_Malloc(void *);
-  
+
 // IN_FILES.c
 
 int  F100_IN_OPEN(char, int) ;
@@ -1336,7 +1360,9 @@ int  F500_IN_OPEN_TRY(char);
 int  F503_Dup_Name_TST(char *P_Name, const char *P_Msg);
 int  F505_IN_OPEN_TST(char cP_Act);
 void F590_ReOpenAllFiles(char);
-int  F591_Ask_Trojan(const int, const void *P_Desc);
+int  F591_Ask_Trojan(const int, const void *P_Desc,
+                    int *P_Ctl, const unsigned int P_MenuId);
+int  F595_NotMpeg2_Msg(int), F594_TS_Warn_Msg();
 void F600_NewName_Setup();
 int  F690_FileName_ChkChars(unsigned char *lpNameChr);
 void F920_Init_Names();
@@ -1362,7 +1388,7 @@ void RJ_Date2Gregorian(int*,        struct tm*,  void*,  void*);
 int iDeEdit(char *, int);
 int iParmConfirm, iSuppressWarnings;
 
-HWND hNewnameDlg; 
+HWND hNewnameDlg;
 
 // PopFileDlg
 int X800_PopFileDlg(PTSTR, HWND, int, int, char *);
@@ -1390,8 +1416,10 @@ void FileNameTidy(char *P_Dest, char *P_Src);
 void INI_VARS_BeforeMenu(), INI_GET(), INI_MERGE();
 void INI_SAVE();
 void Ini_Associate();
+void MenuTick(UINT uItem), MenuUnTick(UINT uItem);
+void MenuTickCtl(UINT uItem, UINT uStatus);
 
-int Warning_Box(char *lpP_Text, char *lpP_Title, 
+int Warning_Box(char *lpP_Text, char *lpP_Title,
                 int  *lpP_WarnCtl, unsigned int lpP_Warn_ID,
                 unsigned int uMode);
 
@@ -1410,7 +1438,7 @@ char szCreativePlayCtr[_MAX_PATH];
 
 
 void Stats_Show(int, int), Stats_Kill();
-void Stats_Volume_Boost();  
+void Stats_Volume_Boost();
 
 void Set_AudioTrack(int);
 void Set_XTN_PS(char [8]), Set_XTN_AUD(char [8]);
@@ -1420,15 +1448,16 @@ void Set_Preamble_Mode(int P_Mode);
 void Set_Toggle_Menu(char, void*, int);
 void Set_Parse_Ticks();
 void Set_Wheel_Scroll(int);
- 
-#define PRIORITY_HIGH    1 
+
+#define PRIORITY_QUICK   0
+#define PRIORITY_HIGH    1
 #define PRIORITY_NORMAL  2
 #define PRIORITY_LOW     3
 
 int Add_Automation;
 int iCtl_EDL_AutoSave, iCtl_RecycleBin;
-int iCtl_Track_Memo, iCtl_Name_Info, iCtl_FileSortSeq;
-int iCtl_Priority[3]; 
+int iCtl_Track_Memo,  iCtl_Name_Info, iCtl_FileSortSeq;
+int iCtl_Priority[3];
 int iCtl_BasicName_Panel, iCtl_ColumnWidth[6];
 int iCtl_Trackbar_Big, iTrackbar_Big;
 
@@ -1445,20 +1474,20 @@ int iCtl_Out_Demux, iCtl_Out_PTS_Match;
 int iCtl_Out_TC_Adjust, iCtl_Out_TC_Force, iCtl_Out_PTS_Invent;
 int iCtl_Out_Fix_Errors;
 int iCtl_Out_Force_Interlace;
-int iCtl_Out_KillPadding;   
+int iCtl_Out_KillPadding, iCtl_Out_DropCrud;
 int iCtl_Out_Parse_Extras, iCtl_Out_Parse_Deep, iCtl_Out_Parse_AllPkts;
 int iCtl_Out_Parse_SplitStart, iCtl_Out_SplitSegments;
 int iCtl_SetBrokenGop;
-int iCtl_Out_Align_Video;  
+int iCtl_Out_Align_Video;
 int iCtl_Out_Align_Audio;
 //int iCtl_Out_Keep_Ac3Hdr;
 int iCtl_Out_Preamble_Flag, iCtl_Out_Preamble_VTS;
 int iCtl_Out_DeBlank, iCtl_Out_MixedCase, iCtl_OutPartAuto;
 int iCtl_Out_PostProc, iCtl_Out_PostQuote, iCtl_Out_PostShow;
-int iCtl_Out_Folder_Active, iCtl_BMP_Folder_Active;
-int iCtl_Out_Folder_Both;
+int iCtl_OutFolder_Active, iCtl_BMP_Folder_Active;
+int iCtl_OutFolder_Both;
 int iCtl_Out_KeepFileDate;
-char szCtl_Out_Folder[_MAX_PATH];
+char szCtl_OutFolder[_MAX_PATH];
 char szCtl_BMP_Folder[_MAX_PATH];
 char szCtl_Out_ProcLine_A[_MAX_PATH*2];
 char szCtl_Out_ProcLine_B[_MAX_PATH*2];
@@ -1468,7 +1497,9 @@ int iCtl_Play_AudLock, iCtl_Play_Sync, iCtl_Play_Summary, Err_Analysis;
 int iCtl_Byte_Sync, iCtl_DropAction;
 
 int iCtl_WarnSize_1, iCtl_WarnSize_2, iCtl_WarnSize_3, iCtl_WarnSize_4;
-int iCtl_WarnMpeg1, iCtl_WarnBadStart, iCtl_WarnNoHdr;
+int iCtl_WarnMpeg1, iCtl_WarnTS, iCtl_WarnTSmpg, iCtl_WarnCDXA, iCtl_WarnETC;
+int iCtl_WarnBadStart, iCtl_WarnNoHdr, iCtl_WarnBadSysHdr;
+int iCtl_WarnDone;
 
 int iCtl_ParmClipSpec, iCtl_ParmConfirm;
 int iCtl_Time_Fmt;
@@ -1481,16 +1512,17 @@ unsigned int uCtl_Video_Stream, uGot_Video_Stream;
 unsigned int uCtl_Vid_PID, uCtl_Aud_PID, uGot_PID;
 unsigned int uVid_PID, uPrev_PID, uVid_PID_All; // , uGot_PID_Stream;
 unsigned int uAud_PID_All;
+unsigned int uCtl_Aud_Stream;
 unsigned uPID_Map[16], uPID_Map_Used;
 int iCtl_MultiAngle, iWant_VOB_ID;
 
 char uGot_Pkt_Type;
 
 
-int Mpeg_Version_Alerted; 
+int Mpeg_Version_Alerted;
 int Mpeg_Version_Alerts_Session;
 void MPEG_File_Reset();
- 
+
 void SwitchIDCT();
 
 /* idct */
@@ -1536,14 +1568,14 @@ void Normalize(FILE *WaveIn, int WaveInPos, char *filename, FILE *WaveOut, int W
 void Render_Init();
 void Lum_Filter_OVL(unsigned char *src, unsigned char *dst);
 void Lum_Filter_RGB(unsigned char *src, unsigned char *dst);
-__forceinline void R250_SIGNAL_Overlay(); 
+__forceinline void R250_SIGNAL_Overlay();
 
 
 /* store.c */
 void Write_Frame(unsigned char *src[], D2VData d2v, DWORD frame);
 void Cnv_422_yuy2_FLD(int, unsigned char *py, unsigned char *pu,
                        unsigned char *pv, unsigned char *dst);
-//__forceinline static 
+//__forceinline static
 void Store_YUY2a(unsigned char *src[]);// , DWORD frame);
 void RenderYUY2(int),  RenderF420(int);
 void RenderRGB24(void);
@@ -1560,19 +1592,19 @@ int iSync_Diff_ms;
 void Timing_DropMore();
 
 
-
-double frame_rate_Table[16] 
+double frame_rate_Table[18]
 #ifdef GLOBAL
 =
 {
   18.0,     // Allow for illegal value of zero
-  ((24.0*1000.0)/1001.0),    24.0,   25.0,
+  ((24.0*1000.0)/1001.0),    24.0,  25.0,
   ((30.0*1000.0)/1001.0),    30.0,  50.0,  ((60.0*1000.0)/1001.0),
   60.0,
-  // rest are "reserved", 
+  // rest are "reserved",
   // but turn up in non-std files.  Guessing values.  see also K_FrameCode
-  12.0,    16.0,  18.0,  20.0,   
-   6.0,     2.0,   1.0
+  12.0,    16.0,  18.0,  20.0,
+   6.0,     2.0,   1.0,
+  ((25.0*44.1)/48.0), ((30.0*1000.0*44.1)/1001.0/48.0) // For 48k=>44.1k adjust
 }
 #endif
 ;
@@ -1581,3 +1613,4 @@ double frame_rate_Table[16]
 
 
 
+

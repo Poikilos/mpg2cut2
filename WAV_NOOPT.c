@@ -26,10 +26,10 @@ void WAV_WIN_Spkr_close(void)
 {
 
   if (DBGflag)
-      DBGout("SPKR_CLOSE");
+      DBGout("SPKE");
 
   if (iAudioDBG)
-      DBGAud(&"SPKR_CLOSE");
+      DBGAud(&"SPKE");
 
   // SetPriorityClass ( GetCurrentProcess (), IDLE_PRIORITY_CLASS); // NORMAL_PRIORITY_CLASS
 
@@ -38,19 +38,19 @@ void WAV_WIN_Spkr_close(void)
     WAV_Flush();
 
     if (DBGflag)
-        DBGout("SPKR_RS");
+        DBGout("SPKS");
 
     if (iAudioDBG)
-        DBGAud(&"SPKR_RS");
+        DBGAud(&"SPKS");
 
     waveOutReset (hWAVEdev);      // reset the device
     waveOutClose (hWAVEdev);      // close the device
     hWAVEdev = NULL;  
     if (DBGflag)
-        DBGout("  FLUSHED");
+        DBGout("FLU ");
 
     if (iAudioDBG)
-         DBGAud(&"  FLUSHED");
+         DBGAud(&"FLU ");
 
     Sleep(5);
 
@@ -59,10 +59,10 @@ void WAV_WIN_Spkr_close(void)
   if (WAV_cs_FLAG) // Try to prevent CRASH IN KERNEL32 (Win98SE)
   {
      if (DBGflag)
-         DBGout("WAV_DelCS");
+         DBGout("WAVD");
 
      if (iAudioDBG)
-         DBGAud(&"WAV_DelCS");
+         DBGAud(&"WAVD");
      Sleep(10);
 
      DeleteCriticalSection ( &WAV_Critical_Section );
@@ -175,7 +175,7 @@ wave_callback ( HWAVE hWave, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD 
       if (PlayedWaveHeadersCount >= iWAVEOUT_Scheduled_Blocks)
       {
           cAudState = '-';
-          TextOut(hDC, 0, iMsgPosY, "--------------------", 20);
+          TextOut(hDC, 0, iMsgPosY, "==========", 10);
       }
     }
     
@@ -387,6 +387,15 @@ typedef struct tWAVEFORMATEX
 
    if (process.iWavBytesPerMs < 1)   // Allow for silly settings
        process.iWavBytesPerMs = 192; // 48k samples/sec
+
+  sprintf(WAV_Fmt_Brief, "%hu %hu %hu", outFormat.nSamplesPerSec, 
+                            outFormat.wBitsPerSample, outFormat.nChannels);
+
+  if (DBGflag)
+  {
+      sprintf(szBuffer, "WAV SET %s", WAV_Fmt_Brief);
+      DBGout(szBuffer);
+  }
 
    if (iCtl_AudioThread)
    {

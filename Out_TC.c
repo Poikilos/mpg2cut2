@@ -845,17 +845,17 @@ void Out_TC_Rewind(         __int64 *lpP_PTSM,
 
            __int64 i64PTS;
   unsigned __int64 u64PTSM; //, *i64PTS_ix;
-  unsigned   int   *lpP_PTSM_COPY;
-           __int64 *lpP_PTS_COPY;
+  unsigned   int   *lpP_PTSM_32;
+           __int64 *lpP_PTS_DBG;
   unsigned char cPTS_Sentinel; //, *lpPTSM;
   unsigned int iReturn;
 
-  lpP_PTS_COPY  = (__int64 *)(lpP_PTS);
-  lpP_PTSM_COPY = (__int64 *)(lpP_PTSM);
+  lpP_PTS_DBG  = (__int64*)(lpP_PTS);
+  lpP_PTSM_32 = (unsigned int*)(lpP_PTSM);
 
   if (DBGflag)
   {
-      sprintf(szBuffer, "                 REWIND=x%08x  ADJ=%04u =%ums", *lpP_PTSM_COPY, P_uAdj, (P_uAdj/90));
+      sprintf(szBuffer, "                 REWIND=x%08x  ADJ=%04u =%ums", *lpP_PTSM_32, P_uAdj, (P_uAdj/90));
       DBGout(szBuffer) ;
   }
 
@@ -885,11 +885,11 @@ void Out_TC_Rewind(         __int64 *lpP_PTSM,
   //i64PTS_ix = &i64PTS;
   PTS_2PTSM(&u64PTSM, &i64PTS, cPTS_Sentinel);
 
-  *lpP_PTSM_COPY = u64PTSM;
+  *lpP_PTSM_32 = (int)u64PTSM;
 
   if (DBGflag)
   {
-      sprintf(szBuffer, "                    NEW=x%08x", *lpP_PTSM_COPY);
+      sprintf(szBuffer, "                    NEW=x%08x", *lpP_PTSM_32);
       DBGout(szBuffer) ;
       sprintf(szBuffer, "                    PTS=x%08x-%x =%08d-%d  =%dms", i64PTS, i64PTS, (int)(i64PTS/90));
       DBGout(szBuffer) ;

@@ -65,6 +65,9 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
   int  i,  iRC,  iTmp1;
   //  int  iTmp1,  iTmp2,  iTmp3,  iTmp4  ;
 
+  unsigned uDiffPTS;
+  __int64 i64DiffLoc; //, i64NewByteRate;
+
 
   const  unsigned  char  HIGH_VALUES[8]  =  {  0xFF,  0xFF,  0xFF,  0xFF,  0xFF,  0xFF,  0xFF,  0xFF}  ;
 
@@ -74,9 +77,11 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
 
   ZeroMemory(&PlayCtl,    sizeof(PlayCtl));
   PlayCtl.iFPS_Dec_Pct = 100;
+  PlayCtl.iPalTelecide_ctr = 24;
+  PktChk_Audio = 25; PktChk_Any = 600;
 
   MParse.Pause_Flag  =  0;  MParse.Stop_Flag    =  0;
-  MParse.Fault_Flag   =  0;
+  MParse.Fault_Flag  =  0;
 
   if (process.Action !=  ACTION_RIP)
   {
@@ -134,15 +139,27 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
   strcpy(AC3_Err_Txt,  "  ");
 
 
-  for  (i=0;  i<CHANNELS_MAX;  i++)
+  if (uCtl_Aud_PID == STREAM_NONE)
   {
-    ZeroMemory(&mpa_Ctl[i],  sizeof(MPAStream));
+    ZeroMemory(&mpa_Ctl,        sizeof(mpa_Ctl));
+    ZeroMemory(&SubStream_CTL,  sizeof(SubStream_CTL)); // AC3Stream)*6*CHANNELS_MAX));
+    ZeroMemory(&iAudio_Trk_FMT, sizeof(iAudio_Trk_FMT));
   }
-  ZeroMemory(&SubStream_CTL,  (sizeof(SubStream_CTL))); // AC3Stream)*6*CHANNELS_MAX));
-  iTmp1 = sizeof(SubStream_CTL);
+  else
+  {
+    for  (i=0;  i<CHANNELS_MAX;  i++)
+    {
+       mpa_Ctl[i].rip = 0;
+       SubStream_CTL[0][i].rip = 0;
+       SubStream_CTL[1][i].rip = 0;
+       SubStream_CTL[2][i].rip = 0;
+       SubStream_CTL[3][i].rip = 0;
+       SubStream_CTL[4][i].rip = 0;
+       SubStream_CTL[5][i].rip = 0;
+    }
+  }
 
   ZeroMemory(&wav,  sizeof(wav)); // struct  WAVStream));
-  ZeroMemory(&iAudio_Trk_FMT,  sizeof(iAudio_Trk_FMT));
 
   // Message area clean-up
 
@@ -203,6 +220,41 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
   if  (process.Action  ==  ACTION_FWD_GOP)
   {
       Nav_Jump_Fwd(&BwdGop);
+
+               // Calc stuff for ByteAvg  
+               if (process.CurrFile == 0
+               &&  process.VideoPTS  > 0
+               &&  process.VideoPTS != PTS_NOT_FOUND)
+               {
+                  if (process.VideoPrevPTS > 0
+                  &&  process.VideoPTS > process.VideoPrevPTS)
+                  {
+                      uDiffPTS = process.VideoPTS - process.VideoPrevPTS;
+                      i64DiffLoc = process.CurrLoc  - process.PREV_Curr_Loc;
+                      if (i64DiffLoc > 32000) 
+                      {
+                         // convert to bytes per second
+                         process.i64NewByteRate = (int)(i64DiffLoc * 45000 / uDiffPTS);
+                         i64CurrByteRateAvg  = 
+                             ( (process.ByteRateAvg[process.CurrFile] * 5) 
+                                  + process.i64NewByteRate) / 6; 
+                         process.ByteRateAvg[process.CurrFile] = i64CurrByteRateAvg;
+                         //if (DBGflag)
+                         //{
+                         //    sprintf(szMsgTxt, "%d %d", 
+                         //           process.i64NewByteRate, i64CurrByteRateAvg);
+                         //    DSP1_Main_MSG(0,1);
+                         //}
+                          
+                      }
+                  }
+
+                  // Remember for next time
+                  process.VideoPrevPTS  = process.VideoPTS;
+                  process.PREV_Curr_Loc = process.CurrLoc;
+               } 
+            
+          
   }
 
   else
@@ -227,16 +279,21 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
       }  //  END  BWD_GOP
       else
       {
-          //  Everything  else  breaks  the BwdGop chain  -  reset  LIFO  stack;
-          BwdGop.ix   = 0;  BwdGop.iOrg   = 0;
+          // Most other things break the BwdGop chain - reset LIFO stack;
+          if  (process.Action  !=  ACTION_RIP)
+          {
+               BwdGop.ix   = 0;  
+               BwdGop.iOrg = 0;
+          }
 
-          if  (process.Action  ==  ACTION_FWD_FAST)
+          if  (process.Action  ==  ACTION_FWD_JUMP)
           {
                 Nav_Jump_Fwd(&BwdFast1);
+
           }
           else
-          if  (process.Action    ==  ACTION_BWD_FAST
-          &&   process.PrevAct   ==  ACTION_FWD_FAST)
+          if  (process.Action    ==  ACTION_BWD_JUMP
+          &&   process.PrevAct   ==  ACTION_FWD_JUMP)
           {
                Nav_Jump_BWD(&BwdFast1);
           }  //  END  BWD_GOP
@@ -244,6 +301,7 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
           {
             //  Everything else breaks the BwdFast1 chain - reset LIFO stack;
             BwdFast1.ix = 0;  BwdFast1.iOrg = 0;
+            process.VideoPrevPTS = 0;
           }
 
       }  //endelse  FAST BWDGOP
@@ -307,26 +365,26 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
 
     switch  (process.Action)
     {
-     case  ACTION_BWD_FAST4:
+     case  ACTION_BWD_JUMP4:
 
         process.LocJump  =    i64CurrByteRateAvg  *  iJumpSecs[5] * 3 / 2;
         if  (process.CurrLoc  >  (-process.LocJump)  ||  process.CurrFile)
         {
           break  ;
         }
-        else  process.Action  =  ACTION_BWD_FAST2  ;
+        else  process.Action  =  ACTION_BWD_JUMP2  ;
 
-     case  ACTION_BWD_FAST2:
+     case  ACTION_BWD_JUMP2:
 
         process.LocJump  =    i64CurrByteRateAvg  *  iJumpSecs[5];
         if  (process.CurrLoc  >  (-process.LocJump)  ||  process.CurrFile)
         {
           break  ;
         }
-        else  process.Action  =  ACTION_BWD_FAST  ;
+        else  process.Action  =  ACTION_BWD_JUMP  ;
 
 
-    case  ACTION_BWD_FAST:
+    case  ACTION_BWD_JUMP:
 
         process.LocJump  =    i64CurrByteRateAvg  *  iJumpSecs[4];
         if  (process.CurrLoc  <  (-process.LocJump)  &&  !  process.CurrFile)
@@ -376,7 +434,7 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
   else
   switch  (process.Action)
   {
-    case  ACTION_FWD_FAST4:
+    case  ACTION_FWD_JUMP4:
 
         process.LocJump  =  i64CurrByteRateAvg  *  iJumpSecs[2] * 3 / 2;
         if  (process.CurrFile  <  File_Final
@@ -386,9 +444,9 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
             break  ;
         }
         else  
-          process.Action  =  ACTION_FWD_FAST2;
+          process.Action  =  ACTION_FWD_JUMP2;
 
-    case  ACTION_FWD_FAST2:
+    case  ACTION_FWD_JUMP2:
 
         process.LocJump  =  i64CurrByteRateAvg  *  iJumpSecs[2];
         if  (process.CurrFile  <  File_Final
@@ -398,11 +456,11 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
             break  ;
         }
         else 
-          process.Action  =  ACTION_FWD_FAST;
+          process.Action  =  ACTION_FWD_JUMP;
 
 
 
-    case  ACTION_FWD_FAST:
+    case  ACTION_FWD_JUMP:
 
         process.LocJump  =  i64CurrByteRateAvg  *  iJumpSecs[1];
 
@@ -676,7 +734,7 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
          {
             iWantType = I_TYPE;
           
-            if (MParse.FastPlay_Flag >= (CUE_SLOW+2)) // SUPER-CUE mode matches = ACTION_FWD_FASTx on Auto
+            if (MParse.FastPlay_Flag >= (CUE_SLOW+2)) // SUPER-CUE mode matches = ACTION_FWD_JUMPx on Auto
             {
                iTmp1 = MParse.FastPlay_Flag - (CUE_SLOW+2);
                process.LocJump = i64CurrByteRateAvg  *  iJumpSecs[iTmp1];
@@ -901,7 +959,7 @@ void  Mpeg_INIT_Find_SEQ()
             if (!process.Mpeg2_Flag)
             {
               if ( ! Mpeg_Version_Alerted)
-                  B195_NotMpeg2_Msg(0);
+                  F595_NotMpeg2_Msg(0);
             }
 
         }
@@ -998,7 +1056,7 @@ void  Mpeg_EOF()
 
   strcpy(szMsgTxt,FILE_END_OF_FILE);  // "END OF FILE"); 
   DSP1_Main_MSG(0,1);
-  iMsgLife = 1;
+  iMsgLife = 2;
   UpdateWindow(hWnd_MAIN);
   //MessageBeep(MB_OK);
 
@@ -1022,7 +1080,7 @@ void  Mpeg_EOF()
         if (MPEG_Pic_Type == P_TYPE)
         {
               Write_Frame(fwd_ref_frame,  d2v_fwd, Frame_Number-1);
-              if (PlayCtl.iPendingSeq[I_TYPE] > MPEG_Pic_Temporal_Ref)
+              if (PlayCtl.uPendingSeq[I_TYPE] > MPEG_Pic_Temporal_Ref)
                   Write_Frame(bwd_ref_frame, d2v_bwd,  Frame_Number /* 0 */);
         }
         else
@@ -1030,9 +1088,9 @@ void  Mpeg_EOF()
         {
               Write_Frame(aux_frame,   d2v_curr, Frame_Number-1);
               Write_Frame(aux_frame,   d2v_curr, Frame_Number-1);
-              if (PlayCtl.iPendingSeq[I_TYPE] > MPEG_Pic_Temporal_Ref)
+              if (PlayCtl.uPendingSeq[I_TYPE] > MPEG_Pic_Temporal_Ref)
                   Write_Frame(bwd_ref_frame, d2v_bwd,  Frame_Number /* 0 */);
-              if (PlayCtl.iPendingSeq[P_TYPE] > MPEG_Pic_Temporal_Ref)
+              if (PlayCtl.uPendingSeq[P_TYPE] > MPEG_Pic_Temporal_Ref)
                   Write_Frame(fwd_ref_frame,  d2v_fwd, Frame_Number);
         }
 
@@ -1063,7 +1121,7 @@ void  Mpeg_KILL(int  P_Caller)
                                                       MParse.Fault_Flag);  //process.Action);
 
   if (iAudioDBG)
-      DBGAud(&"MPEG_KILL");
+      DBGAud(&"mkil");
 
 
   //if  (DBGflag)  TextOut(hDC,  0,  80,  "Mpeg_Kill",  9);
@@ -1137,10 +1195,14 @@ void  Mpeg_KILL(int  P_Caller)
 
   // Flush the Sound output buffers
   if(iWAV_Init)
-    WAV_Flush();  // WAV_WIN_Audio_close();
+  {
+    WAV_Flush();  
+    if (iAudio_Force44K)
+        WAV_WIN_Audio_close();
+  }
   else
   if (iAudioDBG)
-      DBGAud(&"NO WAV   ");
+      DBGAud(&"0WAV");
 
 
   //if  (DBGflag)  TextOut(hDC,  0,  80,  "Mpeg_Kill",  9);
@@ -1175,15 +1237,15 @@ void  Mpeg_KILL(int  P_Caller)
   if (iKick.Action) // Is there another Mpeg Action waiting ?
   {
       if (iAudioDBG)
-          DBGAud(&"NEW ACT  ");
+          DBGAud(&"+ACT");
   }
   else
   {
       if (DBGflag)
-          DBGout("FILE INFO");
+          DBGout("Inf ");
      
       if (iAudioDBG)
-          DBGAud(&"FILE INFO");
+          DBGAud(&"Inf ");
 
       //DSP5_Main_FILE_INFO();
       PostMessage(hWnd_MAIN, RJPM_UPD_MAIN_INFO, 0, 0); // Avoid Deadlock
@@ -1207,9 +1269,9 @@ void  Mpeg_KILL(int  P_Caller)
       if (MParse.ShowStats_Flag)
       {
          if (DBGflag)
-             DBGout("STATS-Upd");
+             DBGout("STAT");
          if (iAudioDBG)
-             DBGAud(&"STATS-Upd");
+             DBGAud(&"STAT");
 
          S300_Stats_Audio_Desc();
       }
@@ -1219,14 +1281,14 @@ void  Mpeg_KILL(int  P_Caller)
   if (DBGflag)
       DBGout("MPEG_EXIT");
   
-  if (iAudioDBG)
-      DBGAud(&"CallBacks");
+  //if (iAudioDBG)
+  //    DBGAud(&"CBK ");
 
   if (mycallbacks.hMPEGKill)
         SetEvent(mycallbacks.hMPEGKill);
 
-  if (iAudioDBG)
-      DBGAud(&"X         ");
+  //if (iAudioDBG)
+  //    DBGAud(&"X   ");
 
   ExitThread(0);
 }

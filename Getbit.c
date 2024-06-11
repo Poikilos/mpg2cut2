@@ -487,7 +487,7 @@ void PTS_Video_Analysis()
 //----------------------------------------------------------
   static int i, iRC;
   // static int getbit_AC3_1stTime,
-  static int iAdapt, iTS_PES_hdr;
+  static int iAdapt, iTS_VID_hdr;
 
   unsigned uTmp1, uTmp2;
 
@@ -732,8 +732,8 @@ void Get_Next_Packet()
     PktStats.iChk_AnyPackets++;
     // NEBULA capture routines drops video frames when CPU hits 100%,
     // but audio keeps going, leaving vision jerky or frozen for duration
-    if (PktStats.iChk_AudioPackets >  25
-    ||  PktStats.iChk_AnyPackets   > 600)
+    if (PktStats.iChk_AudioPackets >  PktChk_Audio
+    ||  PktStats.iChk_AnyPackets   >  PktChk_Any)
     {
          GetChkPoint();
          if (MParse.Stop_Flag)
@@ -751,6 +751,7 @@ void Get_Next_Packet()
 
     if (MParse.SystemStream_Flag < 0) // Transmission stream (TS or PVA) ?
     {
+Transmission_Find:
      if (MParse.SystemStream_Flag == -1) // Transport stream (TS) ?
      {
 Transport_Find:
@@ -886,7 +887,7 @@ Transport_Find:
         }
 #endif
 
-        iTS_PES_hdr = 0;
+        iTS_VID_hdr = 0;
 
         if (getbit_iPkt_Len_Remain < 4)
         {
@@ -903,7 +904,7 @@ Transport_Find:
           if (!RdPTR[0] && !RdPTR[1] && RdPTR[2] == 0x01
             && RdPTR[3]  >= 0xE0     && RdPTR[3] <= 0xEF) // VIDEO STREAM ?
           {
-             iTS_PES_hdr = 1;
+             iTS_VID_hdr = 1;
 
              if (DBGflag)
              {
@@ -923,7 +924,7 @@ Transport_Find:
 #endif
         // Some packets are more interesting than others
 
-        if (! iTS_PES_hdr)
+        if (! iTS_VID_hdr)
         {
 
            if (DBGflag)
@@ -931,8 +932,7 @@ Transport_Find:
                  DBGout("  NO Video PES Hdr");
            }
 
-           if (uGot_PID == uCtl_Vid_PID // Selected PID - data without PES hdr
-           ||  uGot_PID == uCtl_Aud_PID )
+           if (uGot_PID == uCtl_Vid_PID) // Selected PID - data without PES hdr
            {
               if (DBGflag)
               {
@@ -941,23 +941,56 @@ Transport_Find:
                return;            //   <======  ESCAPE POINT ========== <<<
            }
            else
+           if (uGot_PID == uCtl_Aud_PID)
+           {
+              if (iPlayAudio)
+              {
+                 getbit_iPkt_Len_Remain = RdEndPkt - RdPTR; // Maybe unnecessary ????
+                 if (uCtl_Aud_Stream == cPRIVATE_STREAM_1
+                 &&  SubStream_CTL[FORMAT_AC3][0].rip)  // Has this track been setup ?
+                 {
+                     PS1_Convert();
+                     //goto Transport_Find;
+                 } // ENDIF Track set up ?
+                 else
+                 if (uCtl_Aud_Stream == 0xC0
+                  && mpa_Ctl[0].rip)
+                 {
+                     Got_MPA_PayLoad();
+                     //goto Transport_Find;
+                 } // ENDIF Track set up ?
+
+              }  // ENDIF iPlayAudio
+              goto Transport_Find;
+           }
+           else
            {  
 
              
              if (uCtl_Aud_PID == STREAM_AUTO // Looking For Audio Track
-             &&  !RdPTR[0] && !RdPTR[1] && RdPTR[2] == 0x01
-             && (  (iWant_Aud_Format <= FORMAT_MPA
-                     &&  RdPTR[3] >= 0xC0  && RdPTR[3] <= 0xCF) // MPA AUDIO STREAM ?
-                 ||(iWant_Aud_Format >  FORMAT_MPA  // Non-mpeg - usually AC3
-                     && (RdPTR[3] == 0xBD )) // PS1 AUDIO STREAM ?
-                ))
+             &&  uGot_PID < 999990
+             &&  !RdPTR[0] && !RdPTR[1] && RdPTR[2] == 0x01)
              {
+               uTmp1 = RdPTR[3];
+               if (  (uTmp1 >= 0xC0  && uTmp1 <= 0xCF   // MPA AUDIO STREAM ?
+                      && iWant_Aud_Format <= FORMAT_MPA )
+                   ||
+                     (uTmp1 == cPRIVATE_STREAM_1 // 0xBD  // PS1 AUDIO STREAM ? 
+                      && iWant_Aud_Format !=  FORMAT_MPA)  // Non-mpeg - usually AC3
+                  )
+               {
                  if (DBGflag)
                  {
                     DBGout("*AUDIO* PES HDR FOUND");
                  }
 
-                 uCtl_Aud_PID = uGot_PID;
+                 if (uCtl_Vid_PID < STREAM_AUTO // We have previously synchronized
+                 &&  uCtl_Vid_PID < uGot_PID)    // Australia - common practice    
+                 {
+                     uCtl_Aud_PID    = uGot_PID;
+                     uCtl_Aud_Stream = uTmp1;
+                 }
+               }
              }
              else
              
@@ -966,7 +999,7 @@ Transport_Find:
                // Data packet without PES hdr is otherwise useless
                if (uCtl_Vid_PID < STREAM_AUTO) // We have previously synchronized
                {
-                   RdPTR = RdEndPkt;
+                   RdPTR = RdEndPkt;   // Skip to end of packet
                    MPEG_PTR_BUFF_CHK
                }
 
@@ -1021,7 +1054,7 @@ Transport_Find:
               //    of available PIDs that are interleaved
 
               if (process.Action != ACTION_RIP
-              &&  iTS_PES_hdr
+              &&  iTS_VID_hdr
               &&  process.ALTPID_Loc <= 0)
               {
                  process.ALTPID_Loc  = Calc_Loc(&process.ALTPID_File, -1, 0) ; 
@@ -1122,21 +1155,32 @@ PVA_Find:
 
      } // END PVA format packet
 
+       getbit_input_code = Get_Short();
+       getbit_input_code = (getbit_input_code<<16) + Get_Short();
+
+       // skip until code found with valid Mpeg Code sentinel prefix
+       while (  MParse.Fault_Flag < CRITICAL_ERROR_LEVEL   // RJ ALLOW FOR BAD DATA
+           && ! MParse.Stop_Flag
+           &&( (getbit_input_code & 0xffffff00) != 0x00000100))
+       {
+            if (RdPTR >= RdEndPkt) // Allow for stray continuation packets
+                goto Transmission_Find;
+            getbit_input_code = (getbit_input_code<<8) + Get_Byte();
+       }
 
     } // END Transmission Stream Handling
+    else
+    {  // Program Stream or Elementary stream
+       getbit_input_code = Get_Short();
+       getbit_input_code = (getbit_input_code<<16) + Get_Short();
 
-
-
-
-    getbit_input_code = Get_Short();
-    getbit_input_code = (getbit_input_code<<16) + Get_Short();
-
-    // skip until code found with valid Mpeg Code sentinel prefix
-    while (  MParse.Fault_Flag < CRITICAL_ERROR_LEVEL   // RJ ALLOW FOR BAD DATA
-        && ! MParse.Stop_Flag
-        &&( (getbit_input_code & 0xffffff00) != 0x00000100) )
-    {
+       // skip until code found with valid Mpeg Code sentinel prefix
+       while (  MParse.Fault_Flag < CRITICAL_ERROR_LEVEL   // RJ ALLOW FOR BAD DATA
+           && ! MParse.Stop_Flag
+           &&( (getbit_input_code & 0xffffff00) != 0x00000100) )
+       {
             getbit_input_code = (getbit_input_code<<8) + Get_Byte();
+       }
     }
 
 #ifdef DBG_RJ
@@ -1239,14 +1283,20 @@ PVA_Find:
               Mpeg1_PesHdr();
            }
            else
-           {
+           { // Mpeg-2 PES
              getbit_PES_HdrFld_Flags = Get_Byte();
              process.Got_PTS_Flag    = getbit_PES_HdrFld_Flags & 0x80;
              getbit_iPkt_Hdr_Len_Remaining  = Get_Byte();
 
-             if (! process.Got_PTS_Flag) // Is there no PTS field ?
+             if (! process.Got_PTS_Flag) // Is there NO PTS field ?
              {
-                getbit_iDropPkt_Flag = 0;          // Acceptable
+                if (iDrop_B_Now_flag && PlayCtl.iDrop_PTS_Flag)
+                {
+                    getbit_iDropPkt_Flag = 1;          // skip
+                    PktStats.iSubTit_Packets++;
+                }
+                else
+                    getbit_iDropPkt_Flag = 0;          // ok
              }
              else
              {
@@ -1342,7 +1392,7 @@ PVA_Find:
          if (!process.Mpeg2_Flag) // Mpeg1 ?
          {
              if ( ! Mpeg_Version_Alerted)
-                 B195_NotMpeg2_Msg(0);
+                 F595_NotMpeg2_Msg(0);
 
             RdPTR += 4;  // Short SCR for Mpeg-1
             // RdPTR += 7;  // Mpeg 1 PACK hdr is short
@@ -1365,13 +1415,6 @@ PVA_Find:
             *((unsigned char*)(&iMuxChunkRate)+1) = *RdPTR++;
             *((unsigned char*)(&iMuxChunkRate)  ) = *RdPTR++;
             iMuxChunkRate = iMuxChunkRate>>2;
-
-            /*
-               iTmp1 = RdPTR++ & 7; // Length of Stuffing byte
-               RdPTR += iTmp1;
-               MPEG_PTR_BUFF_CHK
-            */
-
          }
 
          getbit_VOBCELL_Count = 0;
@@ -1400,7 +1443,6 @@ PVA_Find:
         Got_PrivateStream();
 
         RdPTR += getbit_iPkt_Len_Remain;
-
         Packet_Aud_Inc();
     //  break;
     } // ENDIF PS1-PS2
@@ -1410,9 +1452,15 @@ PVA_Find:
     if (getbit_input_code >= AUDIO_ELEMENTARY_STREAM_0   // MPA = Mpeg Audio
     &&  getbit_input_code <= AUDIO_ELEMENTARY_STREAM_7)
     {
-       uGot_Pkt_Type = 'A';
-
-       Got_MPA_Pkt();
+       if (process.iAudioAC3inMPA)  // Allow for crap muxer that puts AC3 inside an MPA packet type
+       {
+           Got_PrivateStream();
+       }
+       else
+       {
+          uGot_Pkt_Type = 'A';
+          Got_MPA_Pkt();
+       }
 
        RdPTR += getbit_iPkt_Len_Remain;
        Packet_Aud_Inc();

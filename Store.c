@@ -263,7 +263,7 @@ void Write_Frame(unsigned char *src[], D2VData d2v, DWORD frame)
      else
      if  (MParse.Tulebox_SingleStep_flag)
      {
-        // SingleStep mods by Tulebox (See EZOARD posting "Frame by frame stepping" Sep 04 2005)
+        // SingleStep mods by Tulebox (See EZBOARD posting "Frame by frame stepping" Sep 04 2005)
 
         //if(Single_Step_Flag) 
         {
@@ -534,7 +534,7 @@ unsigned char *lpSaveY, *lpSaveU, *lpSaveV;
       strinfo.dwQuality       = -1;
       strinfo.dwSuggestedBufferSize = birgb.biSizeImage;
       strinfo.dwScale = 1000;
-      strinfo.dwRate = (unsigned int)((MParse.FO_Flag==FO_FILM) ? frame_rate*800 : frame_rate*1000);
+      strinfo.dwRate = (unsigned int)((MParse.FO_Flag==FO_FILM) ? fFrame_rate*800 : fFrame_rate*1000);
 
       // set AVI save options
       opts.cbFormat = sizeof(birgb);
@@ -779,7 +779,7 @@ void Store_YUY2a(unsigned char *src[])    //, DWORD frame)
       strinfo.dwQuality       = -1;
       strinfo.dwSuggestedBufferSize = biyuv.biSizeImage;
       strinfo.dwScale = 1000;
-      strinfo.dwRate = (unsigned int)((MParse.FO_Flag==FO_FILM) ? frame_rate*800 : frame_rate*1000);
+      strinfo.dwRate = (unsigned int)((MParse.FO_Flag==FO_FILM) ? fFrame_rate*800 : fFrame_rate*1000);
 
       // set AVI save options
       opts.cbFormat = sizeof(biyuv);

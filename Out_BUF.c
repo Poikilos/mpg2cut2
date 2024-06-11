@@ -18,10 +18,11 @@
 //-----------------------------------------------------------
 int Mpeg_BIG_READ(BYTE *lpP_Into, const int P_Caller)   // BigRead
 {
+
   int iERR, iAnswer, iTmp1, iContigBad;
   int iMpeg_BufferRemaining_Len;
-  int iTime1, iTime2, iTimeDiff; //, iTimeHurdle;;
-  __int64 i64RC, i64_Big_ToDo, i64_Before_Pos, i64_New, i64Skip;
+  int iTime1, iTime2, iTimeDiff, iPrevSusp; //, iTimeHurdle;;
+  __int64 i64RC, i64_Big_ToDo, i64_Before_Pos, i64_New, i64Skip, i64Mask;
 
   iContigBad = 0;
 
@@ -41,11 +42,14 @@ resume:
 
 
   // What is max size of buffer ?
+  if (iIn_Errors > 0)
+      iMpeg_Copy_BufLimit = 64*1024;
+  else
   if (iCtl_Priority[2] == PRIORITY_LOW &&  ! iRange_FirstBlk)
   {
       iMpeg_Copy_BufLimit = iMpeg_Copy_BufSz/16;
-      if (iMpeg_Copy_BufLimit < 65536)
-          iMpeg_Copy_BufLimit = 65536;
+      if (iMpeg_Copy_BufLimit < 64*1024)
+          iMpeg_Copy_BufLimit = 64*1024;
   }
   else
       iMpeg_Copy_BufLimit = iMpeg_Copy_BufSz;
@@ -70,6 +74,7 @@ resume:
 
   }
 
+  iPrevSusp = iOutSuspCtr;
   iTime1 = iCURR_TIME_ms();
 
   // read a BIG block of data
@@ -139,9 +144,14 @@ resume:
   else
   {
      iIn_Errors++;
-     sprintf(szBuffer,"READ ERR #%d", iIn_Errors);                
+     sprintf(szBuffer,"READ ERROR #%d", iIn_Errors);                
      SetDlgItemText(hProgress, IDP_PROGRESS_ETA, szBuffer);
+     Out_Progress_Chk(1);
 
+     // If user is OKing read erors,
+     // and we are getting at least some data from each request
+     // or we are getting repeated errors
+     // then only re-ask occasionally
      if (iIn_AutoResume > 0 && iMpeg_Read_Len > 0)
      {
        iIn_AutoResume--;
@@ -181,20 +191,26 @@ resume:
      // SKIP to start of next recovery block (32k = 0x8000)
      // or further if a lot of contiguouous errors
      if ( iContigBad < 2)
+     {
           i64Skip =  32*1024;
+          i64Mask = 0xFFFFFFFFFFFF8000;
+     }
      else
-     if ( iContigBad < 4)
-          i64Skip =  64*1024;
-     else
-     if ( iContigBad < 8)
-          i64Skip = 128*1024;
-     else
-     if ( iContigBad < 9)
-          i64Skip = 256*1024;
-     else
-          i64Skip = 512*1024;
+     {
+          i64Mask = 0xFFFFFFFFFFFF0000;
+       if ( iContigBad < 4)
+            i64Skip =  64*1024;
+       else
+       if ( iContigBad < 8)
+            i64Skip = 128*1024;
+       else
+       if ( iContigBad < 9)
+            i64Skip = 256*1024;
+       else
+            i64Skip = 512*1024;
+     }
 
-     i64_New = (i64_Before_Pos + i64Skip) & 0xFFFFFFFFFFFF8000;
+     i64_New = (i64_Before_Pos + i64Skip) & i64Mask;
      iTmp1   = (int)(i64_New -  i64_Before_Pos);
      iMpeg_ToDo_Len -= iTmp1;
 
@@ -218,7 +234,7 @@ resume:
      {
          if (iMpeg_ToDo_Len > 0)
          {
-             if (iMpeg_Read_Len < 1)
+             if (iMpeg_Read_Len < 1 && iIn_Errors < 4)
                  iIn_AutoResume = 0;
 
              goto resume;

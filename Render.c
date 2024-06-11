@@ -1618,11 +1618,12 @@ void View_FindMasking()
 }
 */  
 
+POINT  OLD_Point;
 
 //---------------------------
 void View_Visible_Calc(int P_Zoom, int P_Pixel_Width)
 {
-  int iMax, iW_Zoom;
+  int iMax, iW_Zoom, iRC;
   int iExtraZoom;
 
   iExtraZoom = 0;
@@ -1660,9 +1661,29 @@ void View_Visible_Calc(int P_Zoom, int P_Pixel_Width)
   iGet_xFromBytes = iView_xFrom * P_Pixel_Width;
   iGet_yFrom      = iView_yFrom;
 
-  iView_Point.x = 0;
-  iView_Point.y = iTopMargin;  // 0;
-  ClientToScreen(hWnd_MAIN, &iView_Point); // Convert relative pos to absolute pos
+  if (IsIconic(hWnd_MAIN))
+  {
+      iView_Point.x = OLD_Point.x;
+      iView_Point.y = OLD_Point.y;
+  }
+  else
+  {
+      iView_Point.x = 0;
+      iView_Point.y = iTopMargin;  // 0;
+      iRC = ClientToScreen(hWnd_MAIN, &iView_Point); // Convert relative pos to absolute pos
+      if (!iRC  // Error ?
+      ||  iView_Point.x < -2048      // insane ??
+      ||  iView_Point.y < -2048  )   // insane ??
+      {
+        iView_Point.x = OLD_Point.x;
+        iView_Point.y = OLD_Point.y;
+      }
+      else
+      {
+         OLD_Point.x = iView_Point.x;
+         OLD_Point.y = iView_Point.y;
+      }
+  }
 
   prect.left   = iView_Point.x;
   prect.top    = iView_Point.y;  // Absolute screen co-ord of TopMargin 
@@ -1674,6 +1695,8 @@ void View_Visible_Calc(int P_Zoom, int P_Pixel_Width)
 
   if (prect.left < 0)
   {
+      if (prect.left < -2048)  // sanity check
+          prect.left = 0;
       //prect.right  +=  prect.left;
       iGet_xFromBytes  -= (prect.left * P_Pixel_Width);
       prect.left    = 0;
@@ -1709,7 +1732,7 @@ void View_Visible_Calc(int P_Zoom, int P_Pixel_Width)
   }
 
   // Align the image vertically
-  iMax = Coded_Pic_Height - 2;
+  iMax = Coded_Pic_Height - 1;
 
   if (iGet_yFrom > iMax || iGet_yFrom < 0)
   {
@@ -1718,7 +1741,12 @@ void View_Visible_Calc(int P_Zoom, int P_Pixel_Width)
   }
 
   iPrim_Height = prect.bottom - prect.top; // Available Height on screen
-  iPrim_Width  = prect.right  - prect.left -2 ; // How much space to fill on screen ?
+  iPrim_Width  = prect.right  - prect.left ; // How much space to fill on screen ?
+  if (iMainWin_State == 0)
+      iPrim_Width -=1;
+  else
+      iPrim_Width +=1;
+
 
   // How many lines do we need to get in order to fill this view ?
 
@@ -1793,8 +1821,8 @@ void View_Visible_Calc(int P_Zoom, int P_Pixel_Width)
   if (DBGflag &&  process.Action != ACTION_RIP)
   {
       sprintf(szBuffer, "Rect=%d-%d=%d %d-%d=%d  Pic=%d.%d\nGetW=%d=%d Max=%d PrimW=%d PhysW=%d PutW=%d AspW=%d AspOut=%d\nMax=%d FromW=%d~%d PxW=%d Z=%d\nGetH=%d PrimH=%d PhysH=%d BotH=%d AspV=%d TopH=%d\n\n",
-              prect.left, prect.right, (prect.right-prect.left),
-              prect.top, prect.bottom, (prect.bottom-prect.top),
+              prect.left, prect.right, (prect.right-prect.left+1),
+              prect.top, prect.bottom, (prect.bottom-prect.top+1),
               Coded_Pic_Width, Coded_Pic_Height,
               iGet_Width, iGet_WidthBytes, iMax,
               iPrim_Width, iPhysView_Width, 
@@ -1990,7 +2018,7 @@ void Lum_Filter_CSpace(unsigned char *P_Lum_Tbl, int P_ColorSpace)
     }
     */
 
-    if (iLumEnabled)
+    if (iLumEnabled && !iLum_Deselected)
     {
        fResult = ( 255.0  * pow( i / 255.0, fPow2iLumGamma)
                -127.0) * fiLumGain   // RJ - REINSTATED GAIN - I LIKE CONTRAST
@@ -2023,7 +2051,7 @@ void Lum_Filter_CSpace(unsigned char *P_Lum_Tbl, int P_ColorSpace)
     // Blue Diff
     if (iSatAdj_Flag)
     {
-          iResult = (iSigned * iSatGain[0]) / 100 + iSatAdd_U[0] + 128;
+        iResult = (iSigned * iSatGain[0]) / 100 + iSatAdd_U[0] + 128;
     }
     else
        iResult = i;

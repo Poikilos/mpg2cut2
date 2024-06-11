@@ -36,7 +36,9 @@
 #include "getbit.h"
 #include "GetBit_Fast.h"
 #include "MPV_PIC.h"
+#include "Nav_JUMP.h"
 
+/*
 static int iFrame_rate_Table[16] =
 {
   0, 23, 24, 25, 29, 30, 50, 59, 60, // Integer part of frame rate
@@ -47,6 +49,7 @@ static int mFrame_rate_Table[16] =
   0, 976, 0, 0, 97, 0, 0, 94, 0, // mantissa part of frame rate
   -1, -1, -1, -1, -1, -1, -1   // reserved
 };
+*/
 
 const unsigned char HIGH_VALUES[8] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF} ;
 
@@ -68,7 +71,7 @@ void OrgTC_SET();
 
 
 //----------------------------------------------------------------------
-/* decode headers from one input stream */
+// decode headers from one input stream 
 int GetHdr_PIC(int P_Want_Type)
 {
   int iSkip_Ctr, iSince_Ctr, iCurrFile;
@@ -253,9 +256,9 @@ void gothdr_SEQ()
          iThisFile = process.VIDPKT_File;
   }
 
-  PlayCtl.iPendingSeq[1] = 0; 
-  PlayCtl.iPendingSeq[2] = 0; 
-  PlayCtl.iPendingSeq[3] = 0; 
+  PlayCtl.uPendingSeq[1] = 0; 
+  PlayCtl.uPendingSeq[2] = 0; 
+  PlayCtl.uPendingSeq[3] = 0; 
 
   if (process.PACK_Loc != -1) // Allow for jump into middle of packet
   {
@@ -353,12 +356,16 @@ void gothdr_SEQ()
 
   // optional override of frame rate
   MPEG_Seq_frame_rate_code     = Get_Bits(4);
-  if (iView_FrameRate_Code)
-      MPEG_Seq_frame_rate_code = iView_FrameRate_Code;
+
+   if (iOverride_FrameRate_Code)
+       iView_FrameRate_Code = iOverride_FrameRate_Code;
+   else
+       iView_FrameRate_Code = MPEG_Seq_frame_rate_code;
+
 
   // Interrupt CUE mode on change of particulars
   if (iAspect_Curr_Code         != MPEG_Seq_aspect_ratio_code
-  ||  iFrame_Rate_Code          != MPEG_Seq_frame_rate_code)   // TIVO changes frame rate at ad breaks
+  ||  iFrame_Rate_Code          != MPEG_Seq_frame_rate_code)   // TIVO may change frame rate at ad breaks
   {
       iAspect_Curr_Code  = MPEG_Seq_aspect_ratio_code;
       iFrame_Rate_Code   = MPEG_Seq_frame_rate_code; 
@@ -414,14 +421,12 @@ void gothdr_SEQ()
 
 
   Mpeg_SEQ_Version = 1; // Default to Mpeg-1 if no Extension follows.
+  MPEG_iFrame_rate_extension_n = 0;
+  MPEG_iFrame_rate_extension_d = 0;
+  fFrame_rate_extension_n = 1.0; 
+  fFrame_rate_extension_d = 1.0; 
+
   extension_and_user_data();
-
-
-  
-
-  frame_rate =    (float)(frame_rate_Table[MPEG_Seq_frame_rate_code]);
-  //iFrame_Rate_int      = iFrame_rate_Table[MPEG_Seq_frame_rate_code];
-  //iFrame_Rate_mantissa = mFrame_rate_Table[MPEG_Seq_frame_rate_code];
   FrameRate2FramePeriod();
 
   Auto_Deint_Calc();
@@ -432,29 +437,20 @@ void gothdr_SEQ()
   iNom_ByteRate  = (int)(MPEG_Seq_NomBitRate400 * 50); // Note 50=400/8
   iNom_kBitRate  = iNom_ByteRate / 125 ;  // Note 125=1000/8
 
-
+  // need to calculate ByteRate ?
   if (process.ByteRateAvg[File_Ctr] == BYTERATE_DEF
-   || MPEG_Seq_NomBitRate400 != process.Prev_Seq_BitRate)
+   || process.Prev_Seq_BitRate != MPEG_Seq_NomBitRate400)
   {
-      MPEG_Seq_NomBitRate400  = process.Prev_Seq_BitRate;
+      process.Prev_Seq_BitRate  = MPEG_Seq_NomBitRate400;
+
     // Nominal bitrates are not always reliable
     // not as good as  measured average (not calculated yet)
 
     process.kBitRateAvg = iNom_kBitRate;
+
+    // sometimes the nominal is total bulldust
     // Let's trap suspicious bitrates
     // DTV header maybe stream rate, not channel rate
-
-    /*  OLD ADJUSTER
-    if (iNom_kBitRate > 10000)
-    {
-      if (iNom_kBitRate > 50000)  
-         process.kBitRateAvg = iNom_kBitRate / 100;
-      else
-      if (Coded_Pic_Height <= 576) // && ! MPEG_Seq_progressive_sequence) 
-         process.kBitRateAvg = iNom_kBitRate / 2;
-    }
-    */
-
     if (iNom_kBitRate  >= 9000  // Higher than most DVDs 
     ||  iMuxChunkRate  <  MPEG_Seq_NomBitRate400) // Ch.7 via Nebula
     {
@@ -478,7 +474,7 @@ void gothdr_SEQ()
          else
              process.kBitRateAvg = iNom_kBitRate * 5 / 7;
       }
-    }
+    }  // END-IF Bulldust Nominal
     
 
     iRate = (int) (process.kBitRateAvg * 1000 / 8);
@@ -490,7 +486,7 @@ void gothdr_SEQ()
     iNext = File_Ctr + 1;
     if (process.ByteRateAvg[iNext] == BYTERATE_DEF)
         process.ByteRateAvg[iNext] =  iRate;
-  }
+  } // END-IF Time to calculate ByteRate
 
 
 
@@ -678,12 +674,16 @@ void gothdr_SEQ()
          process.ViewPTSM = process.VideoPTSM; // pts to MOST RECENT SEQ/GOP/PIC  
      }
 
+     if (process.Action  ==  ACTION_RIP && iCTL_FastBack)
+         Nav_Jump_Fwd(&BwdGop);
+
      if ( ! iGOPrelative)
      {
           process.uGOPbefore = MPEG_Pic_Temporal_Ref * iFrame_Period_ms * 45;
 
           process.uGOP_TCorrection = MPEG_Pic_Temporal_Ref;
           process.uGOP_FPeriod_ps  = iFrame_Period_ps;
+
      }
 
      if ( ! gopTC.RunFrameNum &&  process.VideoPTS)
@@ -973,6 +973,8 @@ static void sequence_extension()
 
   MPEG_iFrame_rate_extension_n     = Get_Bits(2);
   MPEG_iFrame_rate_extension_d     = Get_Bits(5);
+  fFrame_rate_extension_n = (MPEG_iFrame_rate_extension_n + 1);
+  fFrame_rate_extension_d = (MPEG_iFrame_rate_extension_d + 1);
 
   FrameRate2FramePeriod();
 
@@ -1012,13 +1014,14 @@ static void sequence_display_extension()
   MPEG_Seq_video_format      = Get_Bits(3);
   MPEG_Seq_color_description = Get_Bits(1);
 
-  if (MPEG_Seq_color_description)
+  if (MPEG_Seq_color_description) // Color space controls
   {
      color_primaries          = Get_Bits(8);
      transfer_characteristics = Get_Bits(8);
      matrix_coefficients      = Get_Bits(8);
   }
 
+  // Pan-Scan window size
   display_horizontal_size = Get_Bits(14);
   InputBuffer_Flush(1);  // marker bit
   display_vertical_size   = Get_Bits(14);
@@ -1331,8 +1334,10 @@ static void Auto_Deint_Calc()
   {
     if (  MPEG_Seq_vertical_size <= 288  // half-frames are too hard for me to de-interlace automatically
       ||  MPEG_Seq_progressive_sequence  // Ahhh, if only this had been adopted as the standard for new material !
-      ||  frame_rate == 16.0 ||  frame_rate == 18.0 || frame_rate == 24.0 // Cine frame rates (I forget what 8mm & 9.5mm std rates are, just too long ago for my forgettory)
-      || (!Deint_VOB && (frame_rate == 25.0 && iIn_VOB))) // VOBs tend to be Cinema films, which in PAL std coding SHOULD NOT have interlacing artefacts, although in practice there is some crud around.
+      || (!Deint_VOB && 
+          (    (fFrame_rate == 25.0 && iIn_VOB) // VOBs tend to be Cinema films, which in PAL std coding SHOULD NOT have interlacing artefacts, although in practice there is some crud around.
+            ||  fFrame_rate == 16.0 ||  fFrame_rate == 18.0 || fFrame_rate == 24.0  // Cine frame rates (I forget what 8mm & 9.5mm std rates are, just too long ago for my forgettory)
+         )))
           Deint_VIEW = 0;
     else  Deint_VIEW = 1;
   }
@@ -1433,36 +1438,47 @@ void RelativeTC_SET()
 }
 
 
+
+#include "Audio.h"
+
 void FrameRate2FramePeriod()
 {
 
-  frame_rate = (float)(frame_rate_Table[MPEG_Seq_frame_rate_code]
-                    * (MPEG_iFrame_rate_extension_n+1)
-                    / (MPEG_iFrame_rate_extension_d+1));
+  fFrame_rate = frame_rate_Table[iView_FrameRate_Code];
 
-  if  (  !  frame_rate)
+  if (!iOverride_FrameRate_Code
+  && (!MPEG_iFrame_rate_extension_n ||
+      !MPEG_iFrame_rate_extension_d))
+      fFrame_rate = (fFrame_rate 
+                    * (fFrame_rate_extension_n))
+                    / (fFrame_rate_extension_d);
+
+  if (iAudio_Force44K)
+      fFrame_rate = fFrame_rate * 44.1 / 48.0;
+
+  if  (  !  fFrame_rate)
   {
-    //frame_rate  =  .001f;
+    //fFrame_rate  =  .001f;
      if (Coded_Pic_Height == 576 || Coded_Pic_Height == 288)
      {
          //iFrame_Period_ps = 40000000;
-         frame_rate = 25.000f;
+         fFrame_rate = 25.000;
      }
      else
      {
          //iFrame_Period_ps = 33366666;
-         frame_rate = 29.97002f;
+         fFrame_rate = 29.97002;
      }
   }
 
   // Copy floating point info into integers for later
-  iFrame_Rate_ms   = (int)(frame_rate * 1000);
+  iFrame_Rate_ms   = (int)(fFrame_rate * 1000);
   iFrame_Rate_int      = (iFrame_Rate_ms+500) / 1000;
   iFrame_Rate_dsp      =  iFrame_Rate_ms      / 1000;
   iFrame_Rate_mantissa = (iFrame_Rate_ms - (iFrame_Rate_dsp*1000)) / 10 ;
 
   fFrame_Rate_Orig  =  (MParse.FO_Flag==FO_FILM)  ?
-                          frame_rate  *  0.8f  :  frame_rate;
+                          fFrame_rate  *  0.8f  :  fFrame_rate;
 
   iFrame_Period_ps  =  (int)((1000000000/fFrame_Rate_Orig)  /*-1*/  );
 
@@ -1505,7 +1521,7 @@ void PTS_2Field(unsigned P_PTS, int P_Field)
   ptsTC.minute = iTot_Minutes - (ptsTC.hour * 60);
 
   ptsTC.frameNum  = (P_PTS - (iTot_Seconds * 45000)) / 45 / iFrame_Period_ms;
-                  // ptsTC.RunFrameNum - (iTot_Seconds *  frame_rate) ;
+                  // ptsTC.RunFrameNum - (iTot_Seconds *  fFrame_rate) ;
 
   if (P_Field == IDC_VID_PTS)
       ptsTC.VideoPTS    = P_PTS;

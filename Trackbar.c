@@ -18,23 +18,22 @@ void T100_Upd_Posn_Info(int P_Upd_CurrLoc)
 {
   int iRC;
 
-  if (RdAHD_Flag && iRdAHD_CurrIx >= 0)
+  if (!iBusy)
   {
-      iStartFile  =   iRdAHD_TellBefore_File[iRdAHD_CurrIx];
-      i64StartLoc = i64RdAHD_TellBefore_Loc [iRdAHD_CurrIx];
-  }
-  else
-  {
-      iStartFile   = File_Ctr;
-      i64StartLoc  = _telli64(FileDCB[File_Ctr]);
-  }
+      if (RdAHD_Flag && iRdAHD_CurrIx >= 0)
+      {
+          iStartFile  =   iRdAHD_TellBefore_File[iRdAHD_CurrIx];
+          i64StartLoc = i64RdAHD_TellBefore_Loc [iRdAHD_CurrIx];
+      }
+      else
+      {
+          iStartFile   = File_Ctr;
+          i64StartLoc  = _telli64(FileDCB[File_Ctr]);
+      }
 
-  //if (process.Action >= ACTION_NEW_RUNLOC 
-  // && process.Action <= ACTION_PLAY )
-  //{
-       process.startFile = iStartFile;
-       process.startLoc  = i64StartLoc;
-  //}
+      process.startFile = iStartFile;
+      process.startLoc  = i64StartLoc;
+  }
 
   T110_Upd_Posn_TrackBar();
    
@@ -53,7 +52,7 @@ void T100_Upd_Posn_Info(int P_Upd_CurrLoc)
         d2v_curr.lba = 0;
   }
  
-  if (P_Upd_CurrLoc)
+  if (P_Upd_CurrLoc && !iBusy)
   {
       iRC = Get_Hdr_Loc(&process.CurrLoc,  &process.CurrFile);
 
@@ -71,8 +70,11 @@ void T110_Upd_Posn_TrackBar()
 {
   int iRC;
   int iScrollPos;
+  __int64 i64Pos;
 
-  iScrollPos = (int)((process.origin[iStartFile] + i64StartLoc)
+  i64Pos = process.origin[iStartFile] + i64StartLoc;
+
+  iScrollPos = (int)(i64Pos
                       * TRACK_PITCH
                       / process.total);
 

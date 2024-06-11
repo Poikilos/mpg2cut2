@@ -80,7 +80,7 @@ void  Decoder_INIT()
           if ((MPEG_Seq_horizontal_size &3)
           ||  (MPEG_Seq_vertical_size   &3)
           ||   MPEG_Seq_horizontal_size > 1920
-          ||   MPEG_Seq_vertical_size   > 1080)
+          ||   MPEG_Seq_vertical_size   > 1088)
           {
               sprintf(szMsgTxt, "ODD/MIXED CANVAS SIZE %d.%d **",  
                                  MPEG_Seq_horizontal_size,
@@ -275,7 +275,7 @@ void  Decoder_INIT()
 void Mpeg_Drop_Init()
 {
      if (MParse.FastPlay_Flag 
-      || winVer.dwMajorVersion > 5 || iCtl_VistaOVL_mod)
+      || winVer.dwMajorVersion >= 6 || iCtl_VistaOVL_mod)
          PlayCtl.iDrop_Behind   = 257;
      else
          PlayCtl.iDrop_Behind    =  iCtl_Drop_Behind;
@@ -283,7 +283,12 @@ void Mpeg_Drop_Init()
      PlayCtl.iDrop_PTS_Flag  =  iCtl_Drop_PTS;
 
      if  (iAudio_SEL_Track  !=  TRACK_NONE 
-     &&   ! iView_FrameRate_Code)
+     &&  ( !  iOverride_FrameRate_Code
+          || (iCtl_PALTelecide
+              && iOverride_FrameRate_Code == 2   // Want 24FPS
+              && MPEG_Seq_frame_rate_code == 3   //  was 25FPS
+              && !iAudio_Force44K)
+         ))
           iAudio_Lock  =  iCtl_Play_AudLock;
 
      if (PlayCtl.iDrop_Behind && MPEG_Pic_Structure == 3  // Not supported on full interlace
@@ -531,20 +536,27 @@ void MPEG_File_Reset()
 
           // Get hints about format from the extension
           if (!stricmp(szInExt, "TS"))
+          {
              MParse.SystemStream_Flag = -1;
+             PktChk_Audio = 500; PktChk_Any = 12000;
+          }
           else
           if (!stricmp(szInExt, "PVA"))
+          {
              MParse.SystemStream_Flag = -2;
+             PktChk_Audio = PKTCHK_AUDIO_TS; PktChk_Any = PKTCHK_ANY_TS;
+          }
           else
             MParse.SystemStream_Flag = 0;
 
-          // Default decode values to Mpeg-1 ES implied settings
+          // Default decoder controls
           uCtl_Vid_PID = STREAM_AUTO;
           if (uAud_PID_All)
               uCtl_Aud_PID = STREAM_AUTO;
           uGot_PID = uCtl_Vid_PID;
           uCtl_Video_Stream = STREAM_AUTO;
 
+          // Default decode values to Mpeg-1 ES implied settings
           Mpeg_PES_Version     = 1;  Mpeg_SEQ_Version = 1;
           process.Mpeg2_Flag   = 0;
           //iPES_Mpeg_Any = 0;
@@ -581,6 +593,10 @@ void MPEG_File_Reset()
           d2v_fwd.Progressive_Format = 1;
           d2v_bwd.Progressive_Format = 1;
           //d2v.Fld1_Top_Rpt           = 0;
+
+          ZeroMemory(&SubStream_CTL,  sizeof(SubStream_CTL));
+          ZeroMemory(&mpa_Ctl,        sizeof(mpa_Ctl));
+          ZeroMemory(&iAudio_Trk_FMT, sizeof(iAudio_Trk_FMT));
 }
 
 

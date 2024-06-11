@@ -270,7 +270,6 @@ void D200_UPD_Overlay()
  char cTmp1;
 
  iRetry = 0;
-    
 
  if (orect.right  >= VGA_Width)
      orect.right   = VGA_Width  - 1;
@@ -359,7 +358,7 @@ void D200_UPD_Overlay()
  /*
  if (DBGflag)
  {
-      sprintf(szBuffer, "B4     o=%03d..%03d, %03d..%03d\n       dd=   ..%03d,    ..%03d\n        r=%03d..%03d, %03d..%03d",
+      sprintf(szBuffer, "B4     o=%03d..%03d, %03d..%03d\n      dd=   ..%03d,    ..%03d\n       r=%03d..%03d, %03d..%03d",
                          orect.left, orect.right, orect.top, orect.bottom,
                          ddsd.dwWidth, ddsd.dwHeight,
                          rOut.left,  rOut.right,  rOut.top,  rOut.bottom);
@@ -367,6 +366,7 @@ void D200_UPD_Overlay()
 			fflush(DBGfile);
  }
  */
+ 
 
 
 UpdOvl_Retry:
@@ -379,7 +379,7 @@ UpdOvl_Retry:
                                              lpPrimary, &rOut,
            DDOVER_SHOW | DDOVER_DDFX | DDOVER_KEYDESTOVERRIDE, &ddofx);
 
-      if( winVer.dwMajorVersion > 5 || iCtl_VistaOVL_mod) // Windows Vista or later
+      if( winVer.dwMajorVersion >= 6 || iCtl_VistaOVL_mod) // Windows Vista is crap
       {
          if (iCtl_VistaOVL_mod == 2)
             UpdateWindow(hWnd_MAIN);
@@ -623,13 +623,46 @@ DWORD DDColorMatch(LPDIRECTDRAWSURFACE pdds, COLORREF rgb)
 }
 
 
-
-void DD_OverlayMask()
+// Activate = 0 - removes overlay mask
+//          = 1 - overlay mask covering entire client area of window
+//          = 2 - overlay mask covering area below toolbar and msg area
+void DD_OverlayMask(int P_activate)
 {
+  HBRUSH hBrush_ToUse;
+  int    iColorToUse;
+
+  Calc_PhysView_Size(); //GetClientRect(hWnd, &crect);
+  if (P_activate != 1)
+      crect.top += iTopMargin; // TEMP adjust to skip toolbar area
+
+  if (P_activate > 0)
+  {
+      hBrush_ToUse = hBrush_MASK;
+      iColorToUse  = iCtl_Mask_Colour;
+  }
+  else
+  {
+      hBrush_ToUse = CreateSolidBrush(0x050403);
+      iColorToUse  = 0x050403;
+  }
+
   Sleep(2);
-  FillRect(hDC, &crect, hBrush_MASK);// Paint video area with Overlay key MASk
+  FillRect(hDC, &crect, hBrush_ToUse);// Paint video area with Overlay key MASk or not.
   Sleep(2);
-  SetBkColor(hDC, iCtl_Mask_Colour); // Background = Overlay Mask key
+  SetBkColor(hDC, iColorToUse); // Background = Overlay Mask key or not;
+
+  if (P_activate <= 0)
+      DeleteObject(hBrush_ToUse);
+
+  if (P_activate != 1)
+  {
+     crect.top -= iTopMargin; // UNDO Temp Adjust
+  }
+
+  if (iMsgLife > 1)
+      DSP1_Main_MSG(1,0);
+
+  UpdateWindow(hWnd_MAIN);
 }
 
 
@@ -676,12 +709,7 @@ void Chg2YUV2(int P_Redraw, HWND P_Caller)
 
        if (DDOverlay_Flag)
        {
-           Calc_PhysView_Size(); //GetClientRect(hWnd, &crect);
-           crect.top += iTopMargin; // TEMP adjust
-           DD_OverlayMask();  // FillRect(hDC, &crect, hBrush_MASK);
-           if (iMsgLife > 0)
-              DSP1_Main_MSG(1,0);
-           crect.top -= iTopMargin; // UNDO Temp Adjust
+           DD_OverlayMask(2);  // FillRect(hDC, &crect, hBrush_MASK);
        }
 
        if (P_Redraw) 

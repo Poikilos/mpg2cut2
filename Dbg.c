@@ -172,7 +172,7 @@ void DBGctl()
 
 void DBGAud(void *P_Text)
 {
-  TextOut(hDC, 0, iMsgPosY, (char*)P_Text, 9);
+  TextOut(hDC, 0, iMsgPosY, (char*)P_Text, 4);
   UpdateWindow(hWnd_MAIN);
   Sleep(10);
 }

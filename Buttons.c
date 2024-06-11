@@ -1,4 +1,6 @@
 
+// Buttons. Buttons. Who's got the buttons ?
+
 #include "windows.h"
 #include "WINUSER.H"
 #include "global.h"
@@ -7,6 +9,9 @@
 #define false 0
 #include <commctrl.h>
 
+//#define TOOL_BAR_WIDTH    476
+int iFULLBAR_WIDTH, iPLAYBAR_WIDTH, iMIN_STACKED_WIDTH, iMAX_STACKED_WIDTH; //  560
+int iSEPARATOR;
 
 HWND  hStop,  hPlayP, hSingle, 
       hSlower, hFaster,
@@ -21,7 +26,7 @@ int iFast1_PosX, iFast2_PosX, iFaster_PosX, iFastX_PosX;
 
 #define SPACER 2
 //int iToolPosX[15]
-int iLum_PosX, iZoom_PosX, iAddB_PosX;
+int iLum_PosX, iZoom_PosX, iAddB_PosX, iVol_PosX;
 int iTrackBar_PosX;
 
 int iMarkL_PosX, iBack1_PosX, iBack2_PosX, iBack3_PosX, iBack4_PosX;
@@ -83,7 +88,8 @@ HWND TB_Create(char *P_lpszDesc,   // int P_DISABLED,
                P_uNumber, 
                            hInst, NULL);
 
-  if (!iCtl_Readability && hFont2)
+  if (hFont2
+  && (!iCtl_Readability || DBGflag || iAudioDBG))
     SendMessage(hHandle, WM_SETFONT, (WPARAM)(hFont2), 0);
 
   return hHandle;
@@ -120,7 +126,7 @@ void Toolbar_Chg()
                iView_yFrom  = 0;
   } 
 
-  DD_OverlayMask();
+  DD_OverlayMask(1);
   
   if (iViewToolBar)
   {
@@ -148,11 +154,11 @@ void PlayTool_Metrics()
   
   iAllow = 13;
 
-  iStop_PosX   = (iTool_Wd * 5) - 7;  // 4*Number of buttons)+1 in shortest toolbar 
+  iStop_PosX   = iVol_PosX + iTool_Wd + iSEPARATOR;  // 4*Number of buttons in shortest toolbar)+gap
 
   if (iSkipBar_PosY) // Stacked ?
   {
-     iStop_PosX   = iToolbarWidth - iMEDIUMBAR_WIDTH; // -7; // + (iTool_Wd / 2); //((15 * iTool_Wd) / 2); // iMarkL_PosX;
+     iStop_PosX   = iToolbarWidth - iPLAYBAR_WIDTH; // -7; // + (iTool_Wd / 2); //((15 * iTool_Wd) / 2); // iMarkL_PosX;
      iMarkL_PosX  = iStop_PosX;
      //iSingle_PosX = iStop_PosX + iTool_Wd;
      //iSlow1_PosX  = iSingle_PosX + iTool_Wd;
@@ -161,11 +167,13 @@ void PlayTool_Metrics()
   else
   //if (iTrackbar_Big)
   {
-     // iStop_PosX  = iToolbarWidth - (iMEDIUMBAR_WIDTH * 2); // ((41 * iTool_Wd)/2); // 33 = 2*Number of left hand buttons + 1
+     // iStop_PosX  = iToolbarWidth - (iPLAYBAR_WIDTH * 2); // ((41 * iTool_Wd)/2); // 33 = 2*Number of left hand buttons + 1
      //if (iToolbarWidth > (iTool_Wd * 26))
      //    iStop_PosX -= (iTool_Wd + 9);
      //iTmp1 = iTool_Wd * 20 / 2; // (2*Number of buttons) in MARK/SKIP toolbar
-     iMarkL_PosX  = iToolbarWidth - iMEDIUMBAR_WIDTH; // - 6;  //iTmp1;
+     iMarkL_PosX  = iToolbarWidth - iPLAYBAR_WIDTH; // - 6;  //iTmp1;
+     if (iToolbarWidth > 26 * iTool_Wd)
+         iStop_PosX   = iMarkL_PosX - iPLAYBAR_WIDTH - iTool_Wd; 
   }
   //else
   //{
@@ -173,28 +181,28 @@ void PlayTool_Metrics()
   //   iPlayP_PosX  = iStop_PosX + iTool_Wd;
   //}
 
-  iSingle_PosX = iStop_PosX    + iTool_Wd + SPACER;
+  iSingle_PosX = iStop_PosX    + iTool_Wd; //  + SPACER;
   iSlow2_PosX  = iSingle_PosX  + iTool_Wd;
   iSlow1_PosX  = iSlow2_PosX   + iTool_Wd;
   iSlower_PosX = iSlow1_PosX   + iTool_Wd;
-  iPlayP_PosX  = iSlower_PosX  + iTool_Wd + SPACER;
+  iPlayP_PosX  = iSlower_PosX  + iTool_Wd; //  + SPACER;
 
-  iFaster_PosX  = iPlayP_PosX  + iTool_Wd + SPACER;
+  iFaster_PosX  = iPlayP_PosX  + iTool_Wd; //  + SPACER;
   iFast1_PosX   = iFaster_PosX + iTool_Wd;
   iFast2_PosX   = iFast1_PosX  + iTool_Wd;
-  iFastX_PosX   = iFast2_PosX  + iTool_Wd + SPACER;
+  iFastX_PosX   = iFast2_PosX  + iTool_Wd; //  + SPACER;
 
 
-  iBack1_PosX    = iMarkL_PosX + iTool_Wd + SPACER;
+  iBack1_PosX    = iMarkL_PosX + iTool_Wd; //  + SPACER;
   iBack2_PosX    = iBack1_PosX + iTool_Wd;
   iBack3_PosX    = iBack2_PosX + iTool_Wd; 
   iBack4_PosX    = iBack3_PosX + iTool_Wd; 
 
-  iFwd4_PosX    = iBack4_PosX  + iTool_Wd + SPACER; // + SPACER;
+  iFwd4_PosX    = iBack4_PosX  + iTool_Wd; //  + SPACER; 
   iFwd3_PosX    = iFwd4_PosX   + iTool_Wd;
   iFwd2_PosX    = iFwd3_PosX   + iTool_Wd;
   iFwd1_PosX    = iFwd2_PosX   + iTool_Wd;
-  iMarkR_PosX   = iFwd1_PosX   + iTool_Wd + SPACER;
+  iMarkR_PosX   = iFwd1_PosX   + iTool_Wd; //  + SPACER;
 
 }
 
@@ -236,7 +244,8 @@ void PlayTools_Create() // Extra buttons for special playback
 
 void DSP_ButtonFont_Sizing()  // Scale button size to screen res
 {
-  unsigned int uFontHeight, uDGF_Height;
+
+  char *szlpFontName;
 
   hDefaultGuiFont = GetStockObject(DEFAULT_GUI_FONT);
 
@@ -251,14 +260,23 @@ void DSP_ButtonFont_Sizing()  // Scale button size to screen res
   if (iCtl_Readability)
       iTool_Wd  = (uDGF_Height *  2) + 2;
   else  */
-      iTool_Wd  = (VGA_Height  * 30) / 600;  //
+      iTool_Wd  = (VGA_Width  * 30) / 800 + 1;  //
 
   iTool_Ht  = iTool_Wd;
 
+  //if (VGA_Height <= 600)
+  //    iTool_Ht   += 2;
+
+  uFontHeight = iTool_Ht - 2;
+  if (iCtl_Readability)
+      uFontHeight = uFontHeight * 6 / 10;
+  else
+      uFontHeight = uFontHeight / 2;
+
   // For High-Res display, scale the font to make it readable
-  if (VGA_Height <= 600)
+  if (VGA_Height <= 600
+  && (!DBGflag && !iAudioDBG))
   {
-      iTool_Ht  += 2;
       if (hFont1)
       {
           DeleteObject(hFont1);
@@ -268,13 +286,12 @@ void DSP_ButtonFont_Sizing()  // Scale button size to screen res
   }
   else
   {
-     uFontHeight = iTool_Ht - 2;
-     if (iCtl_Readability)
-       uFontHeight = uFontHeight * 6 / 10;
-     else
-       uFontHeight = uFontHeight / 2;
+    if (DBGflag || iAudioDBG)
+        szlpFontName = &"Courier New"; // DBG needs fixed pitch font
+    else
+        szlpFontName = &"Arial";
 
-     hFont1 = CreateFont( 
+    hFont1 = CreateFont( 
                          uFontHeight,    // logical height of font 
                                    0,    // logical average character width 
                                    0,    // angle of escapement 
@@ -288,10 +305,13 @@ void DSP_ButtonFont_Sizing()  // Scale button size to screen res
                  CLIP_DEFAULT_PRECIS,    // clipping precision 
                  CLIP_DEFAULT_PRECIS,    // output quality 
       (DEFAULT_PITCH || FF_DONTCARE),    // pitch and family 
-           &"Arial"   //  &"Verdana"     // pointer to typeface name string 
+      szlpFontName    //  &"Verdana"     // pointer to typeface name string 
                                    );   
 
       //SendMessage(hMenu, WM_SETFONT, (WPARAM)(hFont1), MAKELPARAM(TRUE, 0));
+      if (DBGflag || iAudioDBG)
+          SendMessage(hWnd_MAIN, WM_SETFONT, (WPARAM)(hFont1), 0);
+
     
   }
 
@@ -313,7 +333,7 @@ void D501_RESET_MainWindow()
     DBGout("D501_RESET");
   }
 
-   D500_ResizeMainWindow(iDUALBAR_WIDTH,  // iMIN_FULLBAR_WIDTH, 
+   D500_ResizeMainWindow(iMIN_STACKED_WIDTH,  // iFULLBAR_WIDTH, 
                          MIN_OVL_HEIGHT, 1);
 }
 
@@ -414,6 +434,8 @@ void D500_ResizeMainWindow(int P_Width, int P_Height, int P_Full)
     MoveWindow(hAddButton,  iTool_Wd,     0,   iTool_Wd, iTool_Ht, true);
     MoveWindow(hLumButton,  iLum_PosX,    0,   iTool_Wd, iTool_Ht, true);
     MoveWindow(hZoomButton, iZoom_PosX,   0,   iTool_Wd, iTool_Ht, true);
+
+    MoveWindow(hVolButton,  iVol_PosX,    iSkipBar_PosY,   iTool_Wd, iTool_Ht, true);
 
     MoveWindow(hMarkLeft,  iMarkL_PosX,  iSkipBar_PosY, iTool_Wd, iTool_Ht, true);
     MoveWindow(hBack4,     iBack4_PosX,  iSkipBar_PosY, iTool_Wd, iTool_Ht, true);
@@ -523,20 +545,27 @@ void ToolBar_Metrics()
 
   DSP_ButtonFont_Sizing();    // Scale button size to screen res
    
-  iMIN_FULLBAR_WIDTH = 26 * iTool_Wd;
-  iMEDIUMBAR_WIDTH   = 10 * iTool_Wd + 7;
-  iDUALBAR_WIDTH     = 15 * iTool_Wd + 7;
-  iSTACKBAR_WIDTH    = 19 * iTool_Wd;
+  iSEPARATOR          =  iTool_Wd/2;  // Min gap between toolbars
+  iPLAYBAR_WIDTH      =  10 * iTool_Wd; //  + (3*SPACER+1);
+  iMIN_STACKED_WIDTH  =  14 * iTool_Wd + iSEPARATOR; // Width of first 2 toolbars, including separator
+  iMAX_STACKED_WIDTH  =  22 * iTool_Wd;      // Stack trigger point
+  iFULLBAR_WIDTH      =  25 * iTool_Wd + (iSEPARATOR); // *2);
+  if (iFULLBAR_WIDTH >= (VGA_Width - 80))
+      iFULLBAR_WIDTH  =  VGA_Width - 2;
+
 
   iPlayBar_PosY = 0;  iSkipBar_PosY = 0;
 
   if (Overlay_Width  < iTool_Wd)  // Nothing loaded ?
-      Overlay_Width  = iDUALBAR_WIDTH;
+      Overlay_Width  = iMIN_STACKED_WIDTH;
 
   if (iMainWin_State == 0)
       iTrue_Width = Overlay_Width;
   else
+  {
       iTrue_Width = VGA_Width;
+      iFULLBAR_WIDTH = VGA_Width;
+  }
 
   // Calc positions of Left-Hand buttons
   iAddB_PosX = iTool_Wd;
@@ -554,7 +583,7 @@ void ToolBar_Metrics()
      iTrackBar_PosY = 0;
   iTrackBar_PosX = 0;                             // Trackbar
 
-  iTopMargin  = (iTool_Ht * 3 / 5) + 1; // Should really interrogate Text Height    
+  iTopMargin  = (iTool_Ht * 3 / 5) + 3; // Should really interrogate Text Height    
   iMsgPosY    = 1;
 
   iTrig = iVGA_Avail_Height - 70;
@@ -582,17 +611,16 @@ void ToolBar_Metrics()
 
   // Calc positions of Left-Hand buttons and Trackbar
 
-
-  if (iTrue_Width  < iMIN_FULLBAR_WIDTH)
+  if (iTrue_Width    < iFULLBAR_WIDTH)
   {
+      iToolbarWidth  = iFULLBAR_WIDTH; 
       if (! iViewToolBar)
       {
          iMsgPosY    = 1;
-         iToolbarWidth  = iDUALBAR_WIDTH; // iSTACKBAR_WIDTH;
+         //iToolbarWidth  = iMIN_STACKED_WIDTH; // iMAX_STACKED_WIDTH;
       }
       else
       {
-         iToolbarWidth  = iMIN_FULLBAR_WIDTH; 
 
          if (iViewToolBar < 257)
              iTmp1 = iTool_Ht; 
@@ -602,14 +630,15 @@ void ToolBar_Metrics()
          iTopMargin += iTmp1;
          iMsgPosY   += iTmp1; 
 
-         if (iTrue_Width  <= iSTACKBAR_WIDTH) // Stack trigger point
+         if (iTrue_Width  <= iMAX_STACKED_WIDTH) // Stack trigger point
          {   // Stack the toolbars vertically
-             if (iTrue_Width <= iDUALBAR_WIDTH)   
-                 iTmp1        = iDUALBAR_WIDTH;  // Width of first 2 toolbars
+             if (iTrue_Width   <= iMIN_STACKED_WIDTH)   
+                 iToolbarWidth  = iMIN_STACKED_WIDTH;  // Width of first 2 toolbars
              else
-                 iTmp1        = iSTACKBAR_WIDTH; // A little wider than SD compact display
+                 iToolbarWidth  = iTrue_Width;
 
-             iToolbarWidth   = iTmp1;
+             iVol_PosX = iZoom_PosX;
+             
              //iPlayBar_PosY   = iTool_Ht; 
              iSkipBar_PosY   = iTool_Ht;
 
@@ -623,25 +652,29 @@ void ToolBar_Metrics()
                  iTopMargin     += iTool_Ht;
              }
          }
+         else
+           iVol_PosX = iZoom_PosX  + iTool_Wd;
+
       }
 
       if (iTrue_Width <= iToolbarWidth)
-          iTrue_Width  = iToolbarWidth + 2; //iMIN_FULLBAR_WIDTH * 2 / 3;
+          iTrue_Width  = iToolbarWidth + 2; //iFULLBAR_WIDTH * 2 / 3;
 
       iTrackbar_Big  = 1;
-      iTrackBar_PosX   = 0;                            // Trackbar
+      iTrackBar_PosX = 0;                          // Trackbar
       //iToolPosX[4]   = iZoom_PosX + iLum_PosX;  // Message Text (NOT IMPLEMENTED)
   }
   else
   {   // Wider than minimum
-      iToolbarWidth  = iMIN_FULLBAR_WIDTH; 
+      if (iTrue_Width >= (VGA_Width - 80))
+          iToolbarWidth = VGA_Width - 2;//- iEdge2;
+      else
       if (iTrue_Width > iToolbarWidth)
-      {
-         if (iTrue_Width < VGA_Width)
-             iToolbarWidth = iTrue_Width ;//- iEdge2;
-         else
-             iToolbarWidth = VGA_Width - 1;//- iEdge2;
-      }
+          iToolbarWidth = iTrue_Width ;//- iEdge2;
+      else
+         iToolbarWidth  = iFULLBAR_WIDTH; 
+
+      iVol_PosX = iZoom_PosX  + iTool_Wd;
 
       if (iViewToolBar)
       {
@@ -680,11 +713,11 @@ void ToolBar_Metrics()
   else
       iSelMsgX   = iSlow1_PosX;
 
-  iTimeX = iToolbarWidth - (7 * iTool_Wd) - 5; // iMarkL_PosX - 15;
+  iTimeX = iToolbarWidth - (7 * iTool_Wd) - 3; // 5; // iMarkL_PosX - 15;
   if (iTimeX < 0)
       iTimeX = 0;
 
-  if (iTrue_Width >= iMIN_FULLBAR_WIDTH)  // 480 // (iAspect_Width >= 640)
+  if (iTrue_Width >= iFULLBAR_WIDTH)  // 480 // (iAspect_Width >= 640)
   {
       iTimeY = iMsgPosY; //iTool_Ht;
   }
@@ -725,6 +758,7 @@ void  CreateToolTips_ALL()
    CreateToolTip(hLumButton, " LUMINANCE Display Adjustment (Gamma) ");
    CreateToolTip(hZoomButton, " ZOOM ");
 
+   CreateToolTip(hVolButton, " Volume Control");
 
    //if (iCtl_KB_NavOpt)
    {
@@ -804,10 +838,11 @@ void DSP_Button_Abbr()
 void ToolBar_Destroy()
 {
   // iViewToolBar = 0;
-  DestroyWindow(hBmpButton);
-  DestroyWindow(hAddButton);
-  DestroyWindow(hLumButton);
+  DestroyWindow(hVolButton);
   DestroyWindow(hZoomButton);
+  DestroyWindow(hLumButton);
+  DestroyWindow(hAddButton);
+  DestroyWindow(hBmpButton);
 
   DestroyWindow(hTrack);
 
@@ -922,6 +957,8 @@ void ToolBar_Create()
                    iZoom_PosX, 0, 
                    (HMENU) IDM_ZOOM);
 
+     hVolButton = TB_Create(&"V",  // 0, 
+                  iVol_PosX, iSkipBar_PosY, (HMENU) IDM_VOL_SLIDERS);
   
      //iTemp[0] = OBM_ZOOM;
      //SendMessage(hBmpButton, BM_SETIMAGE,

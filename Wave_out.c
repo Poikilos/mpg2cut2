@@ -136,7 +136,7 @@ void wav_MM_ERR(int p_RC, char* P_Msg2)
 
 //-----------------------------------------------------------------
 
-
+int iPrev_Left, iPrev_Right;
 
 //int
 void SPKR_Play_Buffer(void* P_Wav_Data, size_t P_Len)
@@ -149,16 +149,24 @@ void SPKR_Play_Buffer(void* P_Wav_Data, size_t P_Len)
   void*      alloc_Wav_Pair;
   void*      alloc_End;
 
-  unsigned W_Len;
+  unsigned iSPKR_Buf_Len;
   int iRC, iTmp1; //, iTmp2;
-  int iBoost_Factor, iKaraoke, iAnti_Phase;
+  int iBoost_Factor, iKaraoke, iAnti_Phase, iPALTelecide_flag;
   unsigned uOverCtr;
   int iOverflow, iUnderflow, iNearEnough;
 
   register int iLeft, iRight;
-  int iHigh, iHigh_Neg;
+  int iLimit, iLimit_Neg;
   int iPeak, iTrough;
 
+  
+  if (iCtl_PALTelecide
+   && iOverride_FrameRate_Code == 2   // Want 24FPS
+   && MPEG_Seq_frame_rate_code == 3   //  was 25FPS
+   && !iAudio_Force44K)
+      iPALTelecide_flag = 1;
+  else
+      iPALTelecide_flag = 0;
 
   if (iVolume_Boost)
       iBoost_Factor = iVolume_Boost; // + 7;
@@ -177,18 +185,21 @@ void SPKR_Play_Buffer(void* P_Wav_Data, size_t P_Len)
       iUnderflow = K_BOOST_DENOM;
 
   
-  W_Len = P_Len;
-  if (W_Len < 16)
-      W_Len = 16;
+  iSPKR_Buf_Len = P_Len;
+  if (iSPKR_Buf_Len < 16)
+      iSPKR_Buf_Len = 16;
   else
-  if (W_Len > 40960000)
-      W_Len = 40960000;
+  if (iSPKR_Buf_Len > 40960000)
+      iSPKR_Buf_Len = 40960000;
+
+  if (iPALTelecide_flag)
+      iSPKR_Buf_Len = ((iSPKR_Buf_Len * 24) / 100) * 4;
 
   if (DBGflag)
   {
       sprintf(szBuffer, "WaveOut  IN  Aud=%d %03dms Done=%d  Len=%d Buff=x%08X",
                          iWAVEOUT_Scheduled_Blocks, PlayedWaveHeadersCount,
-                                 (W_Len / process.iWavBytesPerMs),
+                                 (iSPKR_Buf_Len / process.iWavBytesPerMs),
                                  P_Len, P_Wav_Data);
       DBGout(szBuffer);
   }
@@ -217,21 +228,27 @@ void SPKR_Play_Buffer(void* P_Wav_Data, size_t P_Len)
           TextOut(hDC, 0, iMsgPosY, szBuffer, iTmp1);
     }
 
-
+    PlayCtl.iMaxedOut = 1;  PlayCtl.iBehindFrames = 0;
     Sleep (5);
+
                if (DBGflag)
                {
                    sprintf(szBuffer, "WaveOut 5ms, Aud=%d", iWAVEOUT_Scheduled_Blocks);
                    DBGout(szBuffer);
                }
-
+               if (DBGflag || iAudioDBG)     //if (cAudState != '*')
+               {
+                  cAudState = '-';
+                  TextOut(hDC, 0, iMsgPosY, "==========", 10);
+               } 
+    
   }
 
-  process.iWavQue_Len += W_Len;          // Increment total to be played
-  iWavBlock_Len[iWavBlock_To++] = W_Len; // Remember size of block
+  process.iWavQue_Len += iSPKR_Buf_Len;          // Increment total to be played
+  iWavBlock_Len[iWavBlock_To++] = iSPKR_Buf_Len; // Remember size of block
   if (iWavBlock_To >= WAVEOUT_MAX_BLOCKS) iWavBlock_To = 0; // in a FIFO buffer
 
-  hg2 = GlobalAlloc ( GMEM_MOVEABLE, W_Len );
+  hg2 = GlobalAlloc ( GMEM_MOVEABLE, iSPKR_Buf_Len );
   if ( hg2 == NULL )   // allocate some memory for a copy of the buffer
   {
       Box ( "GlobalAlloc P_Wav_Data failed.", " " );
@@ -259,29 +276,33 @@ Scan_Samples:
   if ( iBoost_Factor <= 0)
        iBoost_Factor  = 1;
 
-  if (iBoost_Factor > K_BOOST_DENOM 
-        || (iCtl_Volume_BOLD && iCtl_Volume_Boost)
+  if (iBoost_Factor != K_BOOST_DENOM 
+        || (iCtl_Volume_AUTO && iCtl_Volume_Boost)
         ||  iCtl_Volume_Limiting
      )
   {
-     iHigh = (iCtl_Audio_Ceiling * K_BOOST_DENOM / iBoost_Factor);
-     if (iHigh < 16)
-         iHigh = 16;
-     iHigh_Neg  = (- iHigh);
+       iLimit = iVolume_Ceiling * K_BOOST_DENOM / iBoost_Factor; // Scale ceiling to allow testing BEFORE boosting
+       if (iLimit < 16)
+           iLimit = 16;
+       else
+       if (iLimit > 32767)
+           iLimit = 32767;
+     
+       iLimit_Neg  = (1- iLimit);  // 16bit MIN
   }
   else
   //if (iBoost_Factor > K_BOOST_DENOM)
   //{
-  //   iHigh =  (OVFL_TRIG_DEFAULT   * K_BOOST_DENOM / iBoost_Factor);
-  //   iHigh_Neg  =  (- iHigh);
+  //   iLimit =  (OVFL_TRIG_DEFAULT   * K_BOOST_DENOM / iBoost_Factor);
+  //   iLimit_Neg  =  (- iLimit);
   //}
   //else
   {
-     iHigh      =   OVFL_TRIG_DEFAULT;
-     iHigh_Neg  = - OVFL_TRIG_DEFAULT;
+     iLimit      =     OVFL_TRIG_DEFAULT;
+     iLimit_Neg  = 1 - OVFL_TRIG_DEFAULT;
   }
 
-  iNearEnough = iCtl_Audio_Ceiling * 
+  iNearEnough = iVolume_Ceiling * 
                  (K_BOOST_DENOM-1) / K_BOOST_DENOM; // Hysteresis zone
 
 
@@ -289,16 +310,17 @@ Scan_Samples:
 
   if ((iBoost_Factor == 0 && !iCtl_Volume_Limiting)
   &&  ! iKaraoke
-  &&  ! iAnti_Phase)
+  &&  ! iAnti_Phase
+  &&  ! iPALTelecide_flag)
   {
-      CopyMemory ( allocptr, P_Wav_Data, W_Len );
+      CopyMemory ( allocptr, P_Wav_Data, iSPKR_Buf_Len );
   }
   else
   {
     // Special Effects
     W_Wav_Pair     = P_Wav_Data;
     alloc_Wav_Pair = allocptr;
-    alloc_End      = (char*)alloc_Wav_Pair + W_Len;
+    alloc_End      = (char*)alloc_Wav_Pair + iSPKR_Buf_Len;
 
     while (alloc_Wav_Pair < alloc_End)
     {
@@ -338,38 +360,38 @@ Scan_Samples:
 
       {
         // Check for overflow   (postive and negative, left and right)
-        if ( iLeft >  iHigh )
+        if ( iLeft >  iLimit )
         {
             uOverCtr++;
             // Calculate overshoot factor
-            iTmp1 = iLeft / iHigh;
+            iTmp1 = iLeft / iLimit;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
         }
         else
-        if ( iLeft <  iHigh_Neg )
+        if ( iLeft <  iLimit_Neg )
         {
             uOverCtr++;
             // Calculate overshoot factor
-            iTmp1 = iLeft / iHigh_Neg;
+            iTmp1 = iLeft / iLimit_Neg;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
         }
         else
-        if ( iRight >  iHigh )
+        if ( iRight >  iLimit )
         {
             uOverCtr++;
             // Calculate overshoot factor
-            iTmp1 = iRight / iHigh;
+            iTmp1 = iRight / iLimit;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
         }
         else
-        if ( iRight <  iHigh_Neg )
+        if ( iRight <  iLimit_Neg )
         {
             uOverCtr++;
             // Calculate overshoot factor
-            iTmp1 = iRight / iHigh_Neg;
+            iTmp1 = iRight / iLimit_Neg;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
         }
@@ -388,8 +410,26 @@ Scan_Samples:
           if (iTrough > iRight)
               iTrough = iRight;
 
-          *(short*)alloc_Wav_Pair     = iLeft;
+          // very rough slowdown of audio for PAL Telecide
+          // by interpolating one sample out of every 24
+          // result is very noisy, so it is only experimental at this stage
+          if (iPALTelecide_flag)
+          {
+            PlayCtl.iPalTelecide_ctr--;
+            if (PlayCtl.iPalTelecide_ctr <= 0)
+            {
+                PlayCtl.iPalTelecide_ctr    = 24;
+                *((short*)alloc_Wav_Pair)   = (iLeft  + iPrev_Left)  / 2;
+                *((short*)alloc_Wav_Pair+1) = (iRight + iPrev_Right) / 2;
+                alloc_Wav_Pair = (char*)(alloc_Wav_Pair) + 4;
+            }
+            iPrev_Left  = iLeft;
+            iPrev_Right = iRight;
+          }
+
+          *((short*)alloc_Wav_Pair)   = iLeft;
           *((short*)alloc_Wav_Pair+1) = iRight;
+
         }
       }
 
@@ -414,15 +454,18 @@ Scan_Samples:
         if (iVolume_Boost > 0)
         {
             iVolume_Boost -= iOverflow;
+            if (iVolume_Boost <=0)
+                iVolume_Boost  =1;
             iBoost_Factor -= iOverflow;
-            if (iVolume_BOLD > (K_BOOST_DENOM*25))  // 400)
-                iVolume_BOLD = iVolume_BOLD * 97 / 100;
+            if (iVolume_AUTO > K_BOOST_TOO_SILLY) 
+                iVolume_AUTO = iVolume_AUTO * 97 / 100;
 
             if (MParse.ShowStats_Flag)
                Stats_Volume_Boost();
 
             if (iBoost_Factor >= iUnderflow)
-               goto Scan_Samples;
+              if (iVolume_Boost > 1)
+                  goto Scan_Samples;
         }
         //else
         //{
@@ -430,7 +473,7 @@ Scan_Samples:
         //}
       }
       else
-      if (uOverCtr > (W_Len/22))
+      if (uOverCtr > (iSPKR_Buf_Len/22))
       {
         PlayCtl.uAudioOvflPkts++;
         if (PlayCtl.uAudioOvflPkts > 4
@@ -439,10 +482,12 @@ Scan_Samples:
         {
           if (iVolume_Boost > 0)
           {
-              iVolume_Boost  -= iOverflow;
+              iVolume_Boost -= iOverflow;
+              if (iVolume_Boost <=0)
+                  iVolume_Boost  =1;
               iBoost_Factor -= iOverflow;
-              if (iVolume_BOLD > (K_BOOST_DENOM*25))  // 400)
-                  iVolume_BOLD = iVolume_BOLD * 97 / 100;
+              if (iVolume_AUTO > K_BOOST_TOO_SILLY)  // 400)
+                  iVolume_AUTO = iVolume_AUTO * 97 / 100;
 
               if (MParse.ShowStats_Flag)
                  Stats_Volume_Boost();
@@ -451,7 +496,8 @@ Scan_Samples:
               //if (iBoost_Factor > K_BOOST_DENOM)
               //    iBoost_Factor = 0;
 
-              goto Scan_Samples;
+              if (iVolume_Boost > 1)
+                  goto Scan_Samples;
 
           }
         }
@@ -461,7 +507,7 @@ Scan_Samples:
 
     if (uOverCtr && ! MParse.Karaoke_Flag)
     {
-      CopyMemory ( allocptr, P_Wav_Data, W_Len );
+      CopyMemory ( allocptr, P_Wav_Data, iSPKR_Buf_Len );
     }
 
   } // END-ELSE  NOT ASIS
@@ -469,25 +515,25 @@ Scan_Samples:
 
   // Optional, very rough normalization of audio preview level
 
-  if (iVolume_BOLD > 0  
+  if (iVolume_AUTO > 0  
   &&  iCtl_Volume_Boost
-  &&  iVolume_Boost < iVolume_BOLD
-  // &&  iVolume_Boost < 32
-  )
+  &&  iVolume_Boost   < iVolume_AUTO
+  &&  iVolume_Ceiling > 1344)
   {
     if (iVolume_UnBoost_Recent > 0)  
         iVolume_UnBoost_Recent--;
     else
     // if there is a significant discrepancy, then reboost.
-    if ((iPeak < iNearEnough)
+    if ( iPeak < iNearEnough
     ||  (iNearEnough + iTrough < 0)) // NOTE: iTrough is negative
     {
-      iTmp1 = ((iVolume_BOLD - iVolume_Boost) / K_BOOST_DENOM);  // Wobbly, since pkts/sec varies between files
+      iTmp1 = ((iVolume_AUTO - iVolume_Boost) / K_BOOST_DENOM);  // Wobbly, since pkts/sec varies between files
       if (!iTmp1)
            iTmp1 = 1;
       else
       if (iTmp1 > 3)
           iTmp1 = 3;
+
       iVolume_Boost += iTmp1;
       //iVolume_Boost += ((36 - iVolume_Boost) / K_BOOST_DENOM);  // Wobbly, since pkts/sec varies between files
     }
@@ -503,7 +549,7 @@ Scan_Samples:
   }
 
   wh                   = GlobalLock (hg);
-  wh -> dwBufferLength = W_Len;
+  wh -> dwBufferLength = iSPKR_Buf_Len;
   wh -> lpData         = allocptr;
 
   iRC = waveOutPrepareHeader ( hWAVEdev, wh, sizeof (WAVEHDR));
@@ -544,7 +590,7 @@ Scan_Samples:
   }
 
 
-  return; //  W_Len;
+  return; //  iSPKR_Buf_Len;
 }
 
 

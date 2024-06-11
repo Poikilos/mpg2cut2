@@ -137,12 +137,13 @@ int iRC;
          // Chg2RGB24(0); 
          if ( !MParse.SystemStream_Flag)
          {
-            iRC = F591_Ask_Trojan(1, &"Transport Stream");
+            iRC = F594_TS_Warn_Msg();
             //if (iRC == IDOK)
             //    MParse.Stop_Flag = 1;
          }
 
         MParse.SystemStream_Flag = -1;
+        PktChk_Audio = PKTCHK_AUDIO_TS; PktChk_Any = PKTCHK_ANY_TS;
         Mpeg_PES_Version = 2;  process.Mpeg2_Flag = 4;
         break;
       }
@@ -152,12 +153,14 @@ int iRC;
          // Chg2RGB24(0);
          if ( !MParse.SystemStream_Flag)
          {
-            iRC = F591_Ask_Trojan(1, &"PVA Stream");
+            iRC = F591_Ask_Trojan(1, &"PVA Stream", 
+                                     &iCtl_WarnTS, IDM_WARN_FMT_TS);
             //if (iRC == IDOK)
             //    MParse.Stop_Flag = 1;
          }
 
         MParse.SystemStream_Flag = -2;
+        PktChk_Audio = PKTCHK_AUDIO_TS; PktChk_Any = PKTCHK_ANY_TS;
         Mpeg_PES_Version = 2;   process.Mpeg2_Flag = 4;
         break;
       }

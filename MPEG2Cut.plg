@@ -6,83 +6,13 @@
 --------------------Configuration: MPEG2Cut - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating command line "rc.exe /l 0x409 /fo"Release/gui.res" /d "NDEBUG" "E:\Sp\Mpg2cut2\gui.rc"" 
-Creating temporary file "F:\TEMP\RSP31D3.TMP" with contents
+Creating temporary file "F:\TEMP\RSP1531.tmp" with contents
 [
 /nologo /G6 /MT /W3 /Zd /Ox /Ot /Oa /Og /Oi /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\Sp\Mpg2cut2\Aspect.c"
-"E:\Sp\Mpg2cut2\Buttons.c"
-"E:\Sp\Mpg2cut2\ClipFile.c"
-"E:\Sp\Mpg2cut2\CLIPS.c"
-"E:\Sp\Mpg2cut2\DBG.c"
-"E:\Sp\Mpg2cut2\Disp_Names.c"
-"E:\Sp\Mpg2cut2\Disp_win.c"
-"E:\Sp\Mpg2cut2\Get_INIT.c"
-"E:\Sp\Mpg2cut2\GetAudio.c"
-"E:\Sp\Mpg2cut2\getbit.c"
-"E:\Sp\Mpg2cut2\GetBlk.c"
-"E:\Sp\Mpg2cut2\gethdr.c"
-"E:\Sp\Mpg2cut2\getpic.c"
-"E:\Sp\Mpg2cut2\GopBack.c"
-"E:\Sp\Mpg2cut2\idctfpu.c"
-"E:\Sp\Mpg2cut2\idctref.c"
-"E:\Sp\Mpg2cut2\IN_FILES.c"
-"E:\Sp\Mpg2cut2\INI.c"
-"E:\Sp\Mpg2cut2\INI_REG.c"
-"E:\Sp\Mpg2cut2\LUM_WIN.c"
-"E:\Sp\Mpg2cut2\motion.c"
-"E:\Sp\Mpg2cut2\MPA_DA.c"
-"E:\Sp\Mpg2cut2\mpeg2dec.c"
-"E:\Sp\Mpg2cut2\Nav_JUMP.c"
-"E:\Sp\Mpg2cut2\OUT.c"
-"E:\Sp\Mpg2cut2\Out_PART.c"
-"E:\Sp\Mpg2cut2\Out_Progress.c"
-"E:\Sp\Mpg2cut2\Out_SPLIT.c"
-"E:\Sp\Mpg2cut2\Parm2Clip.c"
-"E:\Sp\Mpg2cut2\Plug.c"
-"E:\Sp\Mpg2cut2\Pref.cpp"
-"E:\Sp\Mpg2cut2\Render.c"
-"E:\Sp\Mpg2cut2\SNAPS.c"
-"E:\Sp\Mpg2cut2\STATS_WIN.c"
-"E:\Sp\Mpg2cut2\store.c"
-"E:\Sp\Mpg2cut2\Timing.c"
-"E:\Sp\Mpg2cut2\TRACKBAR.c"
-"E:\Sp\Mpg2cut2\TxtFunc.c"
-"E:\Sp\Mpg2cut2\Volume.c"
-"E:\Sp\Mpg2cut2\wave_out.c"
-"E:\Sp\Mpg2cut2\AC3Dec\bit_allocate.c"
-"E:\Sp\Mpg2cut2\AC3Dec\bitstream.c"
-"E:\Sp\Mpg2cut2\AC3Dec\coeff.c"
-"E:\Sp\Mpg2cut2\AC3Dec\crc.c"
-"E:\Sp\Mpg2cut2\AC3Dec\decode.c"
-"E:\Sp\Mpg2cut2\AC3Dec\downmix.c"
-"E:\Sp\Mpg2cut2\AC3Dec\exponent.c"
-"E:\Sp\Mpg2cut2\AC3Dec\imdct.c"
-"E:\Sp\Mpg2cut2\AC3Dec\parse.c"
-"E:\Sp\Mpg2cut2\AC3Dec\rematrix.c"
-"E:\Sp\Mpg2cut2\AC3Dec\sanity_check.c"
+"G:\SP\MPG2CUT2\Volume.c"
 ]
-Creating command line "cl.exe @F:\TEMP\RSP31D3.TMP" 
-Creating temporary file "F:\TEMP\RSP31D4.TMP" with contents
-[
-/nologo /G6 /MT /W3 /Zd /Ox /Ot /Oa /Og /Oi /Op /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\Sp\Mpg2cut2\gui.cpp"
-]
-Creating command line "cl.exe @F:\TEMP\RSP31D4.TMP" 
-Creating temporary file "F:\TEMP\RSP31D5.TMP" with contents
-[
-/nologo /G6 /MT /W3 /Zd /Od /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\Sp\Mpg2cut2\NO_OPT.c"
-"E:\Sp\Mpg2cut2\WAV_NOOPT.c"
-]
-Creating command line "cl.exe @F:\TEMP\RSP31D5.TMP" 
-Creating temporary file "F:\TEMP\RSP31D6.TMP" with contents
-[
-/nologo /G6 /MT /W3 /Zd /O1 /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
-"E:\Sp\Mpg2cut2\Out_FAST.c"
-]
-Creating command line "cl.exe @F:\TEMP\RSP31D6.TMP" 
-Creating temporary file "F:\TEMP\RSP31D7.TMP" with contents
+Creating command line "cl.exe @F:\TEMP\RSP1531.tmp" 
+Creating temporary file "F:\TEMP\RSP1532.tmp" with contents
 [
 ddraw.lib dxguid.lib vfw32.lib winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib idctmmx.obj /nologo /subsystem:windows /pdb:none /machine:I386 /out:"Release\Mpg2Cut2-RELEASE.exe" /mapinfo:exports /mapinfo:lines 
 .\Release\Aspect.obj
@@ -142,95 +72,16 @@ ddraw.lib dxguid.lib vfw32.lib winmm.lib kernel32.lib user32.lib gdi32.lib winsp
 .\Release\sanity_check.obj
 .\Release\gui.res
 ]
-Creating command line "link.exe @F:\TEMP\RSP31D7.TMP"
+Creating command line "link.exe @F:\TEMP\RSP1532.tmp"
 <h3>Output Window</h3>
-Compiling resources...
 Compiling...
-Aspect.c
-Buttons.c
-E:\Sp\Mpg2cut2\Buttons.c(239) : warning C4101: 'uDGF_Height' : unreferenced local variable
-ClipFile.c
-CLIPS.c
-DBG.c
-Disp_Names.c
-E:\Sp\Mpg2cut2\Disp_Names.c(528) : warning C4133: '=' : incompatible types - from 'struct tagNMHDR *' to 'struct HWND__ *'
-Disp_win.c
-Get_INIT.c
-GetAudio.c
-getbit.c
-GetBlk.c
-gethdr.c
-getpic.c
-GopBack.c
-idctfpu.c
-idctref.c
-IN_FILES.c
-INI.c
-INI_REG.c
-LUM_WIN.c
-Generating Code...
-E:\Sp\Mpg2cut2\getpic.c(2087) : warning C4799: function 'form_prediction' has no EMMS instruction
-Compiling...
-motion.c
-MPA_DA.c
-mpeg2dec.c
-E:\Sp\Mpg2cut2\mpeg2dec.c(1025) : warning C4018: '>' : signed/unsigned mismatch
-E:\Sp\Mpg2cut2\mpeg2dec.c(1033) : warning C4018: '>' : signed/unsigned mismatch
-E:\Sp\Mpg2cut2\mpeg2dec.c(1035) : warning C4018: '>' : signed/unsigned mismatch
-Nav_JUMP.c
-OUT.c
-E:\Sp\Mpg2cut2\Out_TC.c(854) : warning C4133: '=' : incompatible types - from '__int64 *' to 'unsigned int *'
-E:\Sp\Mpg2cut2\Out_TC.c(888) : warning C4244: '=' : conversion from 'unsigned __int64 ' to 'unsigned int ', possible loss of data
-Out_PART.c
-Out_Progress.c
-Out_SPLIT.c
-Parm2Clip.c
-Plug.c
-Generating Code...
-Compiling...
-Pref.cpp
-Generating Code...
-Compiling...
-Render.c
-SNAPS.c
-STATS_WIN.c
-store.c
-Timing.c
-TRACKBAR.c
-TxtFunc.c
 Volume.c
-wave_out.c
-bit_allocate.c
-bitstream.c
-coeff.c
-crc.c
-decode.c
-downmix.c
-exponent.c
-imdct.c
-parse.c
-rematrix.c
-sanity_check.c
-Generating Code...
-E:\Sp\Mpg2cut2\AC3Dec\exponent.c(53) : warning C4761: integral size mismatch in argument; conversion supplied
-E:\Sp\Mpg2cut2\AC3Dec\bit_allocate.c(312) : warning C4761: integral size mismatch in argument; conversion supplied
-E:\Sp\Mpg2cut2\AC3Dec\bit_allocate.c(330) : warning C4761: integral size mismatch in argument; conversion supplied
-E:\Sp\Mpg2cut2\YUV_444.c(86) : warning C4799: function 'conv422to444' has no EMMS instruction
-E:\Sp\Mpg2cut2\YUV_444.c(384) : warning C4799: function 'conv420to422' has no EMMS instruction
-Compiling...
-gui.cpp
-Compiling...
-NO_OPT.c
-WAV_NOOPT.c
-Generating Code...
-Compiling...
-Out_FAST.c
 Linking...
 
 
 
 <h3>Results</h3>
-Mpg2Cut2-RELEASE.exe - 0 error(s), 13 warning(s)
+Mpg2Cut2-RELEASE.exe - 0 error(s), 0 warning(s)
 </pre>
 </body>
 </html>

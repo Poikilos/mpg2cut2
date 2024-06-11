@@ -15,7 +15,10 @@ TOOLBAR BUTTONS :-
 
 B = BMP Snapshot of current frame.
 + = Add selection to Clip List
-L = Luminance Adjust             (Alt-L = quick On/Off of Lum Adjust)
+L = Luminance Adjust 
+      Alt-L = Toggle Lumniance Adjust on/off
+    Shift-L = luminance setting Bold
+     Ctrl-L = luminance setting Default
 Z = Zoom
 
 º  = Stop
@@ -81,7 +84,7 @@ there are 2 different configurations for keyboard commands:
 
 
 	Open file         F3 Ctrl-O
-	Append file       alt-O       
+	Add file          alt-O       
 	Save clips        F4 Ctrl-S
 	Save This clip    Ctrl_T
 	Play              F5 P  [INS]
@@ -104,7 +107,9 @@ there are 2 different configurations for keyboard commands:
 	L = Luminance Boost 
       M = Mute
       K = Karaoke
-      V = Volume Boost.  Shift-V = Bolder Boosting
+      V = Volume Boost.  Alt-V = Reduce volume. 
+                       Shift-V = Bolder AVC Boost
+                        Ctrl-V = Volume Sliders
       A = Audio Track Change (Cycle around Audio Tracks)
       U = Swap UV on display. (Turn Blue People to Red)
 
@@ -127,6 +132,11 @@ TOGGLES
 Shift-F11 = Both Buttons and Scrollbar
 
       F6  = Stats Screen
+
+
+NOTE:- PAUSE (space bar) is different to STOP (esc key).
+       Stop aligns on an I-frame, suitable for From/To marking,
+       but Pause just freezes the decoder mid-stream.
 
 ==========================================================================
 
@@ -488,8 +498,8 @@ Restart the system, and recheck the Current Transfer Mode.
 MULTIPLE INPUT FILES.
 
    Reinstated the ability to concatenate multiple input files.
-	   Menu - File - Append. 
-   Multiple files can be selected during File Open or Append,
+	   Menu - File - Add. 
+   Multiple files can be selected during File Open or Add,
    but be patient as it takes time to open a number of files.
 
    NOTE
@@ -534,10 +544,10 @@ MULTIPLE INPUT FILES.
    But to help navigate, keyboard commands allow skip to next/prev file.
    Also, a beep will sound whenever a file boundary is reached.
 
-   Files can be appended either through the File Menu,
+   Files can be added either through the File Menu,
    or using Drag-And-Drop from Windows Explorer.  
 
-   By default the program will ask whether dropped files are to appended
+   By default the program will ask whether dropped files are to added
    to those already opened.  This pop-up can be controlled via :-
    MENU - Misc - PopUps - Dropped Files.
 
@@ -628,8 +638,12 @@ if this menu option has been enabled. However this is experimental.
 
 
 EXPLANATION OF PROGRAM MESSAGES
-
 ===============================
+
+NOTE: If you have ticked a box to stop a message from popping up,
+      but later you have changed your mind,
+      you can reset it via MENU - Misc - Pop-up Msg
+
 
 
 MESSAGE: "OUTPUT filename same as INPUT."
@@ -654,12 +668,12 @@ MESSAGE: "MISSING FIRST %s header on input file
    If you are editing a SEQUENCE of files that are actually
    a single stream, then ONLY click "OK" on the FIRST one.
 
-   Best approach for editing split files is to use the "File-Append" command
+   Best approach for editing split files is to use the "File-Add" command
    to concatenate fragments in a single edit session,
    to avoid losing frames from GOPs that have been split across files.  
 
    For ease of finding files when you have a lot in the same folder,
-   use "File-Append-Like", which restricts the File display
+   use "File-Add-Like", which restricts the File display
    to those with a similar prefix. (Not supported on DBCS)
 
 
@@ -732,6 +746,7 @@ Recommend the following options to be activated :-
    OUTPUT - PREAMBLE - SMALL
    OUTPUT - PARSING
    OUTPUT - PARSING - ALIGN VIDEO PACKETS
+
 
 ---------------------------------------------------------------------
 
@@ -882,10 +897,12 @@ PARSING OPTIONS.
  
                     Mpeg Audio header detection is not always accurate.
 
-   Removal Padding packets -
-             For use with Non-VOB variable bitrate Program Streams.
-             Wider effect when VOB preservation turned OFF.
-             Can also be extended using Unlock option in Sys hdr.
+   Drop Padding pkts & PS2-NAV  -
+         For use with outputing Non-VOB variable bitrate Program Streams.
+         Wider effect when VOB preservation turned OFF.
+         Can also be extended using Unlock option in Sys hdr.
+         Implicitly turns on "Parse All Pkts".
+         Inhibited when saving to a VOB or using Vob Preservation.
 
    Adjust Time Stamps - Still under development - VERY PRIMITIVE.
                         The aim is to smooth joins by adjusting
@@ -1060,13 +1077,16 @@ DEFAULT OUTPUT FOLDER
 
   There are 3 options -
 
-  Always Most Recent = Remembers the last used Output folder each time.
+     Always Most Recent = Remembers the last used Output folder each time.
 
-  Same as Input = Defaults to same folder as the input file,
-                  for the first save.
+     Same as Input = Defaults to same folder as the input file,
+                     for the first save from that file.
 
-  Set Static Default 
-       - Sets a specific folder as the default for the first save.
+     Static default for First Save 
+          - Sets a specific folder as the default 
+            for the first save of each file.
+
+  ---
 
   "Show Both In Win98"
 
@@ -1227,18 +1247,20 @@ but can optionally be applied to BMP snapshots as well.
 The choice is yours.
 
 GAMMA - Increases brightness and contrast in dark areas.
+
         This is the main difference between TV and PC systems.
-        Adjust this first.  130 is a common starting point,
-        but different systems will need different values.
+        Adjust this first, as it is the most common discepancy.
+        130 is a good starting point,
+        but different systems may need different values.
 
         This is a logarithmic control.
         Values below 100 darken.
         Values above 100 brighten.
         
 
-CONTRAST - Same as an analogue TV contrast control.
+CONTRAST   - Same as an analogue TV contrast control.
+BRIGHTNESS - Same as an analogue TV brightness control.
 
-BRIGHTNESS - ditto.
 
 LOCK - Automatically adjust contrast and brightness together.
 
@@ -1247,22 +1269,35 @@ BMP - The changes will also be applied to BMP snapshots.
       have DIFFERENCES in the Gamma settings
       between Overlay and BMP (DIB-RGB) interfaces.
 
+[-] - Negative image
+
+[D] [C] [B] [A] = Luminance preset buttons.
+
+The Luminance preset buttons can be changed using the [@] button.
+The next Luminance button clicked will then take the current setting.
+EG - To change button [D] to match the current setting,
+     click [@], then click [D].
+
+
+
 COLOR
 -----
 
-BLUE / RED 
+BLUE / RED sliders
       - Turn green people a bit redder during preview.
-      Primarily for bad NTSC videos.
-      Only works with YUV Video overlay, at this time.
+        Primarily for bad NTSC videos.
+        Only works with YUV Video overlay, at this time.
+
+Swap - Swap U-V colour channels.  Use this if people have blue skin.
+           
 
 VHS - Some VHS tapes may turn strong red into an exaggerated glowing red.
-      This will stop Red from over saturating strong reds.
-      This is NOT the same as using the Red slider.
-      Before turning this on, first consider adjusting VHS convergence.
+      This will help stop Red from over saturating strong reds.
+      This is NOT the same as using the Red slider,
+      as VHS only effects strong red, not pale red.
 
-The Luminance preset buttons values can be changed in the INI file,
-if you are an expert user. The keyword is "LumPresets".
-
+      Also consider adjusting VHS convergence,
+      under View - Special FX.
 
 
 SPECIAL FX   [Only work if Fast Decode option is in effect.]
@@ -1271,8 +1306,12 @@ SPECIAL FX   [Only work if Fast Decode option is in effect.]
 VHS convergence - Use when either Red or Blue components, or both,
                   are either too far right, or too far down.
 
-YUV swap - Swap colour channels.  Use this if people have blue skin.
-           
+Retain Saturation settings across session
+         - Useful when your color adjustments are due to monitor problems
+           rather than input file quality problems.
+
+Lum adj Deselect between clips
+    - Useful when viewing program material that is much darker than ads.
 
 
 
@@ -1410,23 +1449,22 @@ The default is the video track zero (internally hex E0).
 PID   (EXPERIMENTAL)
 ----
 
-This is unsupported at this stage.
-It only applies to TRANSPORT STREAMS,
+This only applies to viewing, and it is very crude.
+At this stage ALL PIDS are still copied when saving.
+
+PID only applies to TRANSPORT STREAMS,
 which are NOT fully supported.
 
 PID = ALL (default)
 
       When searching, this shows ANY I-Frame with a Video PES Header, 
-      so you can se what is on each PID.
-      BUT when playing, it is ignored, so as to play the current PID.
+      so you can see what is on each PID.
+      This is disabled when playing.
 
-PID = AUTO
-
-      Plays thge first PID found with a Video PES Header.
-
-The PID numbers on the menu are relative.
-ie. The first PID found is PID number 1,
-the second PID found is PID number 2.
+PID = CURRENT
+      Shows only the PID that you are currently seeing.
+      Tick this once you have found the PID of interest to you,
+      and you no longer want to see the other PIDs.
 
 
 
@@ -1454,13 +1492,22 @@ DRIVER CONFLICTS
 
 ATI Sloping - Allow for bug in ATI driver.
       Some ATI drivers sometimes give sloping video on first display. 
-      THis should overcome the problem.
+      This should overcome the problem.
 
-Leadtek OVL Key - Leadtek Overlay Key option. 
+
+
+Leadtek OVL Key - Grey 
            If Leadtek Winfast is running in the background,
            it stops Mpg2Cut2 from using it's own Color Key for the overlay.
            This option forces Mpg2Cut2 to use the Leadtek Color Key.
            *BUT* It has the side effect of turning menus TRANSPARENT !
+
+           Furthermore, if you minimize and restore, 
+           sometimes the overlay key has changed to black in the interim.
+           Tick the Leadtek OVL - Black option to overcome this.
+           As this situation is usually transient,        
+           Black mode is reset to Grey at the end of the session.
+           Thanks for the buggy software Mr LeadTek. Grrr... Argh....
 
 
 
@@ -1533,9 +1580,7 @@ Summary - When previewing the clips, only shows start and end of each clip.
 
 
 Slower - Playback speed is reduced [F9].
-         One click = half speed.
-         Two clicks = third speed.
-         Three clicks = return to normal.
+         Repeated clicks slows motr.
 
 Faster - Playback speed is increased [Shift-F9].
          One click    = 1.5x with audio
@@ -1543,7 +1588,7 @@ Faster - Playback speed is increased [Shift-F9].
          Three clicks = 3x - with indecipherable audio
          Four clicks  = 4x - if you have a fast PC.
          Five clicks  = enters CUE mode - no audio.
-         Six clicks   = return to normal.
+
 
 The program will attempt to match the audio speed appropriately,
 where it can.  The adjusted sound playback is a bit choppy,
@@ -1690,18 +1735,29 @@ AUDIO preview controls
 Audio controls do NOT affect the output file.
 They are ONLY for help in monitoring the preview.
 
-Volume Boost - Quick and dirty audio boost during preview.
+The [V] button brings up a Volume Control window
+that has 2 sliders and a number of tick boxes.
+The 1st slider is a conventional volume control.
+The 2nd slider is for the audio limiter.
+
+Volume Boost - Audio boost during preview, for files that are too quiet.
                If overflow occurs, boost is decreased.
 
-Volume Bold  - Booster will try to keep high,
-               as a very rough type of normlization.
-               Result can be a bit scratchy.  Bold is not Beautiful.
+Automatic Volume Control (AVC)
+             - Booster will try to keep preview volume high,
+               for files where some parts are much louder than others.
+               This is a a form of volume normalization.
 
-Limit Loud Sounds - Reduce the preview volume on excessively loud files.
+Limit Loud Sounds 
+            - Set a maximum for the overall volume,
+              for closer matching to other PC applications.
+              If active, default limit is one quarter of max volume.
+              Adjustable via 2nd slider on Volume window.
 
-Slow Attack - Slow down the Bold rebossting effect.
+Slow Attack - Slow down the Bold reboosting effect.
 
-       If Boost, Bold and Limit do not give exactly what you want,
+Advanced Users ONLY :-
+       If Boost, AVC and Limit do not give exactly what you want,
        the controls can be tweaked in the INI file. 
        On the INI line with the keyword "VOLUME" :-
             - parm1 = reserved
@@ -1709,32 +1765,51 @@ Slow Attack - Slow down the Bold rebossting effect.
             - parm3 - Audio Boost for basic AC3 files. 
                       For DTS or DD+, this value is doubled.
             - parm4 - Audio Limiter. 1=on. 0=off.
-            - parm5 - Audio Ceiling.  Mmax=32767. 
-                      Smaller is quieter.
-            - parm6 - Bold Bossting Slow Attack Delay
+            - parm5 - Audio Ceiling for limiter.  Max=32767. 
+                      Smaller is quieter. 0=Quarter Max Volume.
+            - parm6 - AVC Slow Attack Delay period
                       0=Off 16=Moderate. 
                       Negative is temporarily off.
             Other parms reserved for future use.
                
-               
-Anti-Phase   - Adjustment for bad audio equipment
+Karaoke      - Attempts to remove vocals from STEREO music track.
+               Only basic function, no lag compensation.
+
+
+
+Audio Track  
+       - Allows for selection of different language tracks,
+         on files that have parallel concurent audio.
+
+Audio Track - Auto 
+       - Defaults to first track found when play begins. 
+
+Audio Track - Auto Default 
+       - Resets Audio track to Auto on each launch.
+         Otherwise remembers last specific audio track number used. 
+
+You can cycle around the audio tracks by typing "A".
+If there is only 1 track, then the Boost will be reset to the default.
+
+Mute - Turn audio on or off.  Keyboard shortcut = "M".
+
+
+TO IMPROVE PLAYBACK ON MUDDY AUDIO
+FROM VHS TAPES RECORDED IN STERO FROM A MONO SOURCE.
+
+     Anti-Phase   - Adjustment for bad audio equipment
                that inverts the singnal on one channel.
                Try this if your audio sounds muffled.
                Only basic correction -  
                Does not compensate for lag between channels.
                If this does not help, maybe try Karaoke instead.
 
-Karaoke      - Attempts to remove vocals from STEREO music track.
-               Only basic function, no lag compensation.
+     Karaoke can also SOMETIMES be used to improve playback of poor audio, 
+        making muddy vocals CLEARER, by emphasising any channel lag, 
+        which can improve treble and reduce bass.
 
-               Can sometimes be used to improve playback of poor audio, 
-               making muddy vocals CLEARER, 
-               by emphasising any channel lag, 
-               which improves treble and reduces bass.
 
-               I have found this can significantly improve subjective
-               audio quality on mpegs from VHS tapes with poor mono sound. 
-
+MISC AUDIO OPTIONS
 
 PS2 Audio    - Needed for Australian DTV HD with Nebula Card
                which uses Private Stream 2 for Audio.
@@ -1753,23 +1828,6 @@ Decoder - If the default Audio decoder does not work on your CPU,
           you can override it.
 
 CRC Checking - Can be turned off to allow for cruddy files.
-
-
-Audio Track  
-       - Allows for selection of different language tracks,
-         on files that have parallel concurent audio.
-
-Audio Track - Auto 
-       - Defaults to first track found when play begins. 
-
-Audio Track - Auto Default 
-       - Resets Audio track to Auto on each launch.
-         Otherwise remembers last specific audio track number used. 
-
-You can cycle around the audio tracks by typing "A".
-If there is only 1 track, then the Boost will be reset to the default.
-
-Mute - Turn audio on or off.  Keyboard shortcut = "M".
 
 
 -----------------------------------------------------------------
@@ -2113,6 +2171,8 @@ If you want to eliminate the conversion to relative time,
 specify the keyword parameter ABS (Absoloute).
 Time codes must then match the actual SCR time stamps.
 
+/DEFER = Do not automatically begin saving output
+
 ------------------------------------------------------------------
 
 API INTERFACE FOR CONTROL BY EXTERNAL PROGRAMS.
@@ -2437,4 +2497,7 @@ Fault_Flag = 11;  // Invalid start code within Picture data
 
 Fault_Flag = 42;  // Unknown Pic type - not I,P,B
 
+AC3 in MPA pkt.   // The input is muxed incorrectly.
+                  // It uses AC3 audio encoding,
+                  // been muxed inside Mpeg Audio packets.
 

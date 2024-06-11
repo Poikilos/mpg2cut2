@@ -309,7 +309,7 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
  unsigned int  uFrameTime_PTS;
  unsigned char *lpNextHdr, *lpPrevHdr, *lpHopeHdr, *lpStart;
 
- int iLookAhead_OK;
+ int iAdjacent_OK;
 
  // Try to find an Mpeg audio syncword
 
@@ -387,7 +387,7 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
              if (DBGflag)
                  lpPrevHdr = lpStart - 5;
 
-             iLookAhead_OK = 1;
+             iAdjacent_OK = 1;
 
              // TODO: NEED some extra tests here so that 
              // frame split across packets
@@ -403,7 +403,7 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
                 if (lpNextHdr  < lpMpeg_End_Packet) // Is next frame in same packet ?
                 {
                    if (*lpNextHdr  != 0xFF ) // and is there really a header there
-                       iLookAhead_OK = 0;
+                       iAdjacent_OK = 0;
                    else
                        lpHopeHdr = lpNextHdr; 
                 }
@@ -417,8 +417,13 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
                        if ((*lpPrevHdr  ) != 0xFF   // chk prev hdr of same length
                        &&  (*lpPrevHdr-1) != 0xFF   // chk prev hdr of similar len
                        &&  (*lpPrevHdr+1) != 0xFF ) // chk prev hdr of similar len
-                           iLookAhead_OK = 0;
+                           iAdjacent_OK = 0;
                      }
+                    else
+                    if (uMPA_Sample_Hz < 44100 && Coded_Pic_Width >= 400) // Unlikely combo
+                    {
+                           iAdjacent_OK = 0;
+                    }
                 }
              } // end look ahead 
 
@@ -433,7 +438,7 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
                 DBGout(szBuffer) ;
              }
 
-             if (!iLookAhead_OK)  // and is there are nearby header at correct distance
+             if (!iAdjacent_OK)  // and is there are nearby header at correct distance
                   lpMpeg_ix3++;   // Not a reliable header - keep looking
              else
              {
@@ -495,7 +500,7 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
 void Out_Find_AC3_Syncword()
 {
   int iOffset;
-  unsigned int uMode, uChannels, uFrameTime_PTS;
+  unsigned int uChannel_ix, uChannels, uFrameTime_PTS;
 
   unsigned char *lpAC3_HdrCount, *lpAC3_Offset_Hi, *lpAC3_Offset_Lo; 
   unsigned char *lpAC3_Mode;
@@ -537,8 +542,11 @@ unsigned int uAC3Channels[8] =
          iScanResult = -1;
      else
      //Syncword is always Byte aligned
-     if (( *lpMpeg_ix3      ==0x0B)
-     &&  (*(lpMpeg_ix3+1)   ==0x77))
+     if ((   ( *lpMpeg_ix3      ==0x0B)  
+          && (*(lpMpeg_ix3+1)   ==0x77))
+ //  ||  (   (*lpMpeg_ix3      ==0x7F)  
+ //       && (*(lpMpeg_ix3+1)   ==0xFE))
+        )
      {
          if (!iOut_PTS_Matching)
          {
@@ -549,9 +557,9 @@ unsigned int uAC3Channels[8] =
            lpAC3_Mode = lpMpeg_ix3+5;
            if (lpAC3_Mode <= lpMpeg_End_Packet)
            {
-               uMode     = ((*lpAC3_Mode)>>5) & 0x07;
+               uChannel_ix     = ((*lpAC3_Mode)>>5) & 0x07;
 
-               uChannels = uAC3Channels[uMode];
+               uChannels = uAC3Channels[uChannel_ix];
 
                uFrameTime_PTS = 8640 / uChannels;
                //  "3/2" => 1440 ticks;
@@ -617,7 +625,7 @@ void Out_Find_PCM_Syncword()
 {
   int iOffset;
 
-  // unsigned int uMode, uChannels, uFrameTime_PTS;
+  // unsigned int uChannel_ix, uChannels, uFrameTime_PTS;
   // unsigned char *lpAC3_Mode;
 
   unsigned char *lpAC3_Offset_Hi, *lpAC3_Offset_Lo;
@@ -651,7 +659,7 @@ void Out_Find_PCM_Syncword()
     //SubStream_CTL[FORMAT_AC3][getbit_AC3_Track].rate = PCM_SamplingRate / 1000;
 
     //uChannels      = (iLPCM_Attr & 0x03) + 1;
-    //SubStream_CTL[FORMAT_AC3][getbit_AC3_Track].mode = uChannels;
+    //SubStream_CTL[FORMAT_AC3][getbit_AC3_Track].uChannel_ix = uChannels;
 
   iScanResult = 1;
 

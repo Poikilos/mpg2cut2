@@ -32,6 +32,8 @@ void Out_Progress_Title(HWND hProgress_Link)
      sprintf(szBuffer, "Saving %d clips - %s", iEDL_OutClips,
                                                     szOutput);
      SetWindowText(hProgress_Link, szBuffer);
+     strcpy(szMsgTxt, "Saving...");
+     Out_Status_Msg();
 }
 
 // ------------------------------------------------------------
@@ -143,6 +145,7 @@ LRESULT CALLBACK OUT_DlgProgress(HWND hProgress_Link, UINT message,
               {
                   Out_PauseFlag = 0;
                   uAction = BST_UNCHECKED; SetWindowText(hPause, "Pause");
+                  SetDlgItemText(hProgress, IDC_PROGRESS_TXT, " ");
                   ResumeThread(hThread_OUT);
               }
               else
@@ -150,6 +153,12 @@ LRESULT CALLBACK OUT_DlgProgress(HWND hProgress_Link, UINT message,
                   Out_PauseFlag = 1;
                   uAction = BST_CHECKED;  SetWindowText(hPause, "Resume");
                   SuspendThread(hThread_OUT);
+                  iOutSuspCtr++;
+                  sprintf(szMsgTxt,
+                          "Clip #%d \t\t\t    PAUSED", iOut_Clip_ctr);
+                  if (DBGflag) DBGout(szMsgTxt);
+                  //Out_Status_Msg();
+                  SetDlgItemText(hProgress, IDC_PROGRESS_TXT, szMsgTxt);
               }
               CheckDlgButton(hProgress_Link, IDP_PAUSE, uAction);
               SetDlgItemText(hProgress, IDP_PROGRESS_ETA, " ");
@@ -164,6 +173,11 @@ LRESULT CALLBACK OUT_DlgProgress(HWND hProgress_Link, UINT message,
 
           case IDP_NORM_CHK:
                iCtl_Priority[2] = PRIORITY_NORMAL;
+               Out_Priority_Chg(1);
+               return true;
+
+          case IDP_QUICK_CHK:
+               iCtl_Priority[2] = PRIORITY_QUICK;
                Out_Priority_Chg(1);
                return true;
 
@@ -194,35 +208,47 @@ int iPrev_Priority = 424242;
 //---------------------------------------
  void Out_Priority_Chg(const int P_Manual)
 {
-  unsigned uRadio[3];
-  int iTmp1;
+  unsigned uRadio[4];
+  int iBreathe;
+
+  uRadio[0] = BST_UNCHECKED;
+  uRadio[1] = BST_UNCHECKED;
+  uRadio[2] = BST_UNCHECKED;
+  uRadio[3] = BST_UNCHECKED;
 
   switch (iCtl_Priority[2])
   {
      case PRIORITY_HIGH:
-           Set_Priority(hThread_OUT, 1, 2, 1);
-           iTmp1 = 2;
+           iBreathe = 2;
+           uRadio[1] = BST_CHECKED;
+           break;
+
+     case PRIORITY_QUICK:
+           iBreathe = 2;
+           uRadio[0] = BST_CHECKED;
            break;
 
      case PRIORITY_LOW:
-           Set_Priority(hThread_OUT, 3, 2, 1);
-           iTmp1 = 0;
+           iBreathe = 0;
+           uRadio[3] = BST_CHECKED;
            break;
 
      default:
-           Set_Priority(hThread_OUT, 2, 2, 1);
-           iTmp1 = 1;
+           iCtl_Priority[2] = PRIORITY_NORMAL;
+           iBreathe = 1;
+           uRadio[2] = BST_CHECKED;
            break;
 
   }
 
+  Set_Priority(hThread_OUT, iCtl_Priority[2], 2, 1);
 
   // Repeated hitting of SLOW or FAST gives extra effect
   if (P_Manual 
   && iCtl_Priority[2] == iPrev_Priority 
-  && iTmp1 != 1)
+  && iBreathe != 1)
   {
-    if (iTmp1 == 0)
+    if (iBreathe == 0)
     {
       iOut_Breathe_PktLim    /= 2;
       iOut_Breathe_PerBigBlk *= 2; 
@@ -236,28 +262,17 @@ int iPrev_Priority = 424242;
   }
   else
   {
-    iOut_Breathe_PerBigBlk = iCtl_Out_Breathe_PerBigBlk[iTmp1];
-    iOut_Breathe_PktLim    = iCtl_Out_Breathe_PktLim   [iTmp1];
+    iOut_Breathe_PerBigBlk = iCtl_Out_Breathe_PerBigBlk[iBreathe];
+    iOut_Breathe_PktLim    = iCtl_Out_Breathe_PktLim   [iBreathe];
   }
 
-  //if (iOut_Parse_Deep && iOut_ParseAllPkts && iTmp1 < 2)
+  //if (iOut_Parse_Deep && iOut_ParseAllPkts && iBreathe < 2)
   //    iOut_Breathe_PerBigBlk +=32;
 
-  uRadio[0] = BST_UNCHECKED;
-  uRadio[1] = BST_UNCHECKED;
-  uRadio[2] = BST_UNCHECKED;
-  
-  if (iCtl_Priority[2] == PRIORITY_LOW)
-      uRadio[0] = BST_CHECKED;
-  else
-  if (iCtl_Priority[2] == PRIORITY_HIGH)
-      uRadio[2] = BST_CHECKED;
-  else
-      uRadio[1] = BST_CHECKED;
-
-  SendDlgItemMessage(hProgress, IDP_SLOW_CHK, BM_SETCHECK, uRadio[0], 0);
-  SendDlgItemMessage(hProgress, IDP_NORM_CHK, BM_SETCHECK, uRadio[1], 0);
-  SendDlgItemMessage(hProgress, IDP_HIGH_CHK, BM_SETCHECK, uRadio[2], 0);
+  SendDlgItemMessage(hProgress, IDP_QUICK_CHK, BM_SETCHECK, uRadio[0], 0);
+  SendDlgItemMessage(hProgress, IDP_HIGH_CHK,  BM_SETCHECK, uRadio[1], 0);
+  SendDlgItemMessage(hProgress, IDP_NORM_CHK,  BM_SETCHECK, uRadio[2], 0);
+  SendDlgItemMessage(hProgress, IDP_SLOW_CHK,  BM_SETCHECK, uRadio[3], 0);
 
   iPrev_Priority = iCtl_Priority[2];
 

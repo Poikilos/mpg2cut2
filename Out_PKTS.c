@@ -28,7 +28,6 @@
  int iPTS_Comparison, iAudioTrail, iTargetTailArmed;
  int iVortex_Curr_Ctr, iVortex_Token;
 
-
 //------------------------------------------------
 // Scan the big buffer looking for packets to zap
 //
@@ -133,10 +132,7 @@ void Out_FILTER()
   lpMpeg_PKT_Anchor = lpMpeg_FROM;
 
 
-  if (process.iOutUnMux ||
-      (iCtl_Out_KillPadding 
-             // && !iFixedRate 
-             && (!iOutVOB || !MParse.iVOB_Style)))
+  if (process.iOutUnMux || iOut_KillPadding)
     cBoringStreamDefaultAct = 'D';
   else                   
     cBoringStreamDefaultAct = 'A';
@@ -743,6 +739,9 @@ SkipNulls: // for(;;)
                     //if (iOut_TC_Adjust) // TimeStamp adjustment supresses NAV Packs
                     //  cMpeg_Out_Pkt_ACT = 'D';
                     //else
+                    if (iCtl_Out_KillPadding)
+                        cMpeg_Out_Pkt_ACT = 'D';
+                    else
                        cMpeg_Out_Pkt_ACT = cBoringStreamDefaultAct;
                   }
               }
@@ -1008,12 +1007,14 @@ SkipNulls: // for(;;)
                      DBGout("   *PADDING FOUND*") ;
                  }
 #endif
-                  // Temporarily suppressed the removal of padding streams
-                  //   to make regression testing easier
+                    if (iCtl_Out_KillPadding)
+                        cMpeg_Out_Pkt_ACT = 'D';
+                    else
                   //if (iOutVOB)
                      cMpeg_Out_Pkt_ACT = cBoringStreamDefaultAct;
                   //else
                   //   cMpeg_Out_Pkt_ACT = 'D';
+
                      iTmp1 = iPkt_Between_Len + 4;
                      if (cMpeg_Out_Pkt_ACT == 'D')
                          iOutPaddingBytes -= iTmp1;
@@ -1383,7 +1384,7 @@ int Out_RECORD(const void* P_Data,
                const int P_Len,  const int P_Caller)
 {
   int iWrite_RC, iRqst_Len, iAnswer, iRC, iOutFile;
-  int iTime1, iTime2, iTimeDiff; //, iTimeHurdle;;
+  int iTime1, iTime2, iTimeDiff, iPrevSusp; //, iTimeHurdle;;
 
   char *lpFrom, *lpStreamAbbr, *ext;
   char *lpFmtDelim, *lpSetExt;
@@ -1392,7 +1393,8 @@ int Out_RECORD(const void* P_Data,
   iRqst_Len = P_Len;
   lpFrom = (char*)(P_Data);
 
-  if (iOut_UnMuxAudioOnly && cStream_Cat != 'A')
+  if (iOut_UnMuxAudioOnly 
+  && (cStream_Cat != 'A' || uSubStream_Id <= 0x2F))  // Don't want subtitles
      return 0;
 
   if (uSubStream_Id == 0xE0 || ! process.iOutUnMux)
@@ -1503,6 +1505,7 @@ int Out_RECORD(const void* P_Data,
 
 
 retry:
+  iPrevSusp = iOutSuspCtr;
   iTime1    =  iCURR_TIME_ms();
 
   /*BOOL WriteFile(

@@ -13,7 +13,7 @@ const int cMAX_PANE=4;
 HWND hPane[cMAX_PANE];
 
 int  dwPanePos[cMAX_PANE];
-char* OLDCtl_Out_Folder[MAX_PATH];
+char* OLDCtl_OutFolder[MAX_PATH];
 int OLDiCtl_Out_PTS_Match;
 int OLDiCtl_SetBrokenGop;
 int OLDiCtl_Out_Parse_AllPkts;
@@ -105,7 +105,7 @@ int GetRadio(HWND hwin, int nStart, int nEnd)
 void SaveStates()
 {
   // Output.
-  lstrcpy(OLDCtl_Out_Folder[0],szCtl_Out_Folder);
+  lstrcpy(OLDCtl_OutFolder[0],szCtl_OutFolder);
 
   OLDiCtl_Out_PTS_Match=iCtl_Out_PTS_Match;
   OLDiCtl_SetBrokenGop=iCtl_SetBrokenGop;
@@ -126,7 +126,7 @@ void RestoreStates()
 {
   // Output.
 
-  lstrcpy(szCtl_Out_Folder,OLDCtl_Out_Folder[0]);
+  lstrcpy(szCtl_OutFolder,OLDCtl_OutFolder[0]);
 
   iCtl_Out_PTS_Match=OLDiCtl_Out_PTS_Match;
   iCtl_SetBrokenGop=OLDiCtl_SetBrokenGop;
@@ -289,7 +289,7 @@ void ShowSettings()
   else
     CheckRadioButton(hPane[1],IDC_RDO_SAME,IDC_RDO_BICUBIC,IDC_RDO_SAME+iCtl_BMP_Aspect);
 
-  SetDlgItemText(hPane[1],IDC_EDT_FOLDER,szCtl_Out_Folder);
+  SetDlgItemText(hPane[1],IDC_EDT_FOLDER,szCtl_OutFolder);
 
   if ((iCtl_BMP_Aspect==0) || (iCtl_BMP_Aspect==2))
     CheckRadioButton(hPane[0],ALLBASE+IDC_RDO_SAME,ALLBASE+IDC_RDO_BICUBIC, !iCtl_BMP_Aspect ? ALLBASE+IDC_RDO_SAME+2:ALLBASE+IDC_RDO_SAME+0);
@@ -297,8 +297,8 @@ void ShowSettings()
     CheckRadioButton(hPane[0],ALLBASE+IDC_RDO_SAME,ALLBASE+IDC_RDO_BICUBIC,ALLBASE+IDC_RDO_SAME+iCtl_BMP_Aspect);
 
   // Folder.
-  SetDlgItemText(hPane[0],ALLBASE+IDC_EDT_FOLDER,szCtl_Out_Folder);
-  SetDlgItemText(hPane[2],IDC_EDT_FOLDER,szCtl_Out_Folder);
+  SetDlgItemText(hPane[0],ALLBASE+IDC_EDT_FOLDER,szCtl_OutFolder);
+  SetDlgItemText(hPane[2],IDC_EDT_FOLDER,szCtl_OutFolder);
 
   for (i=IDC_CHK_AUDIOMATCHING;i<=(IDC_CHK_AUDIOMATCHING+6);i++)
   {

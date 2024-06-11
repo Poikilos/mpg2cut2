@@ -112,6 +112,13 @@ DWORD MPEG_processKick()   //HANDLE hThread_MPEG)
 
 
 
+/*
+char cStopping;
+void Stopping_Info()
+{
+  TextOut(hDC, 0, iMsgPosY, cStopping,  1);
+}
+*/
 
 
 void Mpeg_Stop_Rqst()
@@ -185,11 +192,25 @@ void Mpeg_Stop_Rqst()
 
                if (DBGflag)
                    DBGout("WAITED AUDIO");
+               /*
+               else
+               {
+                 cStopping = '-';
+                 Stopping_Info();
+               }
+               */
+
          }
 
          MParse.Stop_Flag++;
          Sleep(10); // Allow other task to stop
          process.Action = 0;
+               /*
+               {
+                 cStopping = ' ';
+                 Stopping_Info();
+               }
+               */
       }
   }
 

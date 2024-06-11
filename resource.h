@@ -49,6 +49,8 @@
 #define IDD_TRACKSEL                    164
 #define IDD_WARNING                     165
 #define IDD_VOLUME                      167
+#define IDD_DIALOG4                     168
+#define IDR_TIME_FMT_MENU               169
 #define IDP_PAUSE                       333
 #define IDC_CODED_NUMBER                1016
 #define IDC_PLAYBACK_NUMBER             1017
@@ -135,9 +137,11 @@
 #define IDC_HEIGHT_SLIDER               1053
 #define IDC_PROGRESS_TXT                1053
 #define IDC_FORMAT_FLAG                 1053
+#define LUM_SAT_SWAP_CHK                1053
 #define IDC_WIDTH_SLIDER                1054
 #define IDC_PROGRESS_TXT2               1054
 #define STATS_MPAdec_STATUS             1054
+#define IDL_LUM_NEG_CHK                 1054
 #define IDC_HEIGHT                      1055
 #define MSG_VID_TC                      1055
 #define IDC_FPS_DROPPED                 1055
@@ -162,7 +166,7 @@
 #define IDC_PAD_CTR                     1061
 #define IDA_PATH                        1061
 #define IDC_LBW                         1062
-#define IDL_LUM_RESET                   1062
+#define IDL_LUM_DEFAULT                 1062
 #define IDC_SUBT_CTR                    1062
 #define IDA_VER_STR                     1062
 #define IDC_PROGRESS_BAR                1063
@@ -175,14 +179,16 @@
 #define IDC_AUDIO_TYPE_6                1065
 #define IDL_SAT_ZERO                    1065
 #define IDC_AUDIO_TYPE_7                1066
-#define IDL_SAT_RESET                   1066
+#define IDL_SAT_DEFAULT                 1066
 #define IDP_SLOW_CHK                    1067
 #define IDC_SCAN_MODE2                  1067
 #define IDL_SAT_BOLD                    1067
 #define IDC_AUDIO_TIT_4                 1068
 #define IDL_LUM_C                       1068
 #define IDC_AUDIO_TIT_5                 1069
+#define IDL_LUM_OVR                     1069
 #define IDC_AUDIO_TIT_6                 1070
+#define IDL_LUM_A                       1070
 #define IDC_AUDIO_TIT_8                 1071
 #define IDC_NEWNAME                     1071
 #define STATS_AUDIO_FLAGS               1072
@@ -222,6 +228,7 @@
 #define IDP_NORM_CHK                    1097
 #define IDP_HIGH_CHK                    1098
 #define IDC_TREE1                       1099
+#define IDP_QUICK_CHK                   1099
 #define IDC_EDT_FOLDER                  1100
 #define IDC_CHK_AUDIOMATCHING           1101
 #define IDC_CHK_BROKENLINKFLAG          1102
@@ -328,12 +335,21 @@
 #define IDU_UNMUX_FMT_RIFF              1214
 #define TRK_TXT_1                       1214
 #define IDC_VOL_SLIDER                  1214
+#define VOL_BOOST_SLIDER                1214
 #define TRK_TXT_2                       1215
+#define VOL_LIMIT_SLIDER                1215
 #define TRK_TXT_3                       1216
+#define VOL_BOOST_CHK                   1216
 #define TRK_TXT_4                       1217
+#define VOL_AUTO_CHK                    1217
 #define TRK_TXT_5                       1218
+#define VOL_LIMIT_CHK                   1218
 #define TRK_TXT_6                       1219
+#define VOL_LIMIT_NUM                   1219
 #define TRK_TXT_7                       1220
+#define VOL_MUTE_CHK                    1220
+#define VOL_EXIT                        1221
+#define VOL_BOOST_NUM                   1222
 #define IDC_FPS_SHOWN                   1441
 #define IDC_GOP_CTR                     1442
 #define IDC_PSD                         1443
@@ -472,8 +488,7 @@
 #define IDM_PLAY_AUDLOCK                32935
 #define IDM_OUT_PARSE                   32936
 #define IDM_OUT_DEMUX                   32937
-#define IDM_OUT_FOLDER                  32938
-#define IDM_OUT_FOLDER_HERE             32938
+#define IDM_OUT_FOLDER_EVERY            32938
 #define IDM_OUT_FOLDER_TOGGLE           32939
 #define IDM_OUT_FOLDER_SAME             32939
 #define IDM_FILE_MORE                   32943
@@ -746,11 +761,11 @@
 #define IDM_OVL_NOTIFY_FRAMECHG         33221
 #define IDM_OVL_NOTIFY_UPDWINDOW        33222
 #define IDM_OVL_NOTIFY_DEF              33223
-#define IDM_SAVE_PARTIAL                33224
-#define IDM_VOLUME_BOLD                 33225
+#define IDM_SAVE_PARTS                  33224
+#define IDM_VOLUME_AUTO                 33225
 #define IDM_VIEW_HUGE                   33226
-#define IDM_AUDIO_BOLDER                33227
-#define IDM_AUDIO_BOLD_DOWN             33228
+#define IDM_VOLUME_AUTO_UP              33227
+#define IDM_AUDIO_AUTO_DOWN             33228
 #define IDM_AUDIO_AHEAD                 33230
 #define IDM_OVL_SIGNAL_GUI              33231
 #define IDM_OVL_FULLKEY                 33232
@@ -796,15 +811,41 @@
 #define ID_VIEW_TOOL_NONE               33278
 #define ID_VIEW_TOOL_BOTH               33279
 #define IDM_LUMINANCE_TOGGLE            33281
+#define IDM_WARN_BAD_SYSHDR             33282
+#define IDM_XTN_VID_MP2                 33284
+#define IDM_AUDIO_PALTEL                33285
+#define IDM_F5_TOGGLER                  33286
+#define IDM_OUT_DROPCRUD                33287
+#define IDM_VOLUME_BOLD_UP              33288
+#define IDM_SAT_RETAIN                  33289
+#define IDM_LUM_DESEL                   33290
+#define IDM_VOL_STARKEY                 33291
+#define IDM_OVL_MASK_LEADTEK_BLK        33292
+#define IDM_PID_CURRENT                 33293
+#define ID_FMT_TOD                      33294
+#define ID_FMT_PTS                      33295
+#define ID_FMT_GOP                      33296
+#define ID_FMT_REL                      33297
+#define ID_FMT_HEX                      33298
+#define ID_FMT_BLK                      33299
+#define ID_FMT_SCR                      33300
+#define IDM_TIME_TOD_REL                33302
+#define IDM_TIME_HEX                    33304
+#define ID_FMT_TOD_REL                  33305
+#define IDM_WARN_FMT_TSMPG              33306
+#define IDM_WARN_FMT_TS                 33307
+#define IDM_WARN_FMT_CDXA               33308
+#define IDM_WARN_DONE                   33309
+#define IDM_VOL_SLIDERS                 33310
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        168
-#define _APS_NEXT_COMMAND_VALUE         33282
-#define _APS_NEXT_CONTROL_VALUE         1215
+#define _APS_NEXT_RESOURCE_VALUE        172
+#define _APS_NEXT_COMMAND_VALUE         33311
+#define _APS_NEXT_CONTROL_VALUE         1222
 #define _APS_NEXT_SYMED_VALUE           107
 #endif
 #endif

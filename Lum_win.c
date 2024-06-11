@@ -11,7 +11,107 @@
 
 
 HWND hLumDlg0;
+HCURSOR hNewCursor, hOldCursor;
 
+int iLast_Button;
+int iButtonIni, iButton_LUM_OVR;
+int iLast_Reset=1;
+
+void Lum_Button_Mark()
+{
+  char szTitle[4];
+  //unsigned int uStatus;
+
+  /*
+  if (iLumEnable_Flag[iColorSpaceTab])
+  {
+    if (iLast_Button == IDL_LUM_A)
+        uStatus = BST_CHECKED;
+    else
+        uStatus = BST_UNCHECKED;
+    CheckDlgButton(hLumDlg,IDL_LUM_A,uStatus);
+    
+    if (iLast_Button == IDL_LUM_BOLD)
+        uStatus = BST_CHECKED;
+    else
+        uStatus = BST_UNCHECKED;
+    CheckDlgButton(hLumDlg,IDL_LUM_BOLD,uStatus);
+    
+    if (iLast_Button == IDL_LUM_C)
+        uStatus = BST_CHECKED;
+    else
+        uStatus = BST_UNCHECKED;
+    CheckDlgButton(hLumDlg,IDL_LUM_C,uStatus);
+    
+    if (iLast_Button == IDL_LUM_DEFAULT)
+        uStatus = BST_CHECKED;
+    else
+        uStatus = BST_UNCHECKED;
+    CheckDlgButton(hLumDlg,IDL_LUM_DEFAULT,uStatus);
+    
+  }
+  
+  else
+  */
+  {
+    if (iLast_Button == IDL_LUM_A)
+      strcpy(szTitle,"A.");
+    else
+      strcpy(szTitle,"A");
+    SetDlgItemText(hLumDlg,IDL_LUM_A,szTitle);
+
+    if (iLast_Button == IDL_LUM_BOLD)
+      strcpy(szTitle,"B.");
+    else
+      strcpy(szTitle,"B");
+    SetDlgItemText(hLumDlg,IDL_LUM_BOLD,szTitle);
+
+    if (iLast_Button == IDL_LUM_C)
+      strcpy(szTitle,"C.");
+    else
+      strcpy(szTitle,"C");
+    SetDlgItemText(hLumDlg,IDL_LUM_C,szTitle);
+
+    if (iLast_Button == IDL_LUM_DEFAULT)
+        strcpy(szTitle,"D.");
+    else
+       strcpy(szTitle,"D");
+    SetDlgItemText(hLumDlg,IDL_LUM_DEFAULT,szTitle);
+  }
+  
+
+}
+
+
+void LumEnable_Set()
+{
+     if (iLumEnable_Flag[iColorSpaceTab] == 0)
+     {
+         iLumEnable_Flag[iColorSpaceTab] = 1;
+         SendDlgItemMessage(hLumDlg0, IDL_LUM_CHK, BM_SETCHECK,
+                                                   BST_CHECKED, 0);
+         CheckMenuItem(hMenu, IDM_LUMINANCE, MF_CHECKED);
+     }
+}
+
+
+void Button_LUM_GO()
+{
+  iLumGamma [iColorSpaceTab] = iLumGamma [iButtonIni];  
+  iLumGain  [iColorSpaceTab] = iLumGain  [iButtonIni]; 
+  iLumOffset[iColorSpaceTab] = iLumOffset[iButtonIni]; 
+
+  Lum_Button_Mark();
+}
+
+/*
+void Lum_BC_Adj(int P_Adj)
+{
+  iLumEnable_Flag[iColorSpaceTab] = 1;
+  iLumGain  [iColorSpaceTab] += P_Adj; 
+  iLumOffset[iColorSpaceTab] += P_Adj; 
+}
+*/
 
 
 void Lum_SetNum_Gain()
@@ -115,6 +215,9 @@ void Lum_SetPos_Sliders()
   Lum_SetPos_Sat();
   Lum_SetPos_Blue();
   Lum_SetPos_Red();
+
+  iLast_Button = 0;
+  Lum_Button_Mark();
 }
 
 
@@ -130,6 +233,40 @@ void LumLock_Gain()
   iLumGain[iColorSpaceTab] = (iLumOffset[iColorSpaceTab]) + 128;
   Lum_SetPos_Gain();
 }
+
+
+void Lum_A()
+{
+  iButtonIni = 5; 
+  iLast_Reset = 1;  iLast_Button = IDL_LUM_A;
+  iLumEnable_Flag[iColorSpaceTab] = 1;
+  Button_LUM_GO();
+}
+
+void Lum_Bold() // can be invoked from GUI too
+{
+  iButtonIni = 3; 
+  iLast_Reset = 1;  iLast_Button = IDL_LUM_BOLD;
+  iLumEnable_Flag[iColorSpaceTab] = 1;
+  Button_LUM_GO();
+}
+
+void Lum_C()
+{
+  iButtonIni = 4; 
+  iLast_Reset = 1;  iLast_Button = IDL_LUM_C;
+  iLumEnable_Flag[iColorSpaceTab] = 1;
+  Button_LUM_GO();
+}
+
+void Lum_Default()
+{
+  iButtonIni = 2; 
+  iLast_Reset = 1;  iLast_Button = IDL_LUM_DEFAULT;
+  iLumEnable_Flag[iColorSpaceTab] = 1;
+  Button_LUM_GO();
+}
+
 
 
 void SatLock_Blue()
@@ -156,6 +293,16 @@ void Lum_SetRange(UINT P_Control, UINT P_Base, UINT P_Range, UINT P_TicFreq)
 }
 
 
+  WPARAM uSetting;
+  unsigned int uSet_ButtonId;
+
+void Lum_Set_Button_Chk()
+{
+  SendDlgItemMessage(hLumDlg0, uSet_ButtonId, BM_SETCHECK,
+                               uSetting, 0);
+}
+
+
 
 void Lum_Show_All()
 {
@@ -166,39 +313,48 @@ void Lum_Show_All()
   Lum_SetPos_Sliders();
 
   if (iLumEnable_Flag[iColorSpaceTab])
-      SendDlgItemMessage(hLumDlg0, IDL_LUM_CHK, BM_SETCHECK,
-                                                BST_CHECKED, 0);
+      uSetting = BST_CHECKED;
   else
-      SendDlgItemMessage(hLumDlg0, IDL_LUM_CHK, BM_SETCHECK,
-                                                BST_UNCHECKED, 0);
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = IDL_LUM_CHK;
+  Lum_Set_Button_Chk();
 
   if (iLumLock_Flag)
-      SendDlgItemMessage(hLumDlg0, IDL_LUMLOCK_CHK, BM_SETCHECK,
-                                                  BST_CHECKED, 0);
+      uSetting = BST_CHECKED;
   else
-      SendDlgItemMessage(hLumDlg0, IDL_LUMLOCK_CHK, BM_SETCHECK,
-                                                  BST_UNCHECKED, 0);
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = IDL_LUMLOCK_CHK;
+  Lum_Set_Button_Chk();
 
   if (iSatAdj_Flag)
-      SendDlgItemMessage(hLumDlg0, IDL_SAT_CHK,   BM_SETCHECK,
-                                                  BST_CHECKED, 0);
+      uSetting = BST_CHECKED;
   else
-      SendDlgItemMessage(hLumDlg0, IDL_SAT_CHK,   BM_SETCHECK,
-                                                  BST_UNCHECKED, 0);
-         
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = IDL_SAT_CHK;
+  Lum_Set_Button_Chk();
+
   if (iSat_VHS)
-      SendDlgItemMessage(hLumDlg0, LUM_SAT_VHS_CHK,   BM_SETCHECK,
-                                                      BST_CHECKED, 0);
+      uSetting = BST_CHECKED;
   else
-      SendDlgItemMessage(hLumDlg0, LUM_SAT_VHS_CHK,   BM_SETCHECK,
-                                                      BST_UNCHECKED, 0);
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = LUM_SAT_VHS_CHK;
+  Lum_Set_Button_Chk();
+
+  if (iView_SwapUV)
+      uSetting = BST_CHECKED;
+  else
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = LUM_SAT_SWAP_CHK;
+  Lum_Set_Button_Chk();
 
   if (iSatLock_Flag)
-      SendDlgItemMessage(hLumDlg0, IDC_SATLOCK_CHK, BM_SETCHECK,
-                                                  BST_CHECKED, 0);
+      uSetting = BST_CHECKED;
   else
-      SendDlgItemMessage(hLumDlg0, IDC_SATLOCK_CHK, BM_SETCHECK,
-                                                  BST_UNCHECKED, 0);
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = IDC_SATLOCK_CHK;
+  Lum_Set_Button_Chk();
+
+  Lum_Button_Mark();
 
   ShowWindow(hLumDlg0, SW_SHOW);
 }
@@ -206,20 +362,8 @@ void Lum_Show_All()
 
 void L602_MODE_RGB()
 {
-               Chg2RGB24(1, hLumDlg) ;
-               iColorSpaceTab = 1;
-}
-
-
-void LumEnable_Set()
-{
-     if (iLumEnable_Flag[iColorSpaceTab] == 0)
-     {
-         iLumEnable_Flag[iColorSpaceTab] = 1;
-         SendDlgItemMessage(hLumDlg0, IDL_LUM_CHK, BM_SETCHECK,
-                                                   BST_CHECKED, 0);
-         CheckMenuItem(hMenu, IDM_LUMINANCE, MF_CHECKED);
-     }
+     Chg2RGB24(1, hLumDlg) ;
+     iColorSpaceTab = 1;
 }
 
 
@@ -235,6 +379,66 @@ void SatEnable_Set()
 }
 
 
+
+void Cursor_Old()
+{  
+  if (hOldCursor)
+  {
+      SetCursor(hOldCursor);
+  }
+
+  if (iButton_LUM_OVR > 0)
+  {
+      uSet_ButtonId = IDL_LUM_OVR;
+      uSetting      = BST_UNCHECKED;
+      Lum_Set_Button_Chk();
+  }
+
+  hOldCursor = 0;
+  iButton_LUM_OVR = 0;
+}
+
+
+void Button_LUM_OVR()
+{
+  iLumGamma [iButtonIni] = iLumGamma [iColorSpaceTab];  
+  iLumGain  [iButtonIni] = iLumGain  [iColorSpaceTab]; 
+  iLumOffset[iButtonIni] = iLumOffset[iColorSpaceTab]; 
+
+  Cursor_Old();
+ 
+}
+
+
+void Lum_Swap_UV(const int P_Reshow)
+{
+          Chg2YUV2(1, 0) ;
+          Set_Toggle_Menu('T', &iView_SwapUV, IDM_YUV_SWAP);
+          iView_SwapUV = iView_SwapUV<<1;
+
+          if (P_Reshow
+          &&  MParse.SeqHdr_Found_Flag && MParse.Stop_Flag)
+          {
+             if (DDOverlay_Flag && MParse.iColorMode==STORE_YUY2) // && iShowVideo_Flag)
+                 RenderYUY2(1);
+             //else
+             //    RenderRGB24();
+          }
+
+}
+
+void Lum_Negative(const int P_Reshow)
+{
+          Set_Toggle_Menu('T', &iView_Negative, IDM_VIEW_NEGATIVE);
+          if (iView_Negative)
+              iLumEnable_Flag[iColorSpaceTab] = 1;
+          Lum_Filter_Init(0);
+          Lum_Filter_Init(1);
+          if (P_Reshow)
+              RefreshVideoFrame();
+}
+
+
 //----------------------------------------------------------------
 LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                                 WPARAM wParam, LPARAM lParam)
@@ -242,7 +446,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
 
   RECT lumrect;
 
-  static int iLast_Y_Slider=0, iLast_UV_Slider=0, iLast_Reset=1;
+  static int iLast_Y_Slider=0, iLast_UV_Slider=0;
   static int iOrig_ColorSpace;
 
 
@@ -252,12 +456,35 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
 
   hLumDlg0 = hDialog;
 
+  /*
+  if (iLast_Button >= 0
+           && message >  2 && message !=   9  && message !=   297
+           && message !=   20  && message !=   48  && message !=   85
+           && message != 1110  && message != 1206 
+           && message != 1252  && message != 1202 
+           && message != 1194  && message != 1166)
+  {
+    iTmp1 = message;
+  }
+  */
+
+
   switch (message)
   {
-     case WM_INITDIALOG:
+  case WM_INITDIALOG:
 
+         hOldCursor  = 0;
          iOrig_ColorSpace = MParse.iColorMode;
          iColorSpaceTab   = iOrig_ColorSpace;
+         iButton_LUM_OVR = 0;
+
+         if (iCtl_Lum_Deselector && iLum_Deselected)
+         {
+            iLum_Deselected = 0; // Option to remove boosting when outside selection
+            Lum_Filter_Init(0);
+            Lum_Filter_Init(1);
+            RefreshVideoFrame();
+         }
 
          if (iBMP_Wanted)
          {
@@ -426,102 +653,180 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                break;
 
 
+          case IDL_LUM_A:
+
+               if (iButton_LUM_OVR <= 0)
+               {
+                   Lum_A();
+                   Lum_Show_All();  // Lum_SetPos_Sliders();
+                   RefreshVideoFrame();
+               }
+               else
+               {
+                   iButtonIni = 5; 
+                   Button_LUM_OVR();
+               }
+
+               break;
+
+
           case IDL_LUM_BOLD:
-               iLast_Reset = 1;
-               iLumEnable_Flag[iColorSpaceTab] = 1;
 
-               iLumGamma [iColorSpaceTab]  = iLumGamma [3];   // 130; 
-               iLumGain  [iColorSpaceTab]  = iLumGain  [3];   // 168; 
-               iLumOffset[iColorSpaceTab]  = iLumOffset[3];   //  30; 
+               iButtonIni = 3; 
+               if ( iButton_LUM_OVR <= 0)
+               {
+                    Lum_Bold();
+                    Lum_Show_All();  // Lum_SetPos_Sliders();      
+                    RefreshVideoFrame();
+               }
+               else
+               {
+                    iButtonIni = 3; 
+                    Button_LUM_OVR();
+               }
 
-               Lum_Show_All();  // Lum_SetPos_Sliders();
-
-               RefreshVideoFrame();
                break;
 
 
           case IDL_LUM_C:
-               iLast_Reset = 1;
-               iLumEnable_Flag[iColorSpaceTab] = 1;
 
-               iLumGamma [iColorSpaceTab]  = iLumGamma [4];  
-               iLumGain  [iColorSpaceTab]  = iLumGain  [4]; 
-               iLumOffset[iColorSpaceTab]  = iLumOffset[4];  
+               if (iButton_LUM_OVR <= 0)
+               {
+                   Lum_C();
+                   Lum_Show_All();  // Lum_SetPos_Sliders();
+                   RefreshVideoFrame();
+               }
+               else
+               {
+                   iButtonIni = 4; 
+                   Button_LUM_OVR();
+               }
 
-               Lum_Show_All();  // Lum_SetPos_Sliders();
-
-               RefreshVideoFrame();
                break;
 
 
-          case IDL_LUM_RESET:
-               iLast_Reset = 1;
-               iLumEnable_Flag[iColorSpaceTab] = 1;
+          case IDL_LUM_DEFAULT:
+               if ( iButton_LUM_OVR <= 0)
+               {
+                   Lum_Default();
+                   Lum_Show_All();  // Lum_SetPos_Sliders();
+                   RefreshVideoFrame();
+               }
+               else
+               {
+                   iButtonIni = 2; 
+                   Button_LUM_OVR();
+               }
 
-               iLumGain  [iColorSpaceTab]  = iLumGain  [2];  // 128; 
-               iLumOffset[iColorSpaceTab]  = iLumOffset[2];  //   0; 
-               iLumGamma [iColorSpaceTab]  = iLumGamma [2];  // 130; 
-
-               Lum_Show_All();  // Lum_SetPos_Sliders();
-
-               RefreshVideoFrame();
                break;
 
 
           case IDL_LUM_ZERO:
-               iLast_Reset = 0;
+               if ( iButton_LUM_OVR <= 0)
+               {
+                    iLast_Reset = 0;  iLast_Button = IDL_LUM_ZERO;
 
-               iLumGain[iColorSpaceTab] = 128; 
-               iLumOffset[iColorSpaceTab] = 0; 
+                    iLumGain[iColorSpaceTab] = 128; 
+                    iLumOffset[iColorSpaceTab] = 0; 
 
-               //if (iColorSpaceTab)
-               //  iTmp1 = 150;
-               //else
-               //  iTmp1 = 130;
-               iLumGamma[iColorSpaceTab] = 100; //iTmp1;
+                    //if (iColorSpaceTab)
+                    //  iTmp1 = 150;
+                    //else
+                    //  iTmp1 = 130;
+                    iLumGamma[iColorSpaceTab] = 100; //iTmp1;
+                    iLumEnable_Flag[iColorSpaceTab] = 0;
 
-               Lum_SetPos_Sliders();
+                    Lum_Show_All();  // Lum_SetPos_Sliders();
 
-               RefreshVideoFrame();
+                    RefreshVideoFrame();
+               }
+               else
+               {
+                   iButton_LUM_OVR = 0;  // Escape button changer
+                   MessageBeep(MB_OK);
+               }
+
                break;
 
 
           case IDL_SAT_BOLD:
-               iSatAdd_U[iColorSpaceTab]   = 2;   
-               iSatAdd_V[iColorSpaceTab]   = 6;
+               if ( iButton_LUM_OVR <= 0)
+               {
+                    iLast_Button = IDL_SAT_BOLD;
+                    iSatAdd_U[iColorSpaceTab]   = 2;   
+                    iSatAdd_V[iColorSpaceTab]   = 6;
 
-               iSatGain[0] = 100; 
-               iSatGain[1] = 100;
+                    iSatGain[0] = 100; 
+                    iSatGain[1] = 100;
 
-               iSatAdj_Flag = 1;  iSatLock_Flag = 0;
+                    iSatAdj_Flag = 1;  iSatLock_Flag = 0;
 
-               Lum_Show_All();  // Lum_SetPos_Sliders();
+                    Lum_Show_All();  // Lum_SetPos_Sliders();
 
-               RefreshVideoFrame();
+                    RefreshVideoFrame();
+               }
+               else
+               {
+                   MessageBeep(MB_OK);
+               }
                break;
 
 
-          case IDL_SAT_RESET:
-               iSatAdd_U[iColorSpaceTab]   = 1;   iSatAdd_V[iColorSpaceTab]   = 1;
-               iSatGain[0] = 100; iSatGain[1] = 100;
+          case IDL_SAT_DEFAULT:
+               if ( iButton_LUM_OVR <= 0)
+               {
+                    iLast_Button = IDL_SAT_DEFAULT;
+                    iSatAdd_U[iColorSpaceTab]   = 1;   
+                    iSatAdd_V[iColorSpaceTab]   = 1;
+                    iSatGain[0] = 100; iSatGain[1] = 100;
 
-               iSatAdj_Flag = 1;  iSatLock_Flag = 0;
+                    iSatAdj_Flag = 1;  iSatLock_Flag = 0;
 
-               Lum_Show_All();  // Lum_SetPos_Sliders();
+                    Lum_Show_All();  // Lum_SetPos_Sliders();
 
-               RefreshVideoFrame();
+                    RefreshVideoFrame();
+               }
+               else
+               {
+                   MessageBeep(MB_OK);
+               }
+
                break;
 
 
           case IDL_SAT_ZERO:
+               if ( iButton_LUM_OVR <= 0)
+               {
+                   iLast_Button = IDL_SAT_ZERO;
+                   iSatAdd_U[iColorSpaceTab]   = 0;   iSatAdd_V[iColorSpaceTab]   = 0; 
+                   iSatGain[0] = 100; iSatGain[1] = 100;
+                   iSatAdj_Flag = 0;
 
-               iSatAdd_U[iColorSpaceTab]   = 0;   iSatAdd_V[iColorSpaceTab]   = 0; 
-               iSatGain[0] = 100; iSatGain[1] = 100;
+                   Lum_SetPos_Sliders();
 
-               Lum_SetPos_Sliders();
+                   RefreshVideoFrame();
+               }
+               else
+               {
+                   iButton_LUM_OVR = 0;  // Escape button changer
+                   MessageBeep(MB_OK);
+               }
 
+               break;
+
+
+          case IDL_LUM_NEG_CHK:
+               if (!iView_Negative)
+               {
+                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  iView_Fast_YUV = 1;
+               }
+               Lum_Negative(0);
+
+               Lum_Show_All();  // Lum_SetPos_Sliders();
                RefreshVideoFrame();
                break;
+
 
 
 
@@ -548,12 +853,14 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                          LUM_SAT_VHS_CHK, BM_GETCHECK, 1, 0) == BST_CHECKED)
                {
                   iSat_VHS = 1;
-                  iSatAdj_Flag = 1; 
-                  iSatAdd_U[iColorSpaceTab]   = 1;   
-                  iSatAdd_V[iColorSpaceTab]   = 1; 
-                  iSatGain[0] = 100; 
-                  iSatGain[1] = 100;
-                  Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  iSatAdj_Flag = 1;
+                  
+                  //iSatAdd_U[iColorSpaceTab]   = 1;   
+                  //iSatAdd_V[iColorSpaceTab]   = 1; 
+                  //iSatGain[0] = 100; 
+                  //iSatGain[1] = 100;
+
+                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
                   iView_Fast_YUV = 1;
                }
                else
@@ -567,12 +874,27 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                break;
 
 
+          case LUM_SAT_SWAP_CHK:
+               if (!iView_SwapUV)
+               {
+                  iSatAdj_Flag = 1; 
+                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  iView_Fast_YUV = 1;
+               }
+               Lum_Swap_UV(0);
+
+               Lum_Show_All();  // Lum_SetPos_Sliders();
+
+               RefreshVideoFrame();
+               break;
+
+
           case IDL_SAT_CHK:
                if (SendDlgItemMessage(hLumDlg0,
                          IDL_SAT_CHK, BM_GETCHECK, 1, 0) == BST_CHECKED)
                {
                   iSatAdj_Flag = 1;
-                  Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
                   iView_Fast_YUV = 1;
                }
                else
@@ -622,10 +944,39 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                RefreshVideoFrame();
                break;
 
+          case IDL_LUM_OVR: // Next button will get a new setting
+               if (iButton_LUM_OVR <= 0)
+               {
+                   uSet_ButtonId = IDL_LUM_OVR;
+                   uSetting      = BST_CHECKED;
+                   Lum_Set_Button_Chk();
 
-          //case IDL_EXIT:
+                   iButton_LUM_OVR = 1;
+                   hNewCursor = hCSR_CROSS;
+                   if (hNewCursor)
+                       hOldCursor = SetCursor(hNewCursor);
+                   else
+                       hOldCursor  = 0;
+               }
+               else
+               {
+                   Cursor_Old(); // SetCursor(hOldCursor);
+               }
+
+               break;
+
+
+
+
+               
+               //case IDL_EXIT:
           case IDCANCEL:
 
+               if (hOldCursor)
+               {
+                   Cursor_Old(); // SetCursor(hOldCursor);
+               }
+ 
                DestroyWindow(hLumDlg0);
                hLumDlg = NULL;
 
@@ -725,20 +1076,24 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
          break;
 
 
+
       default:
            if (DBGflag 
            && message >  2
+           && message !=   20  && message !=    9
            && message != 1110  && message != 1206 
+           && message != 1252  && message != 1202 
            && message != 1194  && message != 1166)
            {
                //if (message == WM_DISPLAYCHANGE)
                //    lpCmdName = &"DSPCHG";
                //else
                //    lpCmdName = &"?";
-
+               
                sprintf(szDBGln, "\nMSG=> (%04d = x%04X)",
                          message, message);
                DBGout(szDBGln);
+
            }             
 
            //MsgReturn = DefWindowProc(hWnd, message, wParam, lParam);

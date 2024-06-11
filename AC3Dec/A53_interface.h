@@ -46,17 +46,17 @@ char    AC3_Err_Txt[16];
 int   byAC3_Init;
 
 int  AC3_DDPLUS;
-char *AC3Mode[8]
+char *szAC3Channel[9]
 #ifdef GLOBAL
 =
 {
-  "1+1", "1/0", "2/0", "3/0", "2/1", "3/1", "2/2", "3/2"
+  "1+1", "1/0", "2/0", "3/0", "2/1", "3/1", "2/2", "3/2", "5/2"
 }
 #endif
 ;
 
 
-int AC3Rate[32]
+int iAC3KRate[32]
 #ifdef GLOBAL
 =
 {

@@ -420,7 +420,7 @@ void Snap_ToFile()
 
   if (CurrTC.RunFrameNum)
   {
-     if (iView_TC_Format == 4)
+     if (iView_TC_Format == 4 || iView_TC_Format == 7)
      {
          RelativeTC_SET();
          Relative_TOD();

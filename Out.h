@@ -21,6 +21,7 @@ unsigned char cOut_SubStreamWanted[256];
 int iOut_Error, iOut_Force_Interlace_ctr;
 int iPack_Ctr, iOut_CheckedPackets, iOutPaddingPkts, iOutPaddingBytes;
 int iOut_Parse_AllPkts, iOut_Parse_Deep;
+int iOut_KillPadding;
 int iDeepLook, iDeepFound, iDeepNow, iOut_CannotFix_ctr;
 int iScanResult;
 unsigned int uHdrType;
@@ -59,7 +60,7 @@ HWND hETA, hPtxt, hCancel, hPause;
 int iOut_Breathe_Tot;
 int iOut_Breathe_PerBigBlk;
 int iOut_Breathe_PktCtr, iOut_Breathe_PktLim;
-int iMsgTime;
+int iMsgTime, iOutSuspCtr, iOut_Clip_ctr;
 
 
 int  Out_RECORD(const void*, const int, const int);
@@ -104,8 +105,8 @@ void Out_Fix_Hdr_Vid_EXTN_SEQ();
 void Out_Vid_Hdr_SCAN(int P_Repeat);
 void Out_Fix_Hdr_PIC_EXTN_SEQ();
 
-void  Out_COMMIT_PKT(int P_Full, const int P_Caller);
-
+void Out_COMMIT_PKT(int P_Full, const int P_Caller);
+void Out_Status_Msg();
 
 // Time Stamp Correction 
 unsigned int uBroken_Flag;

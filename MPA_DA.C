@@ -67,7 +67,7 @@ void MPALib_Init(HWND hwnd)
   }
   else
   {
-    strcpy(szAudio_Status, "Loaded") ;
+    strcpy(szAudio_Status, "Loaded"); 
     if (iAudio_SEL_Track == TRACK_NONE)   
         iAudio_SEL_Track = TRACK_AUTO ;
     byMPALib_OK = 1;
@@ -95,7 +95,9 @@ void float2int(float *fPCMData,  BYTE *pByte,  DWORD dwSamples/*, double dNormGa
   float *pfInput, fCurrent;
   short *psSample;
   long  *plSample;
+  int iOverflowed_CurrPkt;
   
+  iOverflowed_CurrPkt = 0;
 
   switch (byTByPerSample)
   {
@@ -119,7 +121,10 @@ void float2int(float *fPCMData,  BYTE *pByte,  DWORD dwSamples/*, double dNormGa
               || iIn_VOB                         // DTV should not be called VOB
               || process.NAV_Loc >= 0            // DTV should not have NAV packs
           ))
+          {
               iVolume_Boost = 0;
+              iOverflowed_CurrPkt = 1;
+          }
       }
       
       if (PlayCtl.iAudioFloatingOvfl > 0)
@@ -143,9 +148,6 @@ void float2int(float *fPCMData,  BYTE *pByte,  DWORD dwSamples/*, double dNormGa
 
     } // endfor each sample
 
-    // auto-recover from corrupted data that causes temporary overflow
-    if (PlayCtl.iAudioFloatingOvfl > 0)
-        PlayCtl.iAudioFloatingOvfl--;
 
     break;
 
@@ -158,5 +160,16 @@ void float2int(float *fPCMData,  BYTE *pByte,  DWORD dwSamples/*, double dNormGa
       *plSample=(long)(/*dNormGain*/fPCMData[k]+((fPCMData[k]>0)?0.5:-0.5));
     }
     break;
+  }
+
+  // auto-recover from corrupted data that causes temporary overflow
+  if (PlayCtl.iAudioFloatingOvfl > 0)
+  {
+        if (process.iAudio_Ovfl_Ctr < 3)  // is it temporary ?
+        {
+           if (iOverflowed_CurrPkt)
+               process.iAudio_Ovfl_Ctr++; // may become consistent
+           PlayCtl.iAudioFloatingOvfl--;
+        }
   }
 }

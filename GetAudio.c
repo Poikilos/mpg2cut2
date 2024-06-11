@@ -59,7 +59,7 @@ while (RdPTR >= RdEOB                         \
 
 
 
-void Got_MPA_PayLoad();
+//void Got_MPA_PayLoad();
 
 
 
@@ -68,8 +68,8 @@ static char *FTType[5] = {
 };
 
 /*
-static char *AC3ModeDash[8] = {
-  "1+1", "1_0", "2_0", "3_0", "2_1", "3_1", "2_2", "3_2"
+static char *szAC3ChannelDash[9] = {
+  "1+1", "1_0", "2_0", "3_0", "2_1", "3_1", "2_2", "3_2", "5_2"
 };
 */
 
@@ -131,7 +131,7 @@ void Packet_Aud_Inc()
 
     PktStats.iChk_AudioPackets++;
 
-    if (PktStats.iChk_AudioPackets > 25)
+    if (PktStats.iChk_AudioPackets > PktChk_Audio)
     {
       GetChkPoint();
     }
@@ -570,16 +570,183 @@ void Audio_Fallback_Chk()
   }
 }
 
+
+
+
+
+
+
 //----------------------------------------------------
+
+  unsigned uBitsPerSample, uChannel_ix, uChannels, uQWord_Len;
+  int iDecodeOK_Flag;
+
+void PS1_Convert()
+{
+  unsigned char *lpConvEND, *lpConvOUT, *lpConvIN,
+                *lpConvSPLIT, *lpTemp;
+  int iUpTo, iLPCM_Len;
+  int iTmp1, iTmp2;
+
+  if (iGot_Trk_FMT == FORMAT_LPCM)  // LPCM
+               {
+                  iDecodeOK_Flag = 1;
+                  lpConvEND = RdPTR + getbit_iPkt_Len_Remain;
+                  lpConvOUT = &AC3Dec_Buffer[PlayCtl.iPCM_Remainder];
+                  iUpTo     = getbit_iPkt_Len_Remain + PlayCtl.iPCM_Remainder;
+                  iLPCM_Len = getbit_iPkt_Len_Remain;
+
+                  // Check for end of current block
+                  if (lpConvEND > RdEOB)
+                  {
+                      lpConvIN = lpConvOUT;
+                      iTmp1 = RdEOB-RdPTR;
+                      memcpy(lpConvOUT, RdPTR, iTmp1);
+                      lpTemp = lpConvOUT + iTmp1;
+                      getbit_iPkt_Len_Remain -= iTmp1; 
+                      
+                      Mpeg_READ();            
+                      RdPTR = RdBFR; 
+                      memcpy(lpTemp, RdPTR, getbit_iPkt_Len_Remain);
+                  }
+                  else
+                    lpConvIN = RdPTR;
+
+                  getAudio_size = iUpTo & 0xFFFFC;
+                  lpConvSPLIT = &AC3Dec_Buffer[getAudio_size];
+                  //iTmp3 = PlayCtl.iPCM_Remainder;
+                  iTmp2 = PlayCtl.iPCM_Remainder & 1;
+                  PlayCtl.iPCM_Remainder = iUpTo - getAudio_size;
+
+                  // Finish split word from PREVIOUS packet
+                  // using  orphaned odd byte from CURRENT packet
+                  if (iTmp2)
+                  {
+                     *(lpConvOUT-1) = *lpConvIN++;
+                       lpConvOUT++;
+                       iLPCM_Len--;
+                  }
+
+
+                  WAV_Byte_Swap(uQWord_Len, lpConvIN, lpConvOUT, 
+                                iLPCM_Len);
+
+                  // Prepare orphaned odd byte from CURRENT packet
+                  //if (PlayCtl.iPCM_Remainder & 1)
+                  //{
+                  //     lpConvOUT   +=  getbit_iPkt_Len_Remain;
+                  //   *(lpConvOUT-1) = *lpConvOUT;
+                  //}
+
+               }
+               else
+               {
+                 if (!byAC3_Init)
+                      InitialAC3();
+                 iDecodeOK_Flag = byAC3_Init;
+
+                 if (byAC3_Init)
+                 {
+                    CONV_A53_PKT_PCM
+
+                    if (AC3_Err_Txt[0])
+                    {
+                       iMsgLife = 3;
+                       strcpy(szAudio_Status, AC3_Err_Txt);
+                       if (MParse.ShowStats_Flag)
+                          Stats_Volume_Boost();
+                       AC3_Err_Txt[0] = 0;
+                    }
+                    PCM_SamplingRate = A53_sampling_rate;
+                    iDecodeOK_Flag = byAC3_Init;
+                 }
+               }
+
+               if ( ! PlayCtl.iAC3_Attempted && iDecodeOK_Flag)
+               {
+                   PlayCtl.iAC3_Attempted = 1;
+
+                   if (iWAV_Init  
+                   && (   WAVEOUT_SampleFreq    != PCM_SamplingRate
+                       || WAVEOUT_BitsPerSample != uBitsPerSample
+                       || WAVEOUT_Channels      != uChannels
+                      ))
+                   {
+                       WAV_WIN_Audio_close();
+                   }
+
+                   if (!iWAV_Init)
+                   {
+                        WAVEOUT_SampleFreq    = PCM_SamplingRate;
+                        WAVEOUT_BitsPerSample = uBitsPerSample;
+                        WAVEOUT_Channels      = uChannels;
+
+                        WAV_Set_Open();
+                   }
+               }
+
+               if (-wav.delay >  getAudio_size)
+                    wav.delay += getAudio_size;
+               else
+               {
+                 // Cannot adjust when wav.delay is positive
+                 if (wav.delay > 0)
+                     wav.delay = 0;
+
+                 /*
+                 if (SRC_Flag)
+                   Wavefs44(wav.file, getAudio_size+wav.delay, AC3Dec_Buffer-wav.delay);
+                 else
+                   fwrite(AC3Dec_Buffer-wav.delay, getAudio_size+wav.delay, 1, wav.file);
+                 */
+
+                 if ((iDecodeOK_Flag // && iGot_Trk_FMT == FORMAT_AC3
+                                 //|| iGot_Trk_FMT == FORMAT_LPCM
+                                 )
+                 && iWAV_Init && iPlayAudio  
+                 && MParse.FastPlay_Flag <= MAX_WARP )
+                 {
+                     iMPA_PCM_Len1 = getAudio_size + wav.delay;
+                     WAV_Packet_Warp( (AC3Dec_Buffer-wav.delay),
+                                       iMPA_PCM_Len1);
+
+
+                    if (iGot_Trk_FMT == FORMAT_LPCM) // Shuffle remainder to start of buffer for next time LPCM
+                    {
+                        *(UNALIGNED DWORD*)(&AC3Dec_Buffer) 
+                      = *(UNALIGNED DWORD*)(lpConvSPLIT);
+                    }
+
+                 }
+                 wav.size += getAudio_size+wav.delay;
+                 wav.delay = 0;
+               }
+}
+
+
+
+void Private_PID_LookUp()
+{
+     getbit_AC3_Track = 0;
+     while (SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uPID  != uGot_PID
+            && getbit_AC3_Track <= CHANNELS_MAX)
+     {
+        if(  SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uPID == 0)
+             SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uPID  = uGot_PID;
+        else
+             getbit_AC3_Track++;
+     }
+}
+
+
+
+
 
 void Got_PrivateStream() 
 {
-  int iLPCM_Attr, iAC3_Attr, iDecodeOK_Flag, iUpTo, iLPCM_Len;
-  unsigned uBitsPerSample, uChannels, uQWord_Len;
-  unsigned uMode, uBitRate, uSampleRate;
-  unsigned char *lpConvEND, *lpConvOUT, *lpConvIN,
-                *lpConvSPLIT, *lpTemp;
-  int i, iTmp1, iTmp2, iTmp3;
+  int iLPCM_Attr;
+  unsigned uChannel_ix, uBitRate, uBitRate_ix, uSampleRate, uSampleRate_ix;
+  int i, iTmp1, iTmp3;
   //unsigned char cTmp1, cTmp2;
 
   iDecodeOK_Flag = byAC3_Init;
@@ -589,8 +756,13 @@ void Got_PrivateStream()
 
   getbit_iPkt_Len_Remain     = Get_Short();
 
+  // Transport stream PES length does not apply - calc from TS packet
   if (MParse.SystemStream_Flag < 0)
       getbit_iPkt_Len_Remain = RdEndPkt - RdPTR;
+  else
+  {
+      RdEndPkt = RdPTR + getbit_iPkt_Len_Remain; RdEndPkt_4 = RdEndPkt-4; RdEndPkt_8 = RdEndPkt-8;
+  }
 
 
   getbit_PES_Gate         = Get_Byte(); //
@@ -615,9 +787,17 @@ void Got_PrivateStream()
 
   RdPTR += getbit_iPkt_Hdr_Len_Remaining;
 
-  getbit_iPkt_Len_Remain -= (getbit_iPkt_Hdr_Len+4);  // 4=previous 3 + next 1
+  getbit_iPkt_Len_Remain -= (getbit_iPkt_Hdr_Len+3);  // 4=previous 3 + next 1
 
-  getbit_SubStreamID = Get_Byte();
+  if (MParse.SystemStream_Flag <= 0  // Transport Stream
+  ||  getbit_StreamID != PRIVATE_STREAM_1)
+      getbit_AUDIO_ID    = SUB_AC3;
+  else
+  {
+      getbit_SubStreamID = Get_Byte();
+      getbit_iPkt_Len_Remain--;
+  }
+
   getbit_AUDIO_ID    = getbit_SubStreamID;
 
   if (getbit_StreamID == PRIVATE_STREAM_1)  // PS1
@@ -647,7 +827,10 @@ void Got_PrivateStream()
   &&  getbit_AUDIO_ID < (SUB_AC3 +CHANNELS_MAX))
   {
       iGot_Trk_FMT = FORMAT_AC3;
-      getbit_AC3_Track = getbit_AUDIO_ID - SUB_AC3;
+      if (MParse.SystemStream_Flag < 0) // Transmission stream (TS or PVA) ?
+          Private_PID_LookUp();
+      else
+          getbit_AC3_Track = getbit_AUDIO_ID - SUB_AC3;
   }
   else
   // Is it a DTS substream ?
@@ -655,7 +838,10 @@ void Got_PrivateStream()
   &&  getbit_AUDIO_ID < (SUB_DTS +CHANNELS_MAX))
   {
       iGot_Trk_FMT = FORMAT_DTS;
-      getbit_AC3_Track = getbit_AUDIO_ID - SUB_DTS;
+      if (MParse.SystemStream_Flag < 0) // Transmission stream (TS or PVA) ?
+          Private_PID_LookUp();
+      else
+          getbit_AC3_Track = getbit_AUDIO_ID - SUB_DTS;
   }
   else
   // Is it a Sub-Title substream ?
@@ -663,16 +849,22 @@ void Got_PrivateStream()
   &&  getbit_AUDIO_ID < (SUB_SUBTIT +CHANNELS_MAX))
   {
       iGot_Trk_FMT = FORMAT_SUBTIT;
-      getbit_AC3_Track = getbit_AUDIO_ID - SUB_SUBTIT;
+      if (MParse.SystemStream_Flag < 0) // Transmission stream (TS or PVA) ?
+          Private_PID_LookUp();
+      else
+          getbit_AC3_Track = getbit_AUDIO_ID - SUB_SUBTIT;
   }
   else
-  // Is it a Mpeg Audio on a private Stream ?
+  // Is it  DD+ ?
   if (getbit_AUDIO_ID >= SUB_DDPLUS
   &&  getbit_AUDIO_ID < (SUB_DDPLUS +CHANNELS_MAX))
   {
       iGot_Trk_FMT = FORMAT_DDPLUS;
       AC3_DDPLUS = 1;
-      getbit_AC3_Track = getbit_AUDIO_ID - SUB_DDPLUS;
+      if (MParse.SystemStream_Flag < 0) // Transmission stream (TS or PVA) ?
+          Private_PID_LookUp();
+      else
+          getbit_AC3_Track = getbit_AUDIO_ID - SUB_DDPLUS;
   }
   else
   // Is it an LPCM substream ?
@@ -680,7 +872,10 @@ void Got_PrivateStream()
   &&  getbit_AUDIO_ID < (SUB_PCM +CHANNELS_MAX-4))
   {
       iGot_Trk_FMT = FORMAT_LPCM;
-      getbit_AC3_Track  = getbit_AUDIO_ID - SUB_PCM;
+      if (MParse.SystemStream_Flag < 0) // Transmission stream (TS or PVA) ?
+          Private_PID_LookUp();
+      else
+          getbit_AC3_Track  = getbit_AUDIO_ID - SUB_PCM;
 
       iTmp1 = Get_Byte(); // No of Frames starting in this packet (does not include tail from previous packet, but does include last partial frame in this packet)
 
@@ -711,12 +906,12 @@ void Got_PrivateStream()
           PCM_SamplingRate = 48000;
       }
 
-      SubStream_CTL[FORMAT_LPCM][getbit_AC3_Track].uBitRate    = uBitsPerSample;
+      SubStream_CTL[FORMAT_LPCM][getbit_AC3_Track].uBitRate_ix = uBitsPerSample;
       SubStream_CTL[FORMAT_LPCM][getbit_AC3_Track].uSampleRate = PCM_SamplingRate;
      
 
-      uChannels      = (iLPCM_Attr & 0x03) + 1;
-      SubStream_CTL[FORMAT_LPCM][getbit_AC3_Track].mode = uChannels;
+      uChannel_ix      = (iLPCM_Attr & 0x03) + 1;
+      SubStream_CTL[FORMAT_LPCM][getbit_AC3_Track].uChannel_ix = uChannel_ix;
 
       iTmp1 = Get_Byte(); // Dynamic Range control (0x80 if off)
                           //      Dynamic Range X     3 bits
@@ -729,11 +924,11 @@ void Got_PrivateStream()
   }
   else
   {
-      iGot_Trk_FMT  = FORMAT_UNK;
-      getbit_AC3_Track = getbit_AUDIO_ID;
+      iGot_Trk_FMT     = FORMAT_UNK;
+      getbit_AC3_Track = CHANNELS_MAX+1; // getbit_AUDIO_ID;
   }
 
-  SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uStream 
+  SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].cStream 
        = (unsigned char)(getbit_AUDIO_ID);
   
 
@@ -820,12 +1015,15 @@ void Got_PrivateStream()
       ||  iGot_Trk_FMT == FORMAT_DTS      // DD-DTS  decoding is experimental
       ||  iGot_Trk_FMT == FORMAT_DDPLUS)  // DD-PLUS decoding is experimental
       {
-         RdPTR += 3;  getbit_iPkt_Len_Remain -= 3; // Skip syncword count and first offset pointer
+          if (MParse.SystemStream_Flag > 0
+          &&  getbit_StreamID == PRIVATE_STREAM_1)  // PS1
+          {
+              RdPTR += 3;  getbit_iPkt_Len_Remain -= 3; // Skip syncword count and first offset pointer
 
-         // TODO: Theoretically we could use the offset pointer to avoid scanning later
-         //       BUT - Sometime the offset pointer iw WRONG !
-
-         MPEG_PTR_BUFF_CHK                  // skip forward, reading more if needed
+              // TODO: Theoretically we could use the offset pointer to avoid scanning later
+              //       BUT - Sometime the offset pointer is WRONG !
+              MPEG_PTR_BUFF_CHK                  // skip forward, reading more if needed
+          }
       }
 
 
@@ -870,6 +1068,7 @@ void Got_PrivateStream()
              getbit_input_code = Get_Byte();
              getbit_input_code = (getbit_input_code & 0xff)<<8 | Get_Byte();
 
+             // Look for AC3 syncword
              i = 0;
              while (getbit_input_code != 0xb77  // AC3 sync sentinel ??
                &&   MParse.Fault_Flag < CRITICAL_ERROR_LEVEL   // RJ ALLOW FOR BAD DATA
@@ -886,23 +1085,59 @@ void Got_PrivateStream()
                  SetDlgItemText(hStats, IDC_AC3_OFFSET, szBuffer);
              }
 
-             Get_Short();  // skip 2
-             iAC3_Attr    = Get_Byte();
+             Get_Short();  // skip 2 bytes
 
-             uSampleRate  = iAC3_Attr >>6;         
-             uSampleRate  = PS1_SampleRate[uSampleRate];
-
-             uBitRate     = (iAC3_Attr>>1) & 0x1f;
-
-             Get_Byte();
-             uMode     = (Get_Byte()>>5) & 0x07;
-
-             if (SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uBitRate != uBitRate
-             ||  SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].mode != uMode)
+             
+             if (iGot_Trk_FMT == FORMAT_DTS)      // DTS info is experimental
              {
-                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uSampleRate = uSampleRate;
-                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uBitRate  = uBitRate;
-                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].mode  = uMode;
+
+               Get_Short();  // skip 2 bytes
+               iAC3_Attr    = Get_Bits(32); // get 4 bytes
+
+               if (iAudioDBG)
+               {
+                 uChannel_ix    = (iAC3_Attr >>14) &0x0F; // 6bits, but we only use 4bits
+                 uSampleRate_ix = (iAC3_Attr >>10) &0x0F; // 4bits
+                 uBitRate_ix    = (iAC3_Attr>>5) & 0x1F;  // 5bits
+               }
+               else
+               {
+                 uChannel_ix    =  7; // DUMMY VALUE
+                 uSampleRate_ix = 14; // DUMMY VALUE 
+                 uBitRate_ix    = 11; // DUMMY VALUE 
+               }
+
+               uBitRate       = dca_bit_KRates[uBitRate_ix];
+               uSampleRate    = dca_sample_rates[uSampleRate_ix];
+
+               RdPTR -= 10; 
+             }  
+             else             
+             {
+               iAC3_Attr    = Get_Byte();
+
+               uSampleRate_ix = iAC3_Attr >>6;  // implied from frame size code       
+               uSampleRate    = uAC3_SampleRate[uSampleRate_ix];
+
+               uBitRate_ix    = (iAC3_Attr>>1) & 0x1f;
+               uBitRate       =  iAC3KRate[uBitRate_ix];
+
+                                 Get_Byte();
+               uChannel_ix    = (Get_Byte()>>5) & 0x07;
+               RdPTR -= 7; 
+             }
+
+             getbit_iPkt_Len_Remain -= i;
+
+             if (SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uBitRate    != uBitRate
+             ||  SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uChannel_ix != uChannel_ix
+             ||  SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uSampleRate != uSampleRate)
+             {
+                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uSampleRate    = uSampleRate;
+                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uSampleRate_ix = uSampleRate_ix;
+                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uBitRate       = uBitRate;
+                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uBitRate_ix    = uBitRate_ix;
+                 SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uChannel_ix    = uChannel_ix;
 
                  if (getbit_MPA_Track == iAudio_SEL_Track
                  &&  byAC3_Init)
@@ -911,7 +1146,6 @@ void Got_PrivateStream()
                  }
              }
 
-             RdPTR -= 7; getbit_iPkt_Len_Remain -= i;
 
          } // end-if AC3
 
@@ -925,7 +1159,9 @@ void Got_PrivateStream()
                  /* CONVERSION TO WAV PCM NO LONGER SUPPORTED
                  sprintf(szBuffer, "%s AC3 T%02d %sch %dKbps %s.wav", szOutput, iAudio_SEL_Track+1,
 
-                 AC3ModeDash[SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].mode], AC3Rate[SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uBitRate], FTType[SRC_Flag]);
+                 szAC3ChannelDash[SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uChannel_ix], 
+                 iAC3KRate[SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].uBitRate_ix], 
+                 FTType[SRC_Flag]);
                  strcpy(wav.filename, szBuffer);
                  wav.file = fopen(szBuffer, "wb");
                  fwrite(WAVHeader, sizeof(WAVHeader), 1, wav.file);
@@ -955,32 +1191,34 @@ void Got_PrivateStream()
 
                       wav.delay = 0;
                   }
+
                   //-------------------------------------------
                   if (iPlayAudio)
                   {
-                    if ( iGot_Trk_FMT == FORMAT_AC3
-                       ||iGot_Trk_FMT == FORMAT_DTS      // DD-DTS  is only experimental
-                       ||iGot_Trk_FMT == FORMAT_DDPLUS  // DD-PLUS cannot really be decoded
+                    if (   iGot_Trk_FMT == FORMAT_AC3
+                        || iGot_Trk_FMT == FORMAT_DTS     // DD-DTS  is only experimental
+                        || iGot_Trk_FMT == FORMAT_DDPLUS  // DD-PLUS cannot really be decoded
                        )
                     {
-                       if (iCtl_Volume_Boost)
+                       if (iCtl_Volume_Boost && !process.iAC3_used)
                        {
+                          process.iAC3_used = 1;
                           //if (iGot_Trk_FMT == FORMAT_LPCM)
                           //    iTmp1 = iCtl_Volume_Boost_MPA; // PCM volume expected to be similar to mpeg 
                           //else
                           {
                               iTmp1 = iCtl_Volume_Boost_AC3;
-                              if (uMode > 2 // Better than stereo ?
+                              if (uChannel_ix > 2 // Better than stereo ?
                               ||  iGot_Trk_FMT > FORMAT_AC3) // DTS or DD+
-                                  iTmp1 = iTmp1 * 2;  // probably need more boosting.
+                                  iTmp1 = iTmp1 * 4;  // probably need more boosting.
                           }
 
                           if (iVolume_Boost < iTmp1)
                               iVolume_Boost = iTmp1;
-                          if (iCtl_Volume_BOLD)
-                              iVolume_BOLD = iVolume_Boost;
+                          if (iCtl_Volume_AUTO && iCtl_Volume_Boost)
+                              iVolume_AUTO = iVolume_Boost;
                           else
-                              iVolume_BOLD = 0;
+                              iVolume_AUTO = 0;
                        } // ENDIF - Need Boosting
                     }
 
@@ -1003,135 +1241,7 @@ void Got_PrivateStream()
          {
             if (SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].rip)  // Has this track been setup ?
             {
-               if (iGot_Trk_FMT == FORMAT_LPCM)  // LPCM
-               {
-                  iDecodeOK_Flag = 1;
-                  lpConvEND = RdPTR + getbit_iPkt_Len_Remain;
-                  lpConvOUT = &AC3Dec_Buffer[PlayCtl.iPCM_Remainder];
-                  iUpTo     = getbit_iPkt_Len_Remain + PlayCtl.iPCM_Remainder;
-                  iLPCM_Len = getbit_iPkt_Len_Remain;
-
-                  // Check for end of current block
-                  if (lpConvEND > RdEOB)
-                  {
-                      lpConvIN = lpConvOUT;
-                      iTmp1 = RdEOB-RdPTR;
-                      memcpy(lpConvOUT, RdPTR, iTmp1);
-                      lpTemp = lpConvOUT + iTmp1;
-                      getbit_iPkt_Len_Remain -= iTmp1; 
-                      
-                      Mpeg_READ();            
-                      RdPTR = RdBFR; 
-                      memcpy(lpTemp, RdPTR, getbit_iPkt_Len_Remain);
-                  }
-                  else
-                    lpConvIN = RdPTR;
-
-                  getAudio_size = iUpTo & 0xFFFFC;
-                  lpConvSPLIT = &AC3Dec_Buffer[getAudio_size];
-                  //iTmp3 = PlayCtl.iPCM_Remainder;
-                  iTmp2 = PlayCtl.iPCM_Remainder & 1;
-                  PlayCtl.iPCM_Remainder = iUpTo - getAudio_size;
-
-                  // Finish split word from PREVIOUS packet
-                  // using  orphaned odd byte from CURRENT packet
-                  if (iTmp2)
-                  {
-                     *(lpConvOUT-1) = *lpConvIN++;
-                       lpConvOUT++;
-                       iLPCM_Len--;
-                  }
-
-
-                  WAV_Byte_Swap(uQWord_Len, lpConvIN, lpConvOUT, 
-                                iLPCM_Len);
-
-                  // Prepare orphaned odd byte from CURRENT packet
-                  //if (PlayCtl.iPCM_Remainder & 1)
-                  //{
-                  //     lpConvOUT   +=  getbit_iPkt_Len_Remain;
-                  //   *(lpConvOUT-1) = *lpConvOUT;
-                  //}
-
-               }
-               else
-               {
-                 if (!byAC3_Init)
-                      InitialAC3();
-                 iDecodeOK_Flag = byAC3_Init;
-
-                 if (byAC3_Init)
-                 {
-                    CONV_A53_PKT_PCM
-
-                    if (AC3_Err_Txt[0])
-                    {
-                       strcpy(szAudio_Status, AC3_Err_Txt);
-                       if (MParse.ShowStats_Flag)
-                          Stats_Volume_Boost();
-                       AC3_Err_Txt[0] = 0;
-                    }
-                    PCM_SamplingRate = A53_sampling_rate;
-                    iDecodeOK_Flag = byAC3_Init;
-                 }
-               }
-
-               if ( ! PlayCtl.iAC3_Attempted && iDecodeOK_Flag)
-               {
-                   PlayCtl.iAC3_Attempted = 1;
-
-                   if (iWAV_Init  
-                   && (   WAVEOUT_SampleFreq    != PCM_SamplingRate
-                       || WAVEOUT_BitsPerSample != uBitsPerSample
-                       || WAVEOUT_Channels      != uChannels
-                      ))
-                   {
-                       WAV_WIN_Audio_close();
-                   }
-
-                   if (!iWAV_Init)
-                   {
-                        WAVEOUT_SampleFreq    = PCM_SamplingRate;
-                        WAVEOUT_BitsPerSample = uBitsPerSample;
-                        WAVEOUT_Channels      = uChannels;
-
-                        WAV_Set_Open();
-                   }
-               }
-
-               if (-wav.delay >  getAudio_size)
-                    wav.delay += getAudio_size;
-               else
-               {
-                 /*
-                 if (SRC_Flag)
-                   Wavefs44(wav.file, getAudio_size+wav.delay, AC3Dec_Buffer-wav.delay);
-                 else
-                   fwrite(AC3Dec_Buffer-wav.delay, getAudio_size+wav.delay, 1, wav.file);
-                 */
-
-                 if ((iDecodeOK_Flag // && iGot_Trk_FMT == FORMAT_AC3
-                                 //|| iGot_Trk_FMT == FORMAT_LPCM
-                                 )
-                 && iWAV_Init && iPlayAudio  
-                 && MParse.FastPlay_Flag <= MAX_WARP )
-                 {
-                     iMPA_PCM_Len1 = getAudio_size + wav.delay;
-                     WAV_Packet_Warp( (AC3Dec_Buffer-wav.delay),
-                                       iMPA_PCM_Len1);
-
-
-                    if (iGot_Trk_FMT == FORMAT_LPCM) // Shuffle remainder to start of buffer for next time LPCM
-                    {
-                        *(UNALIGNED DWORD*)(&AC3Dec_Buffer) 
-                      = *(UNALIGNED DWORD*)(lpConvSPLIT);
-                    }
-
-                 }
-                 wav.size += getAudio_size+wav.delay;
-                 wav.delay = 0;
-               }
-
+               PS1_Convert();
             } // ENDIF Track set up ?
 
          } // ENDIF Play this track ?
@@ -1186,13 +1296,20 @@ void Got_MPA_Hdr()
 {
   int  iRC;
   char cFrameOK;
+  char *lpHzFull;
+
+  if (uMPA_kBitRate < 100) // Don't abbreviate units when potential confusion
+      lpHzFull = &"Hz";
+  else
+      lpHzFull = &"";
   
-  sprintf( mpa_Ctl[getbit_MPA_Track].desc, "mp%d%s %dk %s %dk",
+  sprintf( mpa_Ctl[getbit_MPA_Track].desc, "mp%d%s %dk %s %dk%s",
              uMPA_Layer,
              MPA_EXTN_ABBR[uMPA_25_LSF],
              uMPA_kBitRate, //(uMPA_Sample_Hz/1000),
              MPG_CH_MODE_ABBR[uMPA_Channel_ix],
-             (uMPA_Sample_Hz / 1000));
+             (uMPA_Sample_Hz / 1000),
+             lpHzFull);
 
   //if (iMPA_FrameLen < 128) // Check for cruddy control data
   //    iMPA_FrameLen = 128;
@@ -1577,8 +1694,21 @@ void Got_MPA_Pkt()
 
   //getbit_AUDIO_ID  = getbit_input_code;
 
-  getbit_MPA_Track = getbit_input_code - AUDIO_ELEMENTARY_STREAM_0;
-  mpa_Ctl[getbit_MPA_Track].uStream = (unsigned char)(getbit_input_code);
+  if (MParse.SystemStream_Flag >= 0) // Transmission stream (TS or PVA) ?
+      getbit_MPA_Track = getbit_input_code - AUDIO_ELEMENTARY_STREAM_0;
+  else
+  {
+    getbit_MPA_Track = 0;
+    while (mpa_Ctl[getbit_MPA_Track].uPID  != uGot_PID
+           && getbit_MPA_Track <= CHANNELS_MAX)
+    {
+       if(  mpa_Ctl[getbit_MPA_Track].uPID == 0)
+            mpa_Ctl[getbit_MPA_Track].uPID  = uGot_PID;
+       else
+            getbit_MPA_Track++;
+    }
+  }
+  mpa_Ctl[getbit_MPA_Track].cStream = (unsigned char)(getbit_input_code);
 
   process.SkipPTS = 0;
   PktStats.iMPA_Packets++;
@@ -1658,7 +1788,23 @@ void Got_MPA_Pkt()
 
       if (! getbit_iDropPkt_Flag)
       {
-         Got_MPA_PayLoad();
+         /* // This needs further work
+         if (!mpa_Ctl[0].rip
+             &&  (    RdPTR[0] == 0x0B && RdPTR[1] == 0x77
+                  ||  process.iAudioAC3inMPA))  // Allow for crap muxer that puts AC3 inside an MPA packet type
+         {
+             if (!iWarnAC3inMPA)
+             {
+               iWarnAC3inMPA = 1;
+               strcpy(szMsgTxt, "AC3 in MPA pkt.    ");
+               DSP1_Main_MSG(0, 1);
+             }
+             //process.iAudioAC3inMPA = 1;  
+             //Got_PrivateStream();
+         }
+         else
+         */
+            Got_MPA_PayLoad();
       } // END - Not to be dropped ?
 
   } // END - Interested in MPA format ?

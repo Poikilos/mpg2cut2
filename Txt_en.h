@@ -53,7 +53,14 @@
 #define FILE_EXCLUDE_COUNT "Excluded %d files"
 #define FILE_END_OF_FILE "END OF FILE"
 
-#define FILE_XTN_QRY  "Wrong File Ext: %s  %s\n\nTHIS PROBABLY WON'T WORK\n\nDO YOU REALLY WANT TO TRY THIS ?"
+#define FILE_ACCESSING "Accessing..."
+#define FILE_BAD_STRUCTURE "BAD STRUCTURE in File Name or Folder Name\n\nFile = %s\n\n"
+#define FILE_XTN_QRY  "WRONG FILE EXTENSION: %s \n.        %s  \n\nTHIS PROBABLY WON'T WORK\n\nDO YOU REALLY WANT TO TRY THIS ?"
+#define FILE_LIST_ERROR "Cannot show a File List Window For\n\nFile =%s\n\n"
+
+#define FILE_NO_SPACE "SPACE INSUFFICIENT on drive %c:\n\nFree = %d MB    Need = %d MB\n\nTRY ELSEWHERE ? "
+#define FILE_TOO_BIG "Cannot write file >4GB onto %s drive %c:  %s\n\nTRY ELSEWHERE ? "
+#define FILE_ADD_QRY "ADD to current file list ? "
 
 #define ILLEGAL_CHR_TXT "ILLEGAL CHARACTER %c"
 
@@ -62,12 +69,16 @@
 #define NO_MPEG_PACK_SEQ_AT_START "NO MPEG PACK/SEQ header at start.\n\n%s"
 
 #define PARM_UNKNOWN_KW     "Unknown Parameter Keyword \"%s\" "
+#define UNDO_SORRY "Sorry, I don't know what to UNDO"
+
 
 #define MEM_ALLOC_ERROR     "Memory Alloc error - Proc #%s"
 
 #define OUTPUT_IN_PROGESS   "OUTPUT IN PROGRESS...  %d,%d"
 
 #define VOLUME_LIMITING     "VOLUME LIMITING  "
+#define VOLUME_LIMIT_UP     "VOL LIMIT RAISED  "
+#define VOLUME_LIMIT_OFF    "VOLUME LIMIT OFF  "
 #define VOLUME_AT_MAX       "VOLUME AT MAX    "
 
 #define AUDIO_NO_OTHER_TRK  "NO OTHER AUDIO TRK"

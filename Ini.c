@@ -1,5 +1,5 @@
 //
-//
+// 
 #include "global.h" 
 
 #include "Audio.h"
@@ -31,14 +31,23 @@ FILE *INIFile;
 int INI_Version;
 #define PGM_INI  1
 
-int iTmp4;
+int iTmp2, iValCtr;
 int iCtl_Vol_Prev_Denom;
+int iCtl_Warn_Fmts;
 
 void   Reg_ExternalActions();
 
 void MenuTick(UINT uItem)
 {
   CheckMenuItem(hMenu, uItem,  MF_CHECKED);
+}
+void MenuUnTick(UINT uItem)
+{
+  CheckMenuItem(hMenu, uItem,  MF_UNCHECKED);
+}
+void MenuTickCtl(UINT uItem, UINT uStatus)
+{
+  CheckMenuItem(hMenu, uItem,  uStatus);
 }
 
 
@@ -87,18 +96,18 @@ void INI_VARS_BeforeMenu()
   {
     mov     eax, 1
     cpuid
-    test    edx, 0x00800000   // STD MMX
+    test    edx, 0x00800000   // STD MMX = Pentium Pro or better
     jz      TEST_SSE
     mov     [cpu.mmx], 1
 
 TEST_SSE:
-    test    edx, 0x02000000   // STD SSE = Pentium 3
+    test    edx, 0x02000000   // STD SSE = Pentium 3 or better
     jz      TEST_SSE2
     mov     [cpu.ssemmx], 1
     mov     [cpu.ssefpu], 1
 
 TEST_SSE2:
-    test    edx, 0x04000000    // SSE2 SSE = Pentium 4
+    test    edx, 0x04000000    // SSE2 SSE = Pentium 4 or better
     jz      TEST_3DNOW
     mov     [cpu.sse2], 1
 
@@ -111,6 +120,10 @@ TEST_3DNOW:
               but SSE is only supported on AthlonXP (Family 6, Model 6) 
                             Palomino-Thoroughbred-Barton core chips. 
               CPU-Z doesn't list it as supporting SSE."
+
+   TODO: If someone can give me correct rules for 3DNOW,
+         and is prepared to test it for me,
+         then I am happy to put in the appropriate code.
 
 
     mov     eax, 0x80000001
@@ -175,24 +188,27 @@ TEST_END:
   iCtl_Priority[1] = PRIORITY_HIGH;
   iCtl_Priority[2] = PRIORITY_NORMAL;
 
+
   iMpeg_Copy_BufSz = K_4MB; // Default 4 MB
   iCtl_AudioAhead = 0;
 
-  iLumLock_Flag  = false;  iSatLock_Flag  = false;
-  iSatAdj_Flag   = false;
+  iCtl_Lum_Deselector = 0;
+  iLumLock_Flag  = 0;    iSatLock_Flag  = 0;
+  iSatAdj_Flag   = 0;
   iSatAdd_U[0]   = 0;    iSatAdd_U[1] = 0;
   iSatAdd_V[0]   = 0;    iSatAdd_V[1] = 0;
   iSatGain[0]    = 100;  iSatGain[1]  = 100;
   iColorSpaceTab = 0;
 
+  iCtl_Aspect_Retain = 0;
   iView_Aspect_Mode = 4;  // Default = Standard
+
+  iView_FrameRate_Code = 0; iOverride_FrameRate_Code = 0;
+  fFrame_rate_extension_n = 1.0;
+  fFrame_rate_extension_d = 1.0;
 
   iConverge_Red_H  = 0;  iConverge_Red_V  = 0;
   iConverge_Blue_H = 0;  iConverge_Blue_V = 0;
-
-
-  iCtl_Aspect_Retain = 0;
-
 
   iShowVideo_Flag = 1; iCtl_ShowVideo_Flag = 1;
 
@@ -233,14 +249,18 @@ TEST_END:
   iOut_HideAudio  = 0;  iOut_FixPktLens = 0;  iOut_PS1PS2 = 0;
   iCtl_Out_Parse_SplitStart = 1;
   iCtl_Out_SplitSegments    = 0;       
-  iCtl_Out_KillPadding      = 0;  iCtl_OutPartAuto  = 0;  
+  iCtl_Out_KillPadding      = 0;  iCtl_OutPartAuto  = 0;
+  iCtl_Out_DropCrud         = 0; // This is not sticky, since it is too scary
 
   iOut_UnMuxAudioOnly = 0;  iOut_UnMux_Fmt = 0;
   iOut_Audio_All = 1; 
-  iOut_Audio_TrkSel[8] = 0;   iOut_Audio_TrkSel[1] = 0;
+  
+  iOut_Audio_TrkSel[0] = 0;   iOut_Audio_TrkSel[1] = 0;
   iOut_Audio_TrkSel[2] = 0;   iOut_Audio_TrkSel[3] = 0;
   iOut_Audio_TrkSel[4] = 0;   iOut_Audio_TrkSel[5] = 0;
   iOut_Audio_TrkSel[6] = 0;   iOut_Audio_TrkSel[7] = 0;
+  ZeroMemory(&cOut_SubStreamWanted,  sizeof(cOut_SubStreamWanted));
+  
 
   Deint_AUTO_View = 1;  Deint_SNAP = 1;  iCtl_CropTop = 0;
   iCtl_BMP_Aspect = BMP_ASPECT_BICUBIC;
@@ -268,25 +288,26 @@ TEST_END:
   //iCtl_Out_Keep_Ac3Hdr = 1;
 
   iCtl_Audio_PS2  = 0;       
-  iCtl_Volume_Boost = 0; iCtl_Volume_BOLD = 0; 
-  iAudio_Force44K = 0;
+  iCtl_Volume_Boost = 0; iCtl_Volume_Boost_Cat = 0;
+  iCtl_Volume_AUTO = 0; 
+  iAudio_Force44K = 0;   iCtl_PALTelecide = 0;
   //iCtl_RecycleBin = 0;
 
   Loc_Method = 2;
   iCtl_To_Pad = 0;  // I-Frame TO Padding is not yet smart enough to be the default
   strcpy(szOut_Xtn_RULE,"MPG"); // "$");
   iSuppressWarnings = 0;   iCtl_WarnNoHdr = 1;
-  iWarnBadDate = 0;
+  iWarnBadDate = 0;  iWarnAC3inMPA = 0;
 
   iCtl_KB_NavOpt  = 1;
   iCtl_KB_MarkOpt = 0;
-  iCtl_F3_Names = 0;
+  iCtl_F3_Names = 0; iCtl_F5_Toggler = 0;
   iCtl_Wheel_Scroll = 1;  iCtl_FileSortSeq = 1;
-  iNav_Index = 1;
+  iCTL_FastBack = 1;
   iCtl_Name_Info = 0; iCtl_BasicName_Panel = 1;
 
   szInput  [0] = 0;
-  szOutput [0] = 0; szCtl_Out_Folder[0] = 0; szOutFolder[0] = 0;
+  szOutput [0] = 0; szCtl_OutFolder[0] = 0; szOutFolder[0] = 0;
   szEDLname[0] = 0;
 }
 
@@ -297,7 +318,7 @@ void INI_GET()
 {
   DWORD iLen;
   char *ext;
-  int iTmp1;
+  int iTmp1, iCtl_Warn_Fmts;
   int iDUMMY;
 
   // Find where we were loaded from
@@ -311,7 +332,7 @@ void INI_GET()
 
 
   // Find out menu background color
-  iColor_Menu_Bk = GetSysColor(COLOR_MENU);
+  iColor_Menu_BG = GetSysColor(COLOR_MENU);
 
   strcpy(szINI_Path, szLOAD_Path);
   strcat(szINI_Path, "Mpg2Cut2.ini");
@@ -334,10 +355,10 @@ void INI_GET()
   */
   //else  
   {
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
-      iTmp4 = fscanf(INIFile, "INI_Version=%d\n", &INI_Version);
+      iValCtr = fscanf(INIFile, "INI_Version=%d\n", &INI_Version);
     //if (INI_Version != PGM_INI)
     //{
     //   if (DBGflag) DBGout("INI file WRONG VERSION");
@@ -345,35 +366,35 @@ void INI_GET()
     //else
     //{
 
-      iTmp4 = fscanf(INIFile, "Window_Position=%d,%d\n", &Restore_X, &Restore_Y);
-      iTmp4 = fscanf(INIFile, "iDCT_Algorithm=%d\n",  &MParse.iDCT_Flag);
-      iTmp4 = fscanf(INIFile, "YUVRGB_Scale=%d\n",  &MParse.PC_Range_Flag);
-      iTmp4 = fscanf(INIFile, "Field_Operation=%d,%d\n", &MParse.FO_Flag,
+      iValCtr = fscanf(INIFile, "Window_Position=%d,%d\n", &Restore_X, &Restore_Y);
+      iValCtr = fscanf(INIFile, "iDCT_Algorithm=%d\n",  &MParse.iDCT_Flag);
+      iValCtr = fscanf(INIFile, "YUVRGB_Scale=%d\n",  &MParse.PC_Range_Flag);
+      iValCtr = fscanf(INIFile, "Field_Operation=%d,%d\n", &MParse.FO_Flag,
                                                       &iCtl_View_Fast_YUV);
     }
-      if (iTmp4 < 2) 
+      if (iValCtr < 2) 
           iCtl_View_Fast_YUV = 1;
       else  
           iCtl_View_Fast_YUV = 1 -  iCtl_View_Fast_YUV;
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else  
     {
-      iTmp4 = fscanf(INIFile, "Track_Number=%d\n", &iAudio_SEL_Track);
-      iTmp4 = fscanf(INIFile, "Channel_Format=%d\n",  &iTmp1);  // SUPPRESED :- &iWant_Aud_Format);
-//    iTmp4 = fscanf(INIFile, "AC3=%d\n", &AC3_Flag);
-//    iTmp4 = fscanf(INIFile, "DR_Control=%d\n", &AC3_DRC_FLag);
-      iTmp4 = fscanf(INIFile, "DS_Downmix=%d\n", &AC3_DSDown_Flag);
-//    iTmp4 = fscanf(INIFile, "MPA=%d\n", &MPA_Flag);
-//    iTmp4 = fscanf(INIFile, "SRC_Precision=%d\n", &SRC_Flag);
-//    iTmp4 = fscanf(INIFile, "Norm_Ratio=%d\n", &Norm_Ratio);
-      iTmp4 = fscanf(INIFile, "Process_Priority=%d\n", &iCtl_Priority[0]);
+      iValCtr = fscanf(INIFile, "Track_Number=%d\n", &iAudio_SEL_Track);
+      iValCtr = fscanf(INIFile, "Channel_Format=%d\n",  &iTmp1);  // SUPPRESED :- &iWant_Aud_Format);
+//    iValCtr = fscanf(INIFile, "AC3=%d\n", &AC3_Flag);
+//    iValCtr = fscanf(INIFile, "DR_Control=%d\n", &AC3_DRC_FLag);
+      iValCtr = fscanf(INIFile, "DS_Downmix=%d\n", &AC3_DSDown_Flag);
+//    iValCtr = fscanf(INIFile, "MPA=%d\n", &MPA_Flag);
+//    iValCtr = fscanf(INIFile, "SRC_Precision=%d\n", &SRC_Flag);
+//    iValCtr = fscanf(INIFile, "Norm_Ratio=%d\n", &Norm_Ratio);
+      iValCtr = fscanf(INIFile, "Process_Priority=%d\n", &iCtl_Priority[0]);
     }
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else  
     {
-      iTmp4 = fscanf(INIFile, "Luminance=%d,%d,%d,%d,%d,%d\n",
+      iValCtr = fscanf(INIFile, "Luminance=%d,%d,%d,%d,%d,%d\n",
                            &iLumGain[0], &iLumOffset[0],&iLumGamma[0],
                            &iLumEnable_Flag[0], &iTmp1, 
                            &iLumEnable_Flag[1]);
@@ -381,92 +402,92 @@ void INI_GET()
       iSatLock_Flag = iTmp1 / 256;
     }
 
-    if (iTmp4 < 5)
+    if (iValCtr < 5)
     {
         iLumGain[0] = 128; iLumOffset[0] = 0; iLumGamma[0] = 130; // YUY2
-        iLumEnable_Flag[0] = true;  
+        iLumEnable_Flag[0] = 1;  
     }
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else  
     {
-      iTmp4 = fscanf(INIFile, "Keyboard=%d,%d\n", &iCtl_KB_NavOpt, &iCtl_KB_MarkOpt);
+      iValCtr = fscanf(INIFile, "Keyboard=%d,%d\n", &iCtl_KB_NavOpt, &iCtl_KB_MarkOpt);
     }
 
-    if (iTmp4 < 1) iCtl_KB_NavOpt = 2;      // default to Vdub nav
+    if (iValCtr < 1) iCtl_KB_NavOpt = 2;      // default to Vdub nav
 
     iCtl_KB_NavOpt  = iCtl_KB_NavOpt>>1;
     iCtl_KB_MarkOpt = iCtl_KB_MarkOpt>>1;
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else  
     {
-      iTmp4 = fscanf(INIFile, "Audio_Decoder=%s\n", &szMPAdec_NAME);
-      iTmp4 = fscanf(INIFile, "AddAuto=%d,%d\n",    &Add_Automation,
+      iValCtr = fscanf(INIFile, "Audio_Decoder=%s\n", &szMPAdec_NAME);
+      iValCtr = fscanf(INIFile, "AddAuto=%d,%d\n",    &Add_Automation,
                                                     &iCtl_To_Pad);
     }
-    if (iTmp4 < 1)
+    if (iValCtr < 1)
     {
         Add_Automation = 2;          // default to AUTO
     }
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else  
     {
-      iTmp4 = fscanf(INIFile, "Preamble=%d\n",     &iCtl_Out_Preamble_Flag);
+      iValCtr = fscanf(INIFile, "Preamble=%d\n",     &iCtl_Out_Preamble_Flag);
     }
-    if (iTmp4 < 1)  
+    if (iValCtr < 1)  
       iCtl_Out_Preamble_Flag = 1;
 
-    if (! INIFile) iTmp4 = 0;
-    else iTmp4 = fscanf(INIFile, "Deinterlace=%d,%d,%d\n",  &Deint_AUTO_View,
+    if (! INIFile) iValCtr = 0;
+    else iValCtr = fscanf(INIFile, "Deinterlace=%d,%d,%d\n",  &Deint_AUTO_View,
                                                          &Deint_VOB,
                                                          &Deint_SNAP);
-    if (iTmp4 < 3)
+    if (iValCtr < 3)
     {
-      if (iTmp4 < 1)
+      if (iValCtr < 1)
           Deint_AUTO_View = 1;
-      if (iTmp4 < 2)
+      if (iValCtr < 2)
           Deint_VOB = Deint_AUTO_View;
       Deint_SNAP = Deint_AUTO_View;   
     }
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else 
     {
-      iTmp4 = fscanf(INIFile, "OutXtn=%s\n",             &szOut_Xtn_RULE);
-      iTmp4 = fscanf(INIFile, "InputFile=\"%[^\"]\"\n",  &szInput);
-      iTmp4 = fscanf(INIFile, "OutputFile=\"%[^\"]\"\n", &szOutput);
-      iTmp4 = fscanf(INIFile, "OutFolder=%d,\"%[^\"]\"\n",
-                                             &iCtl_Out_Folder_Active,
-                                            &szCtl_Out_Folder);
+      iValCtr = fscanf(INIFile, "OutXtn=%s\n",             &szOut_Xtn_RULE);
+      iValCtr = fscanf(INIFile, "InputFile=\"%[^\"]\"\n",  &szInput);
+      iValCtr = fscanf(INIFile, "OutputFile=\"%[^\"]\"\n", &szOutput);
+      iValCtr = fscanf(INIFile, "OutFolder=%d,\"%[^\"]\"\n",
+                                             &iCtl_OutFolder_Active,
+                                            &szCtl_OutFolder);
     }
-    if (iTmp4 < 2)
+    if (iValCtr < 2)
     {
-         szCtl_Out_Folder[0] = 0;
-         if (iTmp4 < 1)
-           iCtl_Out_Folder_Active = 0;
+         szCtl_OutFolder[0] = 0;
+         if (iValCtr < 1)
+           iCtl_OutFolder_Active = 0;
     }
-    strcpy(&szOutFolder[0], &szCtl_Out_Folder[0]);
+    strcpy(&szOutFolder[0], &szCtl_OutFolder[0]);
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
       // New parameters that default to TRUE
-      iTmp4 = fscanf(INIFile,K_DefaultY_FORMAT, // "DefaultY=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
-                              &iCtl_Out_Folder_Both,  &iCtl_Audio_CRC,
+      iValCtr = fscanf(INIFile,K_DefaultY_FORMAT, // "DefaultY=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
+                              &iCtl_OutFolder_Both,  &iCtl_Audio_CRC,
                               &iCtl_Out_PTS_Match,    &iCtl_Out_Align_Video,
                               &iCtl_Out_Preamble_VTS, &iCtl_Play_AudLock,
-                              &iNav_Index,            &iCtl_Track_Memo, 
+                              &iCTL_FastBack,            &iCtl_Track_Memo, 
                               &iCtl_WarnSize_1,       &iCtl_WarnSize_2,
                               &iCtl_WarnSize_3,       &iCtl_WarnSize_4,
                               &iCtl_KB_NavStopPlay,   &iCtl_Ovl_Release,
-                              &iCtl_SetBrokenGop,     &iCtl_WarnMpeg1, 
+                              &iCtl_SetBrokenGop,     &iCtl_Warn_Fmts,
                               &iCtl_Time_Fmt,         &iCtl_WarnBadStart,        
                               &iCtl_EDL_AutoSave,     &iCtl_RecycleBin, 
                               &iCtl_View_Centre_Crop);
     }
-    if (iTmp4 < 1)
+    if (iValCtr < 1)
     {
                         iCtl_Audio_CRC        =1; iCtl_Track_Memo      =1;
                         iCtl_Out_PTS_Match    =1; iCtl_Out_Align_Video =1;
@@ -474,20 +495,32 @@ void INI_GET()
                         iCtl_WarnSize_1       =1; iCtl_WarnSize_2      =1;
                         iCtl_WarnSize_3       =1; iCtl_WarnSize_4      =1;
                         iCtl_KB_NavStopPlay   =1; iCtl_SetBrokenGop    =1;
-                        iCtl_WarnMpeg1        =1; iCtl_Time_Fmt        =1;
+                        iCtl_Warn_Fmts        =1; iCtl_Time_Fmt        =1;
                         iCtl_WarnBadStart     =1; iCtl_EDL_AutoSave    =1;
-                        iCtl_RecycleBin       =1; iCtl_Out_Folder_Both =1;
-                        iCtl_View_Centre_Crop    =1;
+                        iCtl_RecycleBin       =1; iCtl_OutFolder_Both  =1;
+                        iCtl_View_Centre_Crop =1;
     }
 
+    // bit flags for format warnings
+    if (iCtl_Warn_Fmts   == 1)             // Old style
+        iCtl_Warn_Fmts   =  0xFFFFFFFF;  // Old style needs to be upgraded
+    // bitulate
+    iCtl_WarnMpeg1 = iCtl_Warn_Fmts & 0x01;
+    iCtl_WarnTS    = iCtl_Warn_Fmts & 0x02;
+    iCtl_WarnTSmpg = iCtl_Warn_Fmts & 0x04; // TS named .mpg
+    iCtl_WarnCDXA  = iCtl_Warn_Fmts & 0x08; 
+    iCtl_WarnDone  = iCtl_Warn_Fmts & 0x10; 
+    iCtl_WarnETC   = iCtl_Warn_Fmts & 0xFFFFFFE0; // and the rest
 
+    iCtl_WarnBadSysHdr = (1 - (iCtl_WarnBadStart / 256));
+    iCtl_WarnBadStart  = iCtl_WarnBadStart &0xFF;
 
     // New parameters that default to ZERO
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
-      iTmp4 = fscanf(INIFile,K_PatchHdr_FORMAT,
+      iValCtr = fscanf(INIFile,K_PatchHdr_FORMAT,
                       &iCtl_Out_Fix_SD_Hdr,   &iCtl_Out_Parse,
                       &iCtl_Out_Seq_End,      &iCtl_VOB_Style,
                       &iCtl_Out_TC_Adjust,    &iCtl_Out_Align_Audio,
@@ -498,7 +531,7 @@ void INI_GET()
                       &iCtl_Out_SysHdr_Mpeg,  &iCtl_Out_Fix_Errors);
     }
 
-    if (iTmp4 < 12)
+    if (iValCtr < 12)
     {
                     iCtl_Out_Fix_SD_Hdr=0;       iCtl_Out_Parse = 1;
                     iCtl_Out_Seq_End=0;          iCtl_VOB_Style=0;
@@ -509,7 +542,7 @@ void INI_GET()
                     iCtl_Out_TC_Force=0;         iCtl_ParmConfirm=0;
     }
 
-    if (iTmp4 < 16)
+    if (iValCtr < 16)
     {
                     iCtl_View_Aspect_Mpeg1_Force = 0;
                     iCtl_Out_SysHdr_Mpeg = 0;
@@ -522,10 +555,10 @@ void INI_GET()
 
 
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
-      iTmp4 = fscanf(INIFile,K_AudioX_FORMAT,
+      iValCtr = fscanf(INIFile,K_AudioX_FORMAT,
                       &iCtl_Volume_Boost, &iCtl_Audio_PS2,
                       &iCtl_Play_Sync,   &iCtl_Drop_Behind,
                       &iCtl_Play_Info,   &iCtl_Drop_PTS, 
@@ -540,7 +573,7 @@ void INI_GET()
                       &iCtl_View_RGB_Always);
     }
 
-    if (iTmp4 < 11)
+    if (iValCtr < 11)
     {
                       iCtl_Volume_Boost=0; iCtl_Audio_PS2=0;
                       iCtl_Play_Sync=0;   iCtl_Drop_Behind=0;
@@ -564,47 +597,47 @@ void INI_GET()
     if (iCtl_ColumnWidth[1] <= 0) 
         iCtl_ColumnWidth[1]  = 150;
 
-    if (! INIFile) iTmp4 = 0;
-    else iTmp4 = fscanf(INIFile, "JumpSpan=%d,%d,%d,%d,%d,%d\n",  
+    if (! INIFile) iValCtr = 0;
+    else iValCtr = fscanf(INIFile, "JumpSpan=%d,%d,%d,%d,%d,%d\n",  
                                       &iJumpSecs[0], &iJumpSecs[1], &iJumpSecs[2], 
                                       &iJumpSecs[3], &iJumpSecs[4], &iJumpSecs[5]); 
-    if (iTmp4 < 6)                                                         
+    if (iValCtr < 6)                                                         
     {
       iJumpSecs[0] =  2; iJumpSecs[1] =  20; iJumpSecs[2] =  50; 
       iJumpSecs[3] = -2; iJumpSecs[4] = -20; iJumpSecs[5] = -50; 
     }
 
-    if (! INIFile) iTmp4 = 0;               
-    else           iTmp4 = fscanf(INIFile, "Proc0A=%d,\"%[^\"]\"\n", // %d,\"%s\"\n",
+    if (! INIFile) iValCtr = 0;               
+    else           iValCtr = fscanf(INIFile, "Proc0A=%d,\"%[^\"]\"\n", // %d,\"%s\"\n",
                                              &iCtl_Out_PostProc,
                                             &szCtl_Out_ProcLine_A);
 
-    if (! INIFile) iTmp4 = 0;               
-    else           iTmp4 = fscanf(INIFile, "Proc0B=%d,\"%[^\"]\"\n", // %d,\"%s\"\n",
+    if (! INIFile) iValCtr = 0;               
+    else           iValCtr = fscanf(INIFile, "Proc0B=%d,\"%[^\"]\"\n", // %d,\"%s\"\n",
                                              &iCtl_Out_PostQuote,
                                             &szCtl_Out_ProcLine_B);
-    if (! INIFile) iTmp4 = 0;               
-    else           iTmp4 = fscanf(INIFile, "BMPFolder=%d,\"%[^\"]\"\n",
+    if (! INIFile) iValCtr = 0;               
+    else           iValCtr = fscanf(INIFile, "BMPFolder=%d,\"%[^\"]\"\n",
                                              &iCtl_BMP_Folder_Active,
                                             &szCtl_BMP_Folder);
-    if (iTmp4 < 2)
+    if (iValCtr < 2)
     {
          szCtl_BMP_Folder[0] = 0;
-         if (iTmp4 < 1)
+         if (iValCtr < 1)
            iCtl_BMP_Folder_Active = 0;
     }
 
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
-      iTmp4 = fscanf(INIFile, "RenamePlugIn=%d,%c,\"%[^\"]\"\n",
+      iValCtr = fscanf(INIFile, "RenamePlugIn=%d,%c,\"%[^\"]\"\n",
                                           &PlugFileRename.iActive,
                                           &cRenamePlugIn_MultiMode, 
                                          &szRenamePlugIn_Name);
     }
 
-    if (iTmp4 < 3)
+    if (iValCtr < 3)
     {
        PlugFileRename.iActive = 0;
        cRenamePlugIn_MultiMode = 'S';
@@ -627,15 +660,15 @@ void INI_GET()
     }
 
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
-      iTmp4 = fscanf(INIFile, "FileListPlugIn=%d,%c,\"%[^\"]\"\n",
+      iValCtr = fscanf(INIFile, "FileListPlugIn=%d,%c,\"%[^\"]\"\n",
                                           &PlugFileList.iActive,
                                           &cFileListPlugIn_MultiMode, 
                                          &szFileListPlugIn_Name);
     }
-    if (iTmp4 < 3)
+    if (iValCtr < 3)
     {
        PlugFileList.iActive = 0;
        cFileListPlugIn_MultiMode = 'S';
@@ -661,10 +694,10 @@ void INI_GET()
 
 
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
-      iTmp4 = fscanf(INIFile, "Breathe=(%d,%d,%d),Pkts=(%d,%d,%d)\n",
+      iValCtr = fscanf(INIFile, "Breathe=(%d,%d,%d),Pkts=(%d,%d,%d)\n",
                                           &iCtl_Out_Breathe_PerBigBlk[0],
                                           &iCtl_Out_Breathe_PerBigBlk[1],
                                           &iCtl_Out_Breathe_PerBigBlk[2],
@@ -674,7 +707,7 @@ void INI_GET()
                                           );
     }
 
-    if (iTmp4 < 6
+    if (iValCtr < 6
     || (iCtl_Out_Breathe_PerBigBlk[0] == 256 &&
         iCtl_Out_Breathe_PerBigBlk[1] == 128 &&
         iCtl_Out_Breathe_PerBigBlk[2] ==  32 &&
@@ -703,37 +736,38 @@ void INI_GET()
 
 
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
-      iTmp4 = fscanf(INIFile, "Color=x%06X,BG=x%06X,MASK=x%06X\n",
+      iValCtr = fscanf(INIFile, "Color=x%06X,BG=x%06X,MASK=x%06X\n",
                     &iCtl_Text_Colour, 
                     &iTmp1, // &iCtl_Back_Colour, 
                     &iCtl_Mask_Colour);
     }
-    if (iTmp4 < 3)
+    if (iValCtr < 3)
     {
        iCtl_Text_Colour = 0xFFFEFE;  // Text = Bright Blue
        iCtl_Mask_Colour = 0x000600;  // Overlay key = Dark Green
        iCtl_Back_Colour = iCtl_Mask_Colour; //0x000000;  // Background = Black
     }
+    iCtl_Mask_Fallback = 0;
                
 
     if (INIFile)
     {
-      iTmp4 = fscanf(INIFile, "EDL=\"%[^\"]\"\n", &szEDLname);
+      iValCtr = fscanf(INIFile, "EDL=\"%[^\"]\"\n", &szEDLname);
     }
     if (szEDLname[0] <= ' ')
         strcpy(szEDLname, "*.EDL");
 
     if (INIFile)
     {
-      iTmp4 = fscanf(INIFile, "LumBMP=%d,%d,%d,%d,%d,%d\n",
+      iValCtr = fscanf(INIFile, "LumBMP=%d,%d,%d,%d,%d,%d\n",
                            &iLumGain[1], &iLumOffset[1],&iLumGamma[1],
                            &iLumEnable_Flag[1], &iTmp1, &iTmp1);
     }
 
-    if (iTmp4 < 4)
+    if (iValCtr < 4)
     {
        iLumGain[1] = 128; iLumOffset[1] = 0; iLumGamma[1] = 130; // RGB-BMP
        iLumEnable_Flag[1] = 1;
@@ -741,17 +775,17 @@ void INI_GET()
 
     if (INIFile)
     {
-      iTmp4 = fscanf(INIFile, "OutXtnAudio=%s\n",       &szOut_Xtn_AUD);
+      iValCtr = fscanf(INIFile, "OutXtnAudio=%s\n",       &szOut_Xtn_AUD);
     }
-    if (iTmp4 < 1  
+    if (iValCtr < 1  
     ||  szOut_Xtn_AUD[0] <= ' ')
         strcpy(szOut_Xtn_AUD, "M2A");
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
       // More New parameters that default to TRUE (You Are at Y2)
-      iTmp4 = fscanf(INIFile, K_Y2, 
+      iValCtr = fscanf(INIFile, K_Y2, 
                            &iCtl_View_Fast_RGB,     &iCtl_Readability, 
                            &iCtl_Copy_BufSz_Ix,     &iCtl_ToolTips,
                            &iCtl_Trackbar_Big,      &iCtl_Wheel_Scroll, 
@@ -762,7 +796,7 @@ void INI_GET()
                            &iDUMMY, 
                            &iDUMMY, &iDUMMY);  // Don't go West  
     }
-    if (iTmp4 < 16)
+    if (iValCtr < 16)
     {
                         iCtl_View_Fast_RGB = 1; iCtl_Readability  = 1;
                         iCtl_Copy_BufSz_Ix = 1; iCtl_ToolTips     = 1;
@@ -774,16 +808,16 @@ void INI_GET()
     }
 
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
       // More New parameters that default to ZERO
-      iTmp4 = fscanf(INIFile, K_N2, 
+      iValCtr = fscanf(INIFile, K_N2, 
                               &iCtl_F3_Names, &iCtl_ParmClipSpec, 
                               &iCtl_Out_Force_Interlace, 
                               &iCtl_Out_KillPadding,
                               &iCtl_VistaOVL_mod, 
-                              &iCtl_Volume_BOLD,
+                              &iCtl_Volume_AUTO,
                               &iCtl_OVL_FullKey, 
                               &AC3_DRC_FLag,
                               &iCtl_Zoom_Retain, &iCtl_Zoom_Wanted,
@@ -792,7 +826,7 @@ void INI_GET()
                               &iCtl_YV12, &iCtl_AspMismatch,
                               &iCtl_CropTop);    
     }
-    if (iTmp4 < 16)
+    if (iValCtr < 16)
     {
       iCtl_F3_Names = 0;  iCtl_ParmClipSpec = 0;
       AC3_DRC_FLag = DRC_HEAVY;
@@ -813,19 +847,23 @@ void INI_GET()
        iView_Aspect_Mode += 4;
     }
 
+    iCtl_F5_Toggler = iCtl_F3_Names / 256;
+    iCtl_F3_Names   = iCtl_F3_Names & 255;
+
+
 
     if (INIFile)
     {
-      iTmp4 = fscanf(INIFile, K_LumPresets, 
+      iValCtr = fscanf(INIFile, K_LumPresets, 
                            &iLumGain[2], &iLumOffset[2],&iLumGamma[2],  // Default
                            &iLumGain[3], &iLumOffset[3],&iLumGamma[3],  // Bold
                               &iDUMMY, &iDUMMY, &iDUMMY, 
                            &iLumGain[4], &iLumOffset[4],&iLumGamma[4],  // C
-                              &iDUMMY, &iDUMMY, &iDUMMY, 
+                           &iLumGain[5], &iLumOffset[5],&iLumGamma[5],  // A
                               &iDUMMY, &iCtl_SinThreshold, &iCtl_VHS_Threshold); 
     }
 
-    if (iTmp4 < 6)
+    if (iValCtr < 6)
     {
        iLumGain[2] = 128; iLumOffset[2] =  0; iLumGamma[2] = 130; // Default
        iLumGain[3] = 168; iLumOffset[3] = 40; iLumGamma[3] = 130;  // Bold
@@ -833,7 +871,11 @@ void INI_GET()
 
     if (iLumGamma[4] == 0 && iLumGain[4] == 0 && iLumOffset[4] == 0)
     {
-       iLumGain[4] = 148; iLumOffset[4] = 20; iLumGamma[4] = 130;  // Bold
+       iLumGain[4] = 148; iLumOffset[4] = 20; iLumGamma[4] = 130;  // C
+    }
+    if (iLumGamma[5] == 0 && iLumGain[5] == 0 && iLumOffset[5] == 0)
+    {
+       iLumGain[5] = 178; iLumOffset[5] = 50; iLumGamma[5] = 130;  // A
     }
 
     if (iCtl_VHS_Threshold ==  0)
@@ -842,30 +884,33 @@ void INI_GET()
         iCtl_SinThreshold   = iCtl_VHS_Threshold;
 
 
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
       // More New parameters that default to ZERO
-      iTmp4 = fscanf(INIFile, K_N3, 
+      iValCtr = fscanf(INIFile, K_N3, 
                               &iCtl_View_Aspect_Adjust, 
                               &iSatAdd_U[0], &iSatAdd_V[0], &iSatGain[0],
-                              &iDUMMY, // iSatAdj_Flag,
-                              &iDUMMY, 
+                              &iTmp2, // = (iCtl_SAT_Retain * 256 + iSatAdj_Flag),
+                              &iCtl_Lum_Deselector, 
                               &iCtl_OutPartAuto, &iCtl_OVL_ATI_Bug, 
                               &iCtl_NotSoFast, 
-                              &iDUMMY, 
+                              &uAud_PID_All,
                               &iDUMMY, &iDUMMY,
                               &iDUMMY, &iDUMMY,
                               &iCtl_ViewToolbar[0], &iCtl_ViewToolbar[1]);    
     }
-    if (iTmp4 < 16)
+    if (iValCtr < 16)
     {
         iCtl_View_Aspect_Adjust = 100;
-        iSatAdd_U[0] =   0;  iSatAdd_V[0] = 0; 
-        iSatGain[0]  = 100;  iSatAdj_Flag = 0;
+        iSatGain[0]  = 100;  
     }
     else
     {
+       iCtl_SAT_Retain = iTmp2 / 256;
+       if (iCtl_SAT_Retain)
+           iSatAdj_Flag = (iTmp2 & 0xFF);
+
        iCtl_View_Aspect_Adjust = iCtl_View_Aspect_Adjust + 100;
        if (iCtl_View_Aspect_Adjust < 5)
            iCtl_View_Aspect_Adjust = 100;
@@ -876,19 +921,18 @@ void INI_GET()
     iCtl_ViewToolbar[1] = 257 - iCtl_ViewToolbar[1];
     iViewToolBar = iCtl_ViewToolbar[0];
 
-
-
-    if (! INIFile) iTmp4 = 0;
+    if (! INIFile) iValCtr = 0;
     else
     {
       // Volume Control parameters
-      iTmp4 = fscanf(INIFile, K_VOLUME, 
+      iValCtr = fscanf(INIFile, K_VOLUME, 
                               &iCtl_Volume_Boost_MPA_other, 
                               &iCtl_Volume_Boost_MPA_48k,
                               &iCtl_Volume_Boost_AC3,
-                              &iCtl_Volume_Limiting, &iCtl_Audio_Ceiling,
+                              &iCtl_Volume_Limiting, &iCtl_Volume_Ceiling,
                               &iCtl_Volume_SlowAttack,
-                              &iDUMMY, &iDUMMY,
+                              &iCtl_Vol_StarKey, 
+                              &iCtl_Volume_Boost_LPCM,
                               &iDUMMY, &iDUMMY,
                               &iDUMMY, &iDUMMY,
                               &iDUMMY, &iDUMMY,
@@ -900,26 +944,44 @@ void INI_GET()
         iCtl_Volume_Boost_MPA_48k   =  0;
         iCtl_Volume_Boost_MPA_other =  0;
         iCtl_Volume_Boost_AC3       =  0;
+        iCtl_Volume_Boost_LPCM      =  0;
     }
+
     if (iCtl_Volume_Boost_MPA_48k   ==  0)
         iCtl_Volume_Boost_MPA_48k    = (K_BOOST_DENOM*3); // 46; // 16;
     if (iCtl_Volume_Boost_MPA_other ==  0)
         iCtl_Volume_Boost_MPA_other  = (K_BOOST_DENOM*2); // 30; //  8;
     if (iCtl_Volume_Boost_AC3       ==  0)
         iCtl_Volume_Boost_AC3        = (K_BOOST_DENOM*4); // 62; // 24;
+    if (iCtl_Volume_Boost_LPCM      ==  0)
+        iCtl_Volume_Boost_LPCM       = (K_BOOST_DENOM*2); // 30; //  8;
 
-    iVolume_Boost = iCtl_Volume_Boost_MPA_other;
-
-    if (iCtl_Volume_BOLD)
-        iVolume_BOLD  = iCtl_Volume_Boost_MPA_48k;
+    if (iCtl_Volume_Boost)
+        iVolume_Boost = iCtl_Volume_Boost_MPA_other;
     else
-        iVolume_BOLD = 0;
+        iVolume_Boost = 0;
 
-    if (iCtl_Audio_Ceiling == 0)
-        iCtl_Audio_Ceiling = 32767; // MAX=32767
+    if (iCtl_Volume_AUTO && iCtl_Volume_Boost)
+        iVolume_AUTO  = iCtl_Volume_Boost_MPA_48k;
     else
-    if (iCtl_Audio_Ceiling < 512)
-        iCtl_Audio_Ceiling = 512;
+        iVolume_AUTO = 0;
+
+    if (iCtl_Volume_Ceiling == 24000     // old default was a bit boring
+    ||  iCtl_Volume_Ceiling == 32767 )  
+        iCtl_Volume_Ceiling =  0; // reset 
+    else
+    if (iCtl_Volume_Limiting)
+    {
+        if (iCtl_Volume_Ceiling <= 0)  // default
+            iVolume_Ceiling = K_VOL_CEILING_DEF; // quarter of max (max=32767)
+        else
+        if (iCtl_Volume_Ceiling < 512) // disallow silly values
+            iVolume_Ceiling = 512;
+        else
+           iVolume_Ceiling = iCtl_Volume_Ceiling; // user defined ceiling
+    }
+    else
+        iVolume_Ceiling = 32767; // no limit means limit = max
 
     if (INIFile) fclose(INIFile);
   }
@@ -943,8 +1005,6 @@ void INI_GET()
       Restore_Y = iTmp1;
 
     
-  if (Add_Automation < 1)
-      Add_Automation = 1; // DISALLOW DANGEROUS DEFAULT
   if (szInput[0] == '.')
       szInput[0] = 0;
   lpFName = lpLastSlash(&szInput[0]);
@@ -958,8 +1018,8 @@ void INI_GET()
   if (szEDLname[0] == '.')
       szEDLname[0] = 0;
   szEDLprev[0] = 0;
-  if (szCtl_Out_Folder[0] == '.')
-      szCtl_Out_Folder[0]  =  0;
+  if (szCtl_OutFolder[0] == '.')
+      szCtl_OutFolder[0]  =  0;
   if (szCtl_BMP_Folder[0] == '.')
       szCtl_BMP_Folder[0]  =  0;
   if (szCtl_Out_ProcLine_A[0] == '.')
@@ -974,7 +1034,7 @@ void INI_GET()
 //---------------------------------------
 void INI_MERGE()
 {
-  HANDLE hDummy=0;
+  HANDLE hZERO=0;
   unsigned uTmp1;
 
   if (WindowsVersion < 0x80000000) //  Windows NT, Win2k, WinXP ?
@@ -1036,11 +1096,16 @@ void INI_MERGE()
   if (iCtl_AudioDecoder == 0)
       iMpa_AUTO = 1;
 
+  if (uAud_PID_All)
+      uTmp1 = IDM_AUDPID_AUTO;
+  else
+      uTmp1 = IDM_AUDPID_NONE;
+  CheckMenuItem(hMenu, uTmp1, MF_CHECKED);
 
 
 
   if (iCtl_KB_NavOpt)
-     MenuTick(IDM_KBNAV_VDUB);
+      MenuTick(IDM_KBNAV_VDUB);
   if (iCtl_KB_MarkOpt)
       MenuTick(IDM_KBMARK_VDUB);
   if (iCtl_KB_NavStopPlay)
@@ -1048,8 +1113,10 @@ void INI_MERGE()
 
   if (iCtl_F3_Names)
       MenuTick(IDM_F3_NAMES);
+  if (iCtl_F5_Toggler)
+      MenuTick(IDM_F5_TOGGLER);
   
-  if (iNav_Index)
+  if (iCTL_FastBack)
       MenuTick(IDM_NAV_INDEX);
   if (iCtl_View_Fast_YUV)
       MenuTick(IDM_YUV_FAST);
@@ -1154,14 +1221,14 @@ void INI_MERGE()
   if (iCtl_Out_KeepFileDate)
       MenuTick(IDM_OUT_KEEPDATE);
 
-  if      (!iCtl_Out_Folder_Active)       uTmp1 = IDM_OUT_FOLDER_SAME;
-  else if (iCtl_Out_Folder_Active == 2)   uTmp1 = IDM_OUT_FOLDER_RECENT;
-  else if (iCtl_Out_Folder_Active == 3)   uTmp1 = IDM_OUT_FOLDER_HERE;
-  else                                    uTmp1 = IDM_OUT_FOLDER_FIRST;
+  if      (iCtl_OutFolder_Active == 0)   uTmp1 = IDM_OUT_FOLDER_SAME;
+  else if (iCtl_OutFolder_Active == 2)   uTmp1 = IDM_OUT_FOLDER_RECENT;
+  else if (iCtl_OutFolder_Active == 3)   uTmp1 = IDM_OUT_FOLDER_EVERY;
+  else                                   uTmp1 = IDM_OUT_FOLDER_FIRST;
 
   MenuTick(uTmp1);
 
-  if (iCtl_Out_Folder_Both)
+  if (iCtl_OutFolder_Both)
       MenuTick(IDM_OUT_FOLDER_DUAL);
 
   if (iCtl_Out_PostProc)
@@ -1227,22 +1294,18 @@ void INI_MERGE()
       MenuTick(IDM_AUDIO_PS2);
   if (iCtl_Volume_Boost)
       MenuTick(IDM_VOLUME_BOOST);
-
-  if (iCtl_Volume_Limiting)
+  if (iCtl_Volume_AUTO)
+      MenuTick(IDM_VOLUME_AUTO);
+  if (iCtl_Volume_Limiting > 0)
       MenuTick(IDM_VOLUME_LIMITING);
-
-
   if (iCtl_Volume_SlowAttack > 0)
-      MenuTick(IDM_VOLUME_GENTLE);
-
-
-  if (iCtl_Volume_BOLD)
-      MenuTick(IDM_VOLUME_BOLD);
-  
-  if (iCtl_Audio_CRC)
-      MenuTick(IDM_AUDIO_CRC);
+      MenuTick(IDM_VOLUME_GENTLE); 
+  if (iCtl_Vol_StarKey)
+      MenuTick(IDM_VOL_STARKEY);
   if (iCtl_Track_Memo)
       MenuTick(IDM_TRACK_MEMO);
+  if (iCtl_Audio_CRC)
+      MenuTick(IDM_AUDIO_CRC);
 
   if (iCtl_WarnSize_1)
       MenuTick(IDM_WARN_SIZE_1);
@@ -1255,9 +1318,21 @@ void INI_MERGE()
 
   if (iCtl_WarnMpeg1)
       MenuTick(IDM_WARN_MPEG1);
+  if (iCtl_WarnTS)
+      MenuTick(IDM_WARN_FMT_TS);
+  if (iCtl_WarnTSmpg)
+      MenuTick(IDM_WARN_FMT_TSMPG);
+  if (iCtl_WarnCDXA)
+      MenuTick(IDM_WARN_FMT_CDXA);
+  if (iCtl_WarnDone)
+      MenuTick(IDM_WARN_DONE);
+  
+
   Mpeg_Version_Alerts_Session = 0;
   if (iCtl_WarnBadStart)
       MenuTick(IDM_WARN_BAD_START);
+  if (iCtl_WarnBadSysHdr)
+      MenuTick(IDM_WARN_BAD_SYSHDR);
 
   if (iCtl_EDL_AutoSave)
       MenuTick(IDM_EDIT_AUTOSAVE);
@@ -1271,8 +1346,8 @@ void INI_MERGE()
   Set_Wheel_Scroll(iCtl_Wheel_Scroll);
 
   Set_Priority(hMain_GUI, iCtl_Priority[0], 0, 1);
-  Set_Priority(hDummy,    iCtl_Priority[1], 1, 0);
-  Set_Priority(hDummy,    iCtl_Priority[2], 2, 0);
+  Set_Priority(hZERO,    iCtl_Priority[1], 1, 0);
+  Set_Priority(hZERO,    iCtl_Priority[2], 2, 0);
 
   Set_DropDefault(iCtl_DropAction);
   Set_SortDefault(iCtl_FileSortSeq);
@@ -1289,10 +1364,16 @@ void INI_MERGE()
   if (iCtl_OVL_ATI_Bug)
       MenuTick(IDM_OVL_SIGNAL_ATI);
 
-  if (iCtl_Mask_Colour == iColor_Menu_Bk) // Overlay key Mid Grey ?
+  iColor_Msg_BG = iCtl_Mask_Colour;
+  if (iCtl_Mask_Colour == iColor_Menu_BG) // Overlay key Mid Grey ?
       CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK, MF_CHECKED);
+  else
+  if (iCtl_Mask_Colour == 0) // Overlay key Black ?
+      CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK_BLK, MF_CHECKED);
+  else
+      iColor_Msg_BG = iCtl_Back_Colour;
 
-  hBrush_MSG_BG = CreateSolidBrush(iCtl_Back_Colour);
+  hBrush_MSG_BG = CreateSolidBrush(iColor_Msg_BG);
 
 
 
@@ -1306,6 +1387,12 @@ void INI_MERGE()
         iLumGain[0] = 158; iLumOffset[0] = 0; iLumGamma[0] = 130;
     }
   }
+
+  iLum_Deselected = 0;
+  if (iCtl_Lum_Deselector)
+      MenuTick(IDM_LUM_DESEL);
+  if (iCtl_SAT_Retain)
+      MenuTick(IDM_SAT_RETAIN);
 
   Set_OVL_Notify(-iCtl_VistaOVL_mod);
   if (iCtl_View_Limit2k)
@@ -1491,21 +1578,37 @@ void INI_SAVE()
         strcpy(szOutput, ".");
     fprintf(INIFile, "OutputFile=\"%s\"\n", szOutput);
 
-    if (szCtl_Out_Folder[0] <= ' ')
-        strcpy(szCtl_Out_Folder, ".");
-    fprintf(INIFile, "OutFolder=%d,\"%s\"\n", iCtl_Out_Folder_Active,
-                                             szCtl_Out_Folder);
+    if (szCtl_OutFolder[0] <= ' ')
+        strcpy(szCtl_OutFolder, ".");
+    fprintf(INIFile, "OutFolder=%d,\"%s\"\n", iCtl_OutFolder_Active,
+                                             szCtl_OutFolder);
+
+
+    iCtl_Warn_Fmts = iCtl_WarnETC; 
+     // debitulate
+    if (iCtl_WarnMpeg1)
+        iCtl_Warn_Fmts |= 0x01;
+    if (iCtl_WarnTS)
+        iCtl_Warn_Fmts |= 0x02;
+    if (iCtl_WarnTSmpg)
+        iCtl_Warn_Fmts |= 0x04; // TS named .mpg
+    if (iCtl_WarnCDXA)
+        iCtl_Warn_Fmts |= 0x08; 
+    if (iCtl_WarnDone)
+        iCtl_Warn_Fmts |= 0x10; 
+
 
     fprintf(INIFile, K_DefaultY_FORMAT,
-                     iCtl_Out_Folder_Both,  iCtl_Audio_CRC,
+                     iCtl_OutFolder_Both,  iCtl_Audio_CRC,
                      iCtl_Out_PTS_Match,    iCtl_Out_Align_Video,
                      iCtl_Out_Preamble_VTS, iCtl_Play_AudLock,
-                     iNav_Index,            iCtl_Track_Memo, 
+                     iCTL_FastBack,            iCtl_Track_Memo, 
                      iCtl_WarnSize_1,       iCtl_WarnSize_2,
                      iCtl_WarnSize_3,       iCtl_WarnSize_4,
                      iCtl_KB_NavStopPlay,   iCtl_Ovl_Release,
-                     iCtl_SetBrokenGop,     iCtl_WarnMpeg1, 
-                     iCtl_Time_Fmt,         iCtl_WarnBadStart,       
+                     iCtl_SetBrokenGop,     iCtl_Warn_Fmts, 
+                     iCtl_Time_Fmt,         
+                   ((1-iCtl_WarnBadSysHdr)*256 + iCtl_WarnBadStart),
                      iCtl_EDL_AutoSave,     iCtl_RecycleBin, 
                      iCtl_View_Centre_Crop);
 
@@ -1523,7 +1626,7 @@ void INI_SAVE()
                      iCtl_Out_SysHdr_Mpeg,  iCtl_Out_Fix_Errors);
 
     fprintf(INIFile, K_AudioX_FORMAT,
-                     iCtl_Volume_Boost,  iCtl_Audio_PS2,
+                     iCtl_Volume_Boost, iCtl_Audio_PS2,
                      iCtl_Play_Sync,    iCtl_Drop_Behind,
                      iCtl_Play_Info,    iCtl_Drop_PTS,
                      iCtl_Priority[1],  iCtl_Priority[2],
@@ -1589,6 +1692,12 @@ void INI_SAVE()
                                           iCtl_Out_Breathe_PktLim[2]
                                           );
 
+    // LeadTek Black only works for current session
+    // so reset to LeadTek Grey on exit.
+    if (iCtl_Mask_Colour     == 0    // Overlay key was Black ?
+    &&  iCtl_Mask_Fallback   == 1)
+        iCtl_Mask_Colour = iColor_Menu_BG;
+
     fprintf(INIFile, "Color=x%06X,BG=x%06X,MASK=x%06X\n",
                        iCtl_Text_Colour, iCtl_Back_Colour, iCtl_Mask_Colour);
 
@@ -1614,9 +1723,10 @@ void INI_SAVE()
                               iDummy_TRUE, iDummy_TRUE);    
 
     fprintf(INIFile, K_N2, 
-                            iCtl_F3_Names, iCtl_ParmClipSpec, 
+                            ((iCtl_F5_Toggler*256)+iCtl_F3_Names), 
+                            iCtl_ParmClipSpec, 
                             iCtl_Out_Force_Interlace, iCtl_Out_KillPadding,
-                            iCtl_VistaOVL_mod, iCtl_Volume_BOLD,
+                            iCtl_VistaOVL_mod, iCtl_Volume_AUTO,
                             iCtl_OVL_FullKey,  
                             (AC3_DRC_FLag - 3),
                             iCtl_Zoom_Retain, (iCtl_Zoom_Wanted + 1),
@@ -1630,17 +1740,17 @@ void INI_SAVE()
                            iLumGain[3], iLumOffset[3], iLumGamma[3],  // Bold
                            0, 0, 0,      
                            iLumGain[4], iLumOffset[4], iLumGamma[4],  // C
-                           0, 0, 0, 
+                           iLumGain[5], iLumOffset[5], iLumGamma[5],  // A
                            0, iCtl_SinThreshold, iCtl_VHS_Threshold);
 
     fprintf(INIFile, K_N3, 
                            (iCtl_View_Aspect_Adjust - 100), 
                             iSatAdd_U[0], iSatAdd_V[0], (iSatGain[0] - 100),
-                            iDummy_FALSE,  // iSatAdj_Flag, 
-                            iDummy_FALSE,
+                          ((iCtl_SAT_Retain * 256) + iSatAdj_Flag),
+                            iCtl_Lum_Deselector,
                             iCtl_OutPartAuto,  iCtl_OVL_ATI_Bug,
                            (iCtl_NotSoFast+1), 
-                            iDummy_FALSE,
+                            uAud_PID_All, 
                             iDummy_FALSE, iDummy_FALSE,
                             iDummy_FALSE, iDummy_FALSE,
                            (257 - iCtl_ViewToolbar[0]), 
@@ -1650,9 +1760,10 @@ void INI_SAVE()
                             iCtl_Volume_Boost_MPA_other,
                             iCtl_Volume_Boost_MPA_48k,
                             iCtl_Volume_Boost_AC3, 
-                            iCtl_Volume_Limiting, iCtl_Audio_Ceiling,                            
+                            iCtl_Volume_Limiting, iCtl_Volume_Ceiling,                            
                             iCtl_Volume_SlowAttack, 
-                            iDummy_FALSE,  iDummy_FALSE,
+                            iCtl_Vol_StarKey,
+                            iCtl_Volume_Boost_LPCM,
                             iDummy_FALSE,  iDummy_FALSE,
                             iDummy_FALSE,  iDummy_FALSE,
                             iDummy_FALSE,  iDummy_FALSE,

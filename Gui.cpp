@@ -1,10 +1,10 @@
     
    
 // MPEGCUT2 Ver 2 based on Dark Avengers's Ver 1.15
+
+// Ver 2.x mods by RJ (RocketJet) :-    
   
-// Ver 2.x mods by RJ (RocketJet) :-   
- 
-// HISTORY
+// HISTORY 
 // Location method changed from Block Address to Byte Address
 //     Original block method could get wrong "FROM" and "TO" points
 //     even on moderate blocksize
@@ -22,12 +22,12 @@
 //   - Warn user if file starts mid-gop.
 //     Allow choice to skip or keep crud.
 //     Useful if working with output from some DTV cards.
-//   - Match audio timestamps aginst video FROM-TO timestamps.
+//   - Match audio timestamps against video FROM-TO timestamps.
 //   - Allow padding of TO point to include next key-frame.
 //   - Allow user to pause/cancel/slow while Saving Output.
 //   - Allow Demuxed output.
 //   - Adjust Timestamps when joining multiple clips (SCR,PTS,DTS,GOP-TC)
-//            This is still a bit buggy.
+//            This is still a too buggy.
 
 // Tarted up gui a little bit:
 //   - Ensure Control Bar visible when canvas > screen (now near top)
@@ -80,10 +80,12 @@
 //     . Save and restore EDL.
 //     . Preview entire EDL, with summary option.
 
-// PLANNED :
+// TODO :-
 
 //   - Time Stamp adjustment needs more work.
 //     Also extend to be able to fix up Ch.7 weird SCRs
+//     This is the most important TODO,
+//     but it is a lot easier said than done !
 
 //   - Edit Decision List extensions:
 //     . Show range of previous selections in EDL
@@ -104,7 +106,7 @@
 //   - Sometimes I-Frame does not display when skipping Backwards
 //
 // Old Bugs :-
-//   - Bad MPEG data crashes Assembler routines
+//   - Bad MPEG data can crash Assembler routines
 //                Especially getpic.c @mc0..5
 //   - MPALIB
 //     . does NOT decode MONO properly.
@@ -117,29 +119,31 @@
 
 // MPEGCUT is derived from Kuo's DVD2AVI and MSSG's MPEG2DEC
 
-/*
- *  MPEG2DEC - Copyright (C) Mpeg Software Simulation Group 1996-99
- *  DVD2AVI  - Copyright (C) Chia-chen Kuo - April 2001
- *  Mpeg2Cut - Dark Avenger and others
- *  Mpg2Cut2 - Various Authors
- *
- *  DVD2AVI - a free MPEG-2 converter
- *
- *   DVD2AVI is free software; you can redistribute it and/or modify
- *   it under the terms of the GNU General Public License as published by
- *   the Free Software Foundation; either version 2, or (at your option)
- *   any later version.
- *
- *   DVD2AVI is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- *   GNU General Public License for more details.
- *
- *   You should have received a copy of the GNU General Public License
- *   along with GNU Make; see the file COPYING.   If not, write to
- *   the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *
- */
+
+// *  MPEG2DEC - Copyright (C) Mpeg Software Simulation Group 1996-99
+// *  DVD2AVI  - Copyright (C) Chia-chen Kuo - April 2001
+// *  Mpeg2Cut - Dark Avenger and others
+// *  Mpg2Cut2 - RocketJet & various other authors
+// *             GNU GPL Ver3 or later.
+  
+
+// *
+// *  DVD2AVI - a free MPEG-2 converter
+// *
+// *   DVD2AVI is free software; you can redistribute it and/or modify
+// *   it under the terms of the GNU General Public License as published by
+// *   the Free Software Foundation; either version 2, or (at your option)
+// *   any later version.
+// *
+// *   DVD2AVI is distributed in the hope that it will be useful,
+// *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+// *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// *   GNU General Public License for more details.
+// *
+// *   You should have received a copy of the GNU General Public License
+// *   along with GNU Make; see the file COPYING.   If not, write to
+// *   the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+// *
 
 
 // SSE2 code by Dmitry Rozhdestvensky
@@ -200,11 +204,13 @@ extern "C"
 
 #define MAX_LOADSTRING      100
 
+DWORD SysErrNum;
 
 ATOM MyRegisterClass(HINSTANCE);
 
 
 void B500_CONTINUE_PLAY_HERE();
+void B501_Play_Button(int);
 void B510_PLAY_HERE();
 void B150_PLAY_FASTER(DWORD);
 void B153_Fast_Msg();
@@ -251,10 +257,10 @@ LRESULT CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 
 void Set_Frame_Rate(int);
 void Set_Video_Stream(const UINT, const UINT);
-void Set_PIDs(const UINT, const UINT);
+void Set_VPIDs(const UINT, const UINT);
 void Set_OutFolderMode(const unsigned P_Menu_ix);
 
-void Set_Menu(int P_New_ix, int *P_Menu_Fld);
+void Set_Menu_Array(int P_New_ix, int *P_Menu_Fld);
 
 int DRC_MenuId[] = {IDM_DRC_NONE,  IDM_DRC_LIGHT, IDM_DRC_NORMAL,
                     IDM_DRC_HEAVY, IDM_DRC_VERYHEAVY, 0};
@@ -339,12 +345,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
      {
          strcpy(szEDLname, szInput);
          C800_Clip_FILE(LOAD_EDL, 0, 'o');
+         File_PreLoad = 0;
      }
-     else
-     {
-         hThread_PARM2CLIP = CreateThread(NULL, 0, C900_Parm2Clip,
+
+     hThread_PARM2CLIP = CreateThread(NULL, 0, C900_Parm2Clip,
                                    0, 0, &threadId_PARM2CLIP);
-     }
+
    }
    else
      iParmConfirm = 1;
@@ -508,19 +514,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
                  break;
 
 
-            case IDM_OUT_FOLDER_SAME:
-                 Set_OutFolderMode(0);
-                 break;
-
-            case IDM_OUT_FOLDER_RECENT:
-                 Set_OutFolderMode(2);
-                 strcpy(&szCtl_Out_Folder[0], &szOutFolder[0]);
-                 break;
-
-            case IDM_OUT_FOLDER_FIRST:
-                 Set_OutFolderMode(3);
-                 break;
-
 
             case IDM_WARN_SIZE_1:
                  Set_Toggle_Menu('T', &iCtl_WarnSize_1, IDM_WARN_SIZE_1);
@@ -571,6 +564,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
             case IDM_XTN_M2P:
                  Set_XTN_PS("m2p");
                  break;
+            case IDM_XTN_VID_MP2:
+                 Set_XTN_PS("mp2");
+                 if (!stricmp(szOut_Xtn_AUD, "MP2"))
+                     Set_XTN_AUD("MPA");
+                 break;
             case IDM_XTN_VOB:
                  Set_XTN_PS("vob");
                  break;
@@ -593,6 +591,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
                  break;
             case IDM_XTN_MP2:
                  Set_XTN_AUD("MP2");
+                 if (!stricmp(szOut_Xtn_RULE, "mp2"))
+                     Set_XTN_PS("m2p");
                  break;
             case IDM_XTN_MP1:
                  Set_XTN_AUD("MP1");
@@ -668,14 +668,47 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
 
            case IDM_AUDIO_DBG:
                 Set_Toggle_Menu('T', &iAudioDBG, IDM_AUDIO_DBG);
+                if (iAudioDBG)
+                    DSP_Msg_Clear();
                 break;
 
            case IDM_DBGSTR:
                 Set_Toggle_Menu('T', &bDBGStr, IDM_DBGSTR);
                 break;
 
+           /*
+           // Time Format pop-up menu
+           // { "BLK",  "Rel",  "GOP",   "PTS",  "TOD", "PTS", "SCR"}; 
+           case ID_FMT_BLK:
+                iView_TC_Format = 0;
+                DSP3_Main_TIME_INFO();
+                break;
+           case ID_FMT_REL:
+                iView_TC_Format = 1;
+                DSP3_Main_TIME_INFO();
+                break;
+           case ID_FMT_GOP:
+                iView_TC_Format = 2;
+                DSP3_Main_TIME_INFO();
+                break;
+           case ID_FMT_PTS:
+                iView_TC_Format = 3;
+                DSP3_Main_TIME_INFO();
+                break;
+           case ID_FMT_TOD:
+                iView_TC_Format = 4;
+                DSP3_Main_TIME_INFO();
+                break;
+           case ID_FMT_SCR:
+                iView_TC_Format = 5;
+                DSP3_Main_TIME_INFO();
+                break;
+           case ID_FMT_TOD_REL:
+                iView_TC_Format = 7;
+                DSP3_Main_TIME_INFO();
+                break;
+           */
 
- 
             default:
                if (iBusy && message != IDM_CLIP_SAVE)
                {
@@ -1009,7 +1042,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
             break;
 
 
-      case RJPM_APPENDFILE:
+      case RJPM_APPENDFILE:  // ADD file
             lstrcpy(szInput,(char*)wParam);
             OLDParmConfirm=iParmConfirm;
             OLDiCtl_WarnBadStart=iCtl_WarnBadStart;
@@ -1017,7 +1050,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
             iParmConfirm=0;
             iCtl_WarnBadStart=0;
 
-            F100_IN_OPEN('a', 0);
+            F100_IN_OPEN('a', -1);
             RefreshVideoFrame();
             iParmConfirm=OLDParmConfirm;
             iCtl_WarnBadStart=OLDiCtl_WarnBadStart;
@@ -1109,8 +1142,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
 
          switch (iCtl_Wheel_Scroll)
          {
-           case 0: wParam  = ID_FWD_FRAME; 
-                   break;
+           case 0: 
+              wParam  = ID_FWD_FRAME; 
+              break;
            case 4:
               if (iTmp1 >= 0)  wParam  = (unsigned int) hABack1; 
               else             wParam  = (unsigned int) hAFwd1; 
@@ -1383,7 +1417,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
 
            Prev_Coded_Width = 16;
 
-           VGA_GetSize();
+           VGA_GetSize(); 
            Calc_PhysView_Size();
            
            DSP2_Main_SEL_INFO(1);
@@ -1666,7 +1700,7 @@ void B203_File_Names()
 //----------------------------------------------------------
 LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  int iRC, iTmp1;
+  int iRC, iTmp1, iTmp2, iTmp3;
   unsigned uTmp1;
   /* unsigned */ char *lpTST1, *lpTST2, cTST;
 
@@ -1686,11 +1720,11 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
       iKB_MARK_TO   = ID_TO_KEY;
    }
 
-  if (DBGflag)
-  {
-     sprintf(szMsgTxt, "wmId=%d =x%04X", wmId, wmId);
-     DSP1_Main_MSG(0,0);
-  }
+  //if (DBGflag)
+  //{
+  //   sprintf(szMsgTxt, "wmId=%d =x%04X", wmId, wmId);
+  //   DSP1_Main_MSG(0,0);
+  //}
 
 
    switch (wmId)
@@ -1704,8 +1738,8 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            }
            break;
 
-      case IDM_APPEND:
-           F100_IN_OPEN('a', 0);
+      case IDM_APPEND: // ADD file
+           F100_IN_OPEN('a', -1);
            break;
 
       case IDM_FILE_FILTER:
@@ -1848,7 +1882,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
       case IDM_UNDO:
            Mpeg_Stop_Rqst();
-           C500_Clip_UNDO() ;
+           C500_Clip_UNDO(); 
            break;
 
       case IDM_SEL_ALL:
@@ -2071,16 +2105,8 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_PLAY_HERE:
-
-           B555_Normal_Speed(0);
-
-           MParse.Tulebox_SingleStep_flag = 0;
-           iRender_TimePrev  = 0;
-
-           //B510_PLAY_HERE();
-           B500_CONTINUE_PLAY_HERE();
-           break;
-
+           B501_Play_Button(0);
+           break; 
 
       case IDM_STOP:
 
@@ -2090,7 +2116,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
               PlayCtl.iStopNextFrame = 1;
           }
 
-          MParse.FastPlay_Flag = 0;  
+          MParse.FastPlay_Flag = 0;  MParse.SlowPlay_Flag = 0;  
 
           if (MParse.Pause_Flag)
           {
@@ -2113,21 +2139,38 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
              MParse.Stop_Flag = 3;
              Sleep(250);
           }
+          else
+          {
+             Sleep(250);
+             if (MParse.Stop_Flag >= 3)
+             {
+                 strcpy(szMsgTxt,"Waiting...");
+                 DSP1_Main_MSG(1,1); 
+             }
+          }
            
           //Menu_Main_Enable();
           break;
 
 
       case IDM_PAUSE:
-          if (MParse.Pause_Flag)
-          {
+           if (MParse.Stop_Flag || MParse.Tulebox_SingleStep_flag)
+           {
+              B500_CONTINUE_PLAY_HERE();
+           }
+           else
+           if (MParse.Pause_Flag)
+           {
               iRender_TimePrev  = 0;
+              MParse.Pause_Flag = 0;
               ResumeThread(hThread_MPEG);
-          }
-          else
+           }
+           else
+           {
               SuspendThread(hThread_MPEG);
+              MParse.Pause_Flag = 1;
+           }
 
-           MParse.Pause_Flag = !MParse.Pause_Flag;
            break;
 
       case IDM_PREVIEW_SUMMARY:
@@ -2159,23 +2202,11 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break;
 
 
-      case IDM_SAVE_PARTIAL:
+      case IDM_SAVE_PARTS:   // IDM_SAVE_PARTIAL
            if (File_Limit && ! iBusy) // && MParse.SystemStream_Flag >= 0)
            {
-               //MessageBox(hWnd_MAIN, "Not Implemented Yet.",
-               //               "Mpg2Cut2 - SORRY",  MB_OK);
 
-               iRC = DialogBox(hInst, (LPCTSTR)IDD_TRACKSEL,
-                                   hWnd_MAIN, (DLGPROC)Out_Part_Dialog);
-
-                process.iOutUnMux   = 0;
-                if (iCtl_Out_SplitSegments == -1)
-                    process.iOut_AutoSPLIT  =  1;
-                else
-                    process.iOut_AutoSPLIT  =  0;
-
-                if (iRC)
-                    OUT_SAVE('L');  // SAVE ALL CLIPS in EDL
+                    OUT_SAVE('P');  // SAVE ALL CLIPS in EDL
            }
            else 
            {
@@ -2269,23 +2300,14 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_STORE_YUY2:
+            szMsgTxt[0] = 0;
+            DSP_Msg_Clear(); 
             Chg2YUV2(1, 0);
             break;
 
 
       case IDM_YUV_SWAP:
-          Chg2YUV2(1, 0) ;
-          Set_Toggle_Menu('T', &iView_SwapUV, IDM_YUV_SWAP);
-          iView_SwapUV = iView_SwapUV<<1;
-
-          if (MParse.SeqHdr_Found_Flag && MParse.Stop_Flag)
-          {
-             if (DDOverlay_Flag && MParse.iColorMode==STORE_YUY2) // && iShowVideo_Flag)
-                 RenderYUY2(1);
-             //else
-             //    RenderRGB24();
-          }
-
+           Lum_Swap_UV(1);
           break;
 
       case IDM_YUV_FAST:
@@ -2334,19 +2356,79 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
            
       case IDM_OVL_MASK_LEADTEK:
-           if (iCtl_Mask_Colour == iColor_Menu_Bk) // Overlay key Mid Grey ?
+           DeleteObject(hBrush_MASK); 
+           DeleteObject(hBrush_MSG_BG); 
+           if (iCtl_Mask_Colour == iColor_Menu_BG) // Overlay key was Mid Grey ?
            {
                iCtl_Mask_Colour = 0x000600;  // Overlay key = Dark Green
+               iTmp3 = iCtl_Text_Colour;
+               iTmp2 = iCtl_Back_Colour;
                uTmp1 = MF_UNCHECKED;
            }
            else 
            {
-               iCtl_Mask_Colour = iColor_Menu_Bk; // Overlay key Mid Grey
+               iCtl_Mask_Colour = iColor_Menu_BG; // Overlay key Mid Grey
+               iTmp2            = iColor_Menu_BG;
+               iTmp3 = 0x010101;
                uTmp1 = MF_CHECKED;
            }
 
            CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK, uTmp1);
+           CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK_BLK, MF_UNCHECKED);
+
+           hBrush_MASK   = CreateSolidBrush(iCtl_Mask_Colour);
+           hBrush_MSG_BG = CreateSolidBrush(iTmp2);
+           SetBkColor(  hDC, iTmp2);  
+           SetTextColor(hDC, iTmp3); 
+
+           if (DDOverlay_Flag)
+           {
+               DD_OverlayMask(2);  // FillRect(hDC, &crect, hBrush_MASK);
+           }
+
            strcpy(szMsgTxt,"Next Session");
+           DSP1_Main_MSG(1,1); 
+
+           //if (DDOverlay_Flag && MParse.iColorMode==STORE_YUY2) // && iShowVideo_Flag)
+           //{
+           //    D300_FREE_Overlay(); 
+           //    View_Rebuild_Chk(1);
+           //}
+           break;
+           
+           
+      case IDM_OVL_MASK_LEADTEK_BLK:
+           DeleteObject(hBrush_MASK);  
+           DeleteObject(hBrush_MSG_BG); 
+           if (iCtl_Mask_Colour == 0) // Overlay key was Black ?
+           {
+               iCtl_Mask_Colour = iColor_Menu_BG;  // Overlay key = Leadtek Grey
+               iTmp3 = iCtl_Text_Colour;
+               iTmp2 = iCtl_Back_Colour;
+               uTmp1 = MF_UNCHECKED;
+               strcpy(szMsgTxt,"Next Session");
+           }
+           else 
+           {
+               iCtl_Mask_Colour   = 0; // Overlay key Black
+               iCtl_Mask_Fallback = 1; // Temporary - this session only.
+               iTmp2 = 0x010101;
+               iTmp3 = 0xFFEEEE;
+               uTmp1 = MF_CHECKED;
+           }
+
+           CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK, MF_UNCHECKED);
+           CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK_BLK, uTmp1);
+
+           hBrush_MASK = CreateSolidBrush(iCtl_Mask_Colour);
+           hBrush_MSG_BG = CreateSolidBrush(iTmp2);
+           SetBkColor(  hDC, iTmp2);  
+           SetTextColor(hDC, iTmp3); 
+
+           if (DDOverlay_Flag)
+           {
+               DD_OverlayMask(2);  // FillRect(hDC, &crect, hBrush_MASK);
+           }
            DSP1_Main_MSG(1,1); 
 
            //if (DDOverlay_Flag && MParse.iColorMode==STORE_YUY2) // && iShowVideo_Flag)
@@ -2368,6 +2450,9 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            //    View_Rebuild_Chk(1);
            //}           
            break;
+
+
+
 
 
       case IDM_ADD_OFF:
@@ -2893,6 +2978,11 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          Set_Toggle_Menu('T', &iCtl_Out_KillPadding, IDM_OUT_KILLPAD);
          break; 
 
+      case IDM_OUT_DROPCRUD:
+         Set_Toggle_Menu('T', &iCtl_Out_DropCrud, IDM_OUT_DROPCRUD);
+         process.iOut_DropCrud = iCtl_Out_DropCrud;
+         break; 
+
       case IDM_OUT_DEFLAG:
          Set_Toggle_Menu('T', ((char*)(&iCtl_Out_Fix_SD_Hdr)+1), IDM_OUT_DEFLAG);
          break;
@@ -3044,17 +3134,36 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
       //   break;
 
 
-      case IDM_OUT_FOLDER_HERE:
-         Set_OutFolderMode(1);
-         Set_Folder(&szCtl_Out_Folder[0], &iCtl_Out_Folder_Active, IDM_OUT_FOLDER_HERE, 
-                     1, SAVE_VOB, &"\\DUMMY.MPG");
+      case IDM_OUT_FOLDER_SAME:
+           Set_OutFolderMode(0);
+           break;
 
-         strcpy(szOutput, szCtl_Out_Folder);
-         break;
+      case IDM_OUT_FOLDER_RECENT:
+           Set_OutFolderMode(2);
+           strcpy(&szCtl_OutFolder[0], &szOutFolder[0]);
+           break;
+
+      case IDM_OUT_FOLDER_EVERY:
+           Set_OutFolderMode(3);
+           Set_Folder(&szCtl_OutFolder[0], NULL, 0, // &iCtl_OutFolder_Active, IDM_OUT_FOLDER_FIRST, 
+                     0, SAVE_VOB, &"\\DUMMY.MPG");
+
+           strcpy(szOutput, szCtl_OutFolder);
+           strcpy(&szOutFolder[0], &szCtl_OutFolder[0]);
+           break;
+
+      case IDM_OUT_FOLDER_FIRST:
+           Set_OutFolderMode(1);
+           Set_Folder(&szCtl_OutFolder[0], &iCtl_OutFolder_Active, IDM_OUT_FOLDER_FIRST, 
+                     0, SAVE_VOB, &"\\DUMMY.MPG");
+
+           strcpy(szOutput, szCtl_OutFolder);
+           strcpy(&szOutFolder[0], &szCtl_OutFolder[0]);
+           break;
 
       case IDM_OUT_FOLDER_DUAL:
-         Set_Toggle_Menu('T', &iCtl_Out_Folder_Both, IDM_OUT_FOLDER_DUAL);
-         break;
+           Set_Toggle_Menu('T', &iCtl_OutFolder_Both, IDM_OUT_FOLDER_DUAL);
+           break;
 
 
       // Similar stuff for BMP folder
@@ -3075,11 +3184,27 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
       case IDM_WARN_BAD_START:
           Set_Toggle_Menu('T', &iCtl_WarnBadStart, IDM_WARN_BAD_START);
+         break;
+      case IDM_WARN_BAD_SYSHDR:
+          Set_Toggle_Menu('T', &iCtl_WarnBadSysHdr, IDM_WARN_BAD_SYSHDR);
+         break;
 
       case IDM_WARN_MPEG1:
           Set_Toggle_Menu('T', &iCtl_WarnMpeg1, IDM_WARN_MPEG1);
-
-
+         break;
+      case IDM_WARN_FMT_TS:
+          Set_Toggle_Menu('T', &iCtl_WarnTS,    IDM_WARN_FMT_TS);
+         break;
+      case IDM_WARN_FMT_TSMPG:
+          Set_Toggle_Menu('T', &iCtl_WarnTSmpg, IDM_WARN_FMT_TSMPG);
+         break;
+      case IDM_WARN_FMT_CDXA:
+          Set_Toggle_Menu('T', &iCtl_WarnCDXA,  IDM_WARN_FMT_CDXA);
+         break;
+         
+      case IDM_WARN_DONE:
+          Set_Toggle_Menu('T', &iCtl_WarnDone,  IDM_WARN_DONE);
+         break;
 
       case IDM_PREAMBLE_MAX:
           Set_Preamble_Mode(9);
@@ -3102,74 +3227,80 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          break;
 
 
+
+
       case IDM_AUDIO_PS2:
          Set_Toggle_Menu('T', &iCtl_Audio_PS2, IDM_AUDIO_PS2);
          break;
+
+      case IDM_VOL_SLIDERS:
+           if (hVolDlg!=NULL)
+           {
+              DestroyWindow(hVolDlg);
+              hVolDlg = NULL;
+              //MessageBeep(MB_OK) ;
+           }
+           else
+           {
+              hVolDlg = CreateDialog(hInst, (LPCTSTR)IDD_VOLUME,
+                                 hWnd_MAIN, (DLGPROC)Volume_Dialog);
+           }
+           break;
+
 
 
       case IDM_VOLUME_LIMITING:  // Turn down volume on loud files - we want it not too loud.  Volume_Limiter
          VOL203_Volume_Target();
          break;
 
-      case IDM_VOLUME_BOOST:  
+      case IDM_VOLUME_BOOST:
          if (iCtl_Volume_Boost)
-         {
-            Set_Toggle_Menu('C', &iCtl_Volume_Boost, IDM_VOLUME_BOOST);
-            iVolume_Boost = 0;
-         }
+             VOL304_Vol_Boost_Off();
          else
-         {
-            VOL305_Volume_Boost_Start();
-            VOL300_Volume_Boost();
-         }
+            VOL303_Vol_Boost_On();
          break;
 
 
-      case IDM_VOLUME_BOLD:  // Automatic Volume Control
-         if (iCtl_Volume_BOLD)
+      case IDM_VOLUME_AUTO:  // Automatic Volume Control
+         Set_Toggle_Menu('T', &iCtl_Volume_AUTO, IDM_VOLUME_AUTO);
+
+         if (iCtl_Volume_AUTO)
+             VOL301_Volume_Boost_Start();
+         break;
+
+
+      case IDM_VOLUME_AUTO_UP:  // Automatic Volume Control - UP
+         if ( iCtl_Volume_AUTO <= 0
+         ||   iVolume_AUTO < K_BOOST_DENOM*2
+         ||  (iVolume_AUTO < K_BOOST_DENOM*4
+                 && iAudio_SEL_Format >= FORMAT_AC3)
+            )
          {
-             iVolume_BOLD = 0; iCtl_Volume_BOLD = 0;
-             CheckMenuItem(hMenu, IDM_VOLUME_BOLD,  MF_UNCHECKED);
+             Set_Toggle_Menu('S', &iCtl_Volume_AUTO, IDM_VOLUME_AUTO);
+             VOL301_Volume_Boost_Start();
          }
          else
          {
-             VOL305_Volume_Boost_Start();
-             VOL307_Volume_Bolder();
+             VOL337_Volume_Bolder();
          }
          break;
-
 
 
       case IDM_VOLUME_MUTE:
-           if (iWantAudio)
-              VOL204_Volume_Mute();
-           else
-              VOL206_Volume_UN_Mute();
-        break;
-
-  
-      case IDM_VOLUME_UP:
-           if (iWantAudio == 0)  // Make sure not muted
-               VOL206_Volume_UN_Mute();
-           else
-           if (iVolume_BOLD)
-               VOL307_Volume_Bolder();
-           else
-               VOL300_Volume_Boost();
+           VOL210_MUTE_Toggle();
            break;
 
+      case IDM_VOLUME_UP:
+           VOL340_Up();
+           break;
 
       case IDM_VOLUME_DOWN:
-           if (!iWantAudio)
-                MessageBeep(MB_OK);
-           else
-           if (iVolume_BOLD > 1)
-               VOL306_Volume_LessBold();
-           else
-               VOL305_Volume_Lesser();
+           VOL320_Down();
+           break; 
 
+      case IDM_VOL_STARKEY:  // StarKey Keyboard Volume Controls
+           Set_Toggle_Menu('T', &iCtl_Vol_StarKey, IDM_VOL_STARKEY);
            break;
-
 
       case IDM_VOLUME_GENTLE:
          iCtl_Volume_SlowAttack = -iCtl_Volume_SlowAttack;
@@ -3191,10 +3322,6 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
           Set_Toggle_Menu('T', &MParse.Anti_Phase, IDM_AUDIO_ANTIPHASE);
           break;
 
-
-
-
-
       case IDM_AUDIO_AHEAD:
          Set_Toggle_Menu('T', &iCtl_AudioAhead, IDM_AUDIO_AHEAD);
          RdAHD_Flag = iCtl_AudioAhead;
@@ -3212,6 +3339,27 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
       case IDM_AUDIO_44K:
          Set_Toggle_Menu('T', &iAudio_Force44K, IDM_AUDIO_44K);
+         if(iWAV_Init && MParse.Stop_Flag)
+         {
+            WAV_Flush();  
+            if (iAudio_Force44K)
+            {
+                WAV_WIN_Audio_close();
+            }
+         }
+         if (iAudio_Force44K)
+             Set_Toggle_Menu('C', &iCtl_PALTelecide, IDM_AUDIO_PALTEL);
+         break;
+
+      case IDM_AUDIO_PALTEL:
+         Set_Toggle_Menu('T', &iCtl_PALTelecide, IDM_AUDIO_PALTEL);
+         if (iCtl_PALTelecide)
+         {
+             Set_Frame_Rate(2);
+             Set_Toggle_Menu('C', &iAudio_Force44K, IDM_AUDIO_44K);
+         }
+         else
+             Set_Frame_Rate(0);
          break;
 
 
@@ -3343,27 +3491,27 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
       case IDM_DRC_NONE:
                AC3_DRC_FLag = DRC_NONE;
-               Set_Menu(AC3_DRC_FLag, &DRC_MenuId[0]);
+               Set_Menu_Array(AC3_DRC_FLag, &DRC_MenuId[0]);
                break;
 
       case IDM_DRC_LIGHT:
                AC3_DRC_FLag = DRC_LIGHT;
-               Set_Menu(AC3_DRC_FLag, &DRC_MenuId[0]);
+               Set_Menu_Array(AC3_DRC_FLag, &DRC_MenuId[0]);
                break;
 
       case IDM_DRC_NORMAL:
                AC3_DRC_FLag = DRC_NORMAL;
-               Set_Menu(AC3_DRC_FLag, &DRC_MenuId[0]);
+               Set_Menu_Array(AC3_DRC_FLag, &DRC_MenuId[0]);
                break;
 
       case IDM_DRC_HEAVY:
                AC3_DRC_FLag = DRC_HEAVY;
-               Set_Menu(AC3_DRC_FLag, &DRC_MenuId[0]);
+               Set_Menu_Array(AC3_DRC_FLag, &DRC_MenuId[0]);
                break;
 
       case IDM_DRC_VERYHEAVY:
                AC3_DRC_FLag = DRC_VERYHEAVY;
-               Set_Menu(AC3_DRC_FLag, &DRC_MenuId[0]);
+               Set_Menu_Array(AC3_DRC_FLag, &DRC_MenuId[0]);
                break;
 
 
@@ -3502,15 +3650,50 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
                CheckMenuItem(hMenu, IDM_PCSCALE, MF_CHECKED);
 
                RefreshVideoFrame();
-               break;
+               break; 
 
 
       case IDM_LUMINANCE_TOGGLE:
-          Set_Toggle_Menu('T', &iLumEnable_Flag[iColorSpaceTab], IDM_LUMINANCE);
-          Lum_Filter_Init(iColorSpaceTab);
-          RefreshVideoFrame();
-               break;
+           if (iCtl_Lum_Deselector && iLumEnable_Flag[iColorSpaceTab])
+           {
+              if (iLum_Deselected)
+                  iLum_Deselected = 0;
+              else
+              {
+                  iLum_Deselected = 1;
+              }
+           }
+           else
+             Set_Toggle_Menu('T', &iLumEnable_Flag[iColorSpaceTab], IDM_LUMINANCE);
 
+           Lum_Filter_Init(iColorSpaceTab);
+           RefreshVideoFrame();
+           break;
+/*
+      case IDL_LUM_BC_UP:
+          Lum_BC_Adj(+5);
+          RefreshVideoFrame();
+          break;
+
+      case IDL_LUM_BC_DOWN:
+          Lum_BC_Adj(-5);
+          RefreshVideoFrame();
+          break;
+*/
+      case IDL_LUM_BOLD:
+          Lum_Bold();
+          RefreshVideoFrame();
+          break;
+
+      case IDL_LUM_C:
+          Lum_C();
+          RefreshVideoFrame();
+          break;
+
+      case IDL_LUM_DEFAULT:
+          Lum_Default();
+          RefreshVideoFrame();
+          break;
 
       case IDM_LUMINANCE:
            iBMP_Wanted = 0;
@@ -3518,23 +3701,48 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            {
               DestroyWindow(hLumDlg);
               hLumDlg = NULL;
-              MessageBeep(MB_OK) ;
+              //MessageBeep(MB_OK) ;
            }
            else
+           {
+              if (!hCSR_CROSS)
+              {
+                   hCSR_CROSS = LoadCursor(NULL, MAKEINTRESOURCE(IDC_CROSS));
+                   SysErrNum = GetLastError();
+                   if (SysErrNum && DBGflag)
+                       Msg_LastError("SetCursor RC=", SysErrNum, 'b');
+              }
               hLumDlg = CreateDialog(hInst, (LPCTSTR)IDD_LUMINANCE,
                                           hWnd_MAIN, (DLGPROC)Luminance_Dialog);
+           }
            break;
 
-   
+      case IDM_LUM_DESEL:
+          Set_Toggle_Menu('T', &iCtl_Lum_Deselector, IDM_LUM_DESEL);
 
-      case IDM_VIEW_NEGATIVE:
-          Set_Toggle_Menu('T', &iView_Negative, IDM_VIEW_NEGATIVE);
-          if (iView_Negative)
-              iLumEnable_Flag[iColorSpaceTab] = 1;
+          if (!iCtl_Lum_Deselector
+          || (process.CurrFile  <  process.ToViewFile)
+          || (process.CurrFile  == process.ToViewFile
+              && process.CurrLoc < process.ToViewLoc)
+             )
+              iLum_Deselected = 0;
+          else
+              iLum_Deselected = 1;
+               
           Lum_Filter_Init(0);
           Lum_Filter_Init(1);
           RefreshVideoFrame();
           break;
+   
+
+      case IDM_VIEW_NEGATIVE:
+          Lum_Negative(1);
+          break;
+
+
+      case IDM_SAT_RETAIN:
+           Set_Toggle_Menu('T', &iCtl_SAT_Retain, IDM_SAT_RETAIN);
+           break;
 
       case IDM_SINE:  // SIN CITY - Still experimental
           Set_Toggle_Menu('T', &iSat_Sine, IDM_SINE);
@@ -3544,6 +3752,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
           Lum_Filter_Init(1);
           RefreshVideoFrame();
           break;
+
 
 
       case IDM_VIEW_INVERT:
@@ -3690,72 +3899,87 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
             break;
 
 
-      case IDM_PID_AUTO:
-            Set_PIDs(STREAM_AUTO,                   IDM_PID_AUTO);
-            break;
       case IDM_PID_ALL:
-            Set_PIDs(STREAM_ALL,                    IDM_PID_ALL);
+           uVid_PID_All = 1;
+           uCtl_Vid_PID  = STREAM_AUTO;
+           CheckMenuItem(hMenu, IDM_PID_CURRENT, MF_UNCHECKED);
+           CheckMenuItem(hMenu, IDM_PID_ALL,  MF_CHECKED);
+           break;
+
+      case IDM_PID_CURRENT:
+           uVid_PID_All = 0;
+           CheckMenuItem(hMenu, IDM_PID_CURRENT, MF_CHECKED);
+           CheckMenuItem(hMenu, IDM_PID_ALL,  MF_UNCHECKED);
+           break;
+      /*
+      case IDM_PID_ALL:
+            Set_VPIDs(STREAM_ALL,                    IDM_PID_ALL);
+            break;
+      case IDM_PID_AUTO:
+            Set_VPIDs(STREAM_AUTO,                   IDM_PID_AUTO);
             break;
       case IDM_PID_1:
-            Set_PIDs(0, IDM_PID_1);
+            Set_VPIDs(0, IDM_PID_1);
             break;
       case IDM_PID_2:
-            Set_PIDs(1, IDM_PID_2);
+            Set_VPIDs(1, IDM_PID_2);
             break;
       case IDM_PID_3:
-            Set_PIDs(2, IDM_PID_3);
+            Set_VPIDs(2, IDM_PID_3);
             break;
       case IDM_PID_4:
-            Set_PIDs(3, IDM_PID_4);
+            Set_VPIDs(3, IDM_PID_4);
             break;
       case IDM_PID_5:
-            Set_PIDs(4, IDM_PID_5);
+            Set_VPIDs(4, IDM_PID_5);
             break;
       case IDM_PID_6:
-            Set_PIDs(5, IDM_PID_6);
+            Set_VPIDs(5, IDM_PID_6);
             break;
       case IDM_PID_7:
-            Set_PIDs(6, IDM_PID_7);
+            Set_VPIDs(6, IDM_PID_7);
             break;
       case IDM_PID_8:
-            Set_PIDs(7, IDM_PID_8);
+            Set_VPIDs(7, IDM_PID_8);
             break;
       case IDM_PID_9:
-            Set_PIDs(8, IDM_PID_9);
+            Set_VPIDs(8, IDM_PID_9);
             break;
       case IDM_PID_10:
-            Set_PIDs(9, IDM_PID_10);
+            Set_VPIDs(9, IDM_PID_10);
             break;
       case IDM_PID_11:
-            Set_PIDs(10, IDM_PID_11);
+            Set_VPIDs(10, IDM_PID_11);
             break;
       case IDM_PID_12:
-            Set_PIDs(11, IDM_PID_12);
+            Set_VPIDs(11, IDM_PID_12);
             break;
       case IDM_PID_13:
-            Set_PIDs(12, IDM_PID_13);
+            Set_VPIDs(12, IDM_PID_13);
             break;
       case IDM_PID_14:
-            Set_PIDs(13, IDM_PID_14);
+            Set_VPIDs(13, IDM_PID_14);
             break;
       case IDM_PID_15:
-            Set_PIDs(14, IDM_PID_15);
+            Set_VPIDs(14, IDM_PID_15);
             break;
       case IDM_PID_16:
-            Set_PIDs(15, IDM_PID_16);
+            Set_VPIDs(15, IDM_PID_16);
             break;
-
+      */
 
       case IDM_AUDPID_NONE:
            uCtl_Aud_PID = STREAM_NONE;
-           Set_Toggle_Menu('c', &uAud_PID_All, IDM_AUDPID_AUTO);
-           CheckMenuItem(hMenu, IDM_AUDPID_NONE, MF_CHECKED);
+           uAud_PID_All = 0;
+           CheckMenuItem(hMenu, IDM_AUDPID_AUTO,  MF_UNCHECKED);
+           CheckMenuItem(hMenu, IDM_AUDPID_NONE,  MF_CHECKED);
            break;
 
       case IDM_AUDPID_AUTO:
            uCtl_Aud_PID = STREAM_AUTO;
-           Set_Toggle_Menu('s', &uAud_PID_All, IDM_AUDPID_AUTO);
-           CheckMenuItem(hMenu, IDM_AUDPID_NONE, MF_UNCHECKED);
+           uAud_PID_All = 1;
+           CheckMenuItem(hMenu, IDM_AUDPID_AUTO,  MF_CHECKED);
+           CheckMenuItem(hMenu, IDM_AUDPID_NONE,  MF_UNCHECKED);
            break;
 
 
@@ -3796,7 +4020,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          Set_Toggle_Menu('T', &iCtl_KB_NavStopPlay, IDM_KB_STOPPLAY);
          break;
       case IDM_NAV_INDEX:
-         Set_Toggle_Menu('T', &iNav_Index, IDM_NAV_INDEX);
+         Set_Toggle_Menu('T', &iCTL_FastBack, IDM_NAV_INDEX);
          break;
 
  //     case IDM_VOB_NAV:
@@ -3929,7 +4153,13 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            Set_Time_Fmt(4);
            break;
       case IDM_TIME_SCR:
+           Set_Time_Fmt(5);
+           break;
+      case IDM_TIME_HEX:
            Set_Time_Fmt(6);
+           break;
+      case IDM_TIME_TOD_REL:
+           Set_Time_Fmt(7);
            break;
 
       case IDM_DATE_INTERNATIONALE:
@@ -3940,13 +4170,18 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            Set_Toggle_Menu('T', &iCtl_Readability, IDM_READABILITY);
            if (iViewToolBar > 1)
            {
-               ToolBar_Destroy();
-               ToolBar_Create();
+               Toolbar_Chg();
+               //ToolBar_Destroy();
+               //ToolBar_Create();
            }
            break;
 
+
       case IDM_F3_NAMES:
            Set_Toggle_Menu('T', &iCtl_F3_Names, IDM_F3_NAMES);
+           break;
+      case IDM_F5_TOGGLER:
+           Set_Toggle_Menu('T', &iCtl_F5_Toggler, IDM_F5_TOGGLER);
            break;
 
  
@@ -3995,7 +4230,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            Mpeg_MaybeStop_Rqst();
 
            if (iCtl_KB_NavOpt) iKick.Action = ACTION_BWD_GOP2 ;
-           else                iKick.Action = ACTION_BWD_FAST2;
+           else                iKick.Action = ACTION_BWD_JUMP2;
 
            MPEG_processKick();
 
@@ -4007,7 +4242,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            Mpeg_MaybeStop_Rqst();
 
            if (iCtl_KB_NavOpt) iKick.Action = ACTION_BWD_GOP;
-           else                iKick.Action = ACTION_BWD_FAST;
+           else                iKick.Action = ACTION_BWD_JUMP;
 
            MPEG_processKick();
 
@@ -4016,10 +4251,10 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
       case ID_RIGHT_SHIFT:  // Right Bracket with shift
 
-           Mpeg_MaybeStop_Rqst();
+           Mpeg_MaybeStop_Rqst(); 
 
            if (iCtl_KB_NavOpt) iKick.Action = ACTION_FWD_GOP2;
-           else                iKick.Action = ACTION_FWD_FAST2;
+           else                iKick.Action = ACTION_FWD_JUMP2;
 
            MPEG_processKick();
 
@@ -4032,7 +4267,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            Mpeg_MaybeStop_Rqst();
 
            if (iCtl_KB_NavOpt) iKick.Action = ACTION_FWD_GOP;
-           else                iKick.Action = ACTION_FWD_FAST;
+           else                iKick.Action = ACTION_FWD_JUMP;
 
            MPEG_processKick(); 
 
@@ -4055,7 +4290,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
            Mpeg_MaybeStop_Rqst();
 
-           if (iCtl_KB_NavOpt) iKick.Action = ACTION_BWD_FAST2;
+           if (iCtl_KB_NavOpt) iKick.Action = ACTION_BWD_JUMP2;
            else                iKick.Action = ACTION_FWD_GOP2;
 
            MPEG_processKick();
@@ -4067,7 +4302,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
            Mpeg_MaybeStop_Rqst();
 
-           if (iCtl_KB_NavOpt) iKick.Action = ACTION_BWD_FAST;
+           if (iCtl_KB_NavOpt) iKick.Action = ACTION_BWD_JUMP;
            else                iKick.Action = ACTION_FWD_GOP;
 
            MPEG_processKick();
@@ -4109,7 +4344,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
            Mpeg_MaybeStop_Rqst();
 
-           if (iCtl_KB_NavOpt == 1) iKick.Action = ACTION_FWD_FAST2;
+           if (iCtl_KB_NavOpt == 1) iKick.Action = ACTION_FWD_JUMP2;
            else                     iKick.Action = ACTION_BWD_GOP2;
 
            MPEG_processKick();
@@ -4122,7 +4357,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
            Mpeg_MaybeStop_Rqst();
 
-           if (iCtl_KB_NavOpt == 1) iKick.Action = ACTION_FWD_FAST;
+           if (iCtl_KB_NavOpt == 1) iKick.Action = ACTION_FWD_JUMP;
            else                     iKick.Action = ACTION_BWD_GOP;
 
            MPEG_processKick(); 
@@ -4406,14 +4641,35 @@ unsigned int uTmp1;
   }
   else
 
-  /*
-  if (wParam == 'v' || wParam == 'V') // Audio Volume Boost
+         // StarKey special function keys
+  if (wParam == 173)
   {
-     VOL300_Volume_Boost();
+    if (iCtl_Vol_StarKey)
+        VOL210_MUTE_Toggle();
   }
   else
-  */
-
+  if (wParam == 174)
+  {
+    if (iCtl_Vol_StarKey)
+            VOL320_Down();
+  }
+  else
+  if (wParam == 175)
+  {
+    if (iCtl_Vol_StarKey)
+            VOL340_Up();
+  }
+  else
+  if (wParam == 178)
+  {
+            Mpeg_Stop_Rqst();
+  }
+  else
+  if (wParam == 179)  // Play/Pause Toggler
+  {
+            B501_Play_Button(1);
+  }
+  else
   if (wParam == VK_SNAPSHOT
   ||  wParam == 'B'
   ||  wParam == 'b')  // Allow for keyboard accelerator missing lower-case B
@@ -4445,14 +4701,14 @@ unsigned int uTmp1;
 
     switch (wParam)
     {
-
+         // NUMPAD Keys
          case VK_UP:
 
             if (WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
             {
                 iShowVideo_Flag = iCtl_ShowVideo_Flag;
 
-                process.Action = ACTION_BWD_FAST;
+                process.Action = ACTION_BWD_JUMP;
                 hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
             }
             break;
@@ -4463,14 +4719,20 @@ unsigned int uTmp1;
             {
                 iShowVideo_Flag = iCtl_ShowVideo_Flag;
 
-                process.Action = ACTION_FWD_FAST;
+                process.Action = ACTION_FWD_JUMP;
                 hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
             }
             break;
 
 
          case VK_LEFT:
+         case 166:  // StarKey Back 
 
+           Mpeg_MaybeStop_Rqst();
+           iKick.Action = ACTION_BWD_GOP;
+           MPEG_processKick(); 
+
+           /*
             if (WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
             {
                 iShowVideo_Flag = iCtl_ShowVideo_Flag;
@@ -4478,10 +4740,18 @@ unsigned int uTmp1;
                 process.Action = ACTION_BWD_GOP;
                 hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
             }
+            */
+
             break;
 
          case VK_RIGHT:
+         case 167:  // StarKey Forward 
 
+           Mpeg_MaybeStop_Rqst();
+           iKick.Action = ACTION_FWD_GOP;
+           MPEG_processKick(); 
+
+           /*
             if (WaitForSingleObject(hThread_MPEG, 0) == WAIT_OBJECT_0)
             {
                 iShowVideo_Flag = iCtl_ShowVideo_Flag;
@@ -4489,29 +4759,43 @@ unsigned int uTmp1;
                 process.Action = ACTION_FWD_GOP;
                 hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
             }
+            */
+
             break;
 
 
 
-         case VK_PRIOR:  // Page up
+         case VK_PRIOR:  // Page up   PGUP
+         case 177:       // StarKey Fast Bwd
 
-            if (WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
+            //if (WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
             {
                 iShowVideo_Flag = iCtl_ShowVideo_Flag;
 
-                process.Action = ACTION_BWD_FAST2;
-                hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
+                //process.Action = ACTION_BWD_JUMP2;
+                //hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
+
+                Mpeg_MaybeStop_Rqst();
+                iKick.Action = ACTION_BWD_JUMP2;
+                MPEG_processKick();
+
             }
             break;
 
-         case VK_NEXT:  // Page Down
+         case VK_NEXT:  // Page Down  PGDOWN
+         case 176:       // StarKey Fast Fwd
 
-            if (WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
+            //if (WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
             {
                 iShowVideo_Flag = iCtl_ShowVideo_Flag;
 
-                process.Action = ACTION_FWD_FAST2;
-                hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
+                //process.Action = ACTION_FWD_JUMP2;
+                //hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
+
+                Mpeg_MaybeStop_Rqst();
+                iKick.Action = ACTION_FWD_JUMP2;
+                MPEG_processKick();
+
             }
             break;
 
@@ -4555,7 +4839,7 @@ unsigned int uTmp1;
             else
             if (DBGflag)
             {
-                sprintf(szMsgTxt, "UNK KEY=%d =x02X", wParam, wParam);
+                sprintf(szMsgTxt, "UNK KEY=%d =x%02X =%c", wParam, wParam, wParam);
                 DSP1_Main_MSG(0,0);
             }
 
@@ -4578,12 +4862,35 @@ void B500_CONTINUE_PLAY_HERE()
 
   if (MParse.Pause_Flag)
   {
+      iRender_TimePrev  = 0;
       MParse.Pause_Flag = 0;
       ResumeThread(hThread_MPEG);
   }
   else
   if (MParse.Stop_Flag)
       B510_PLAY_HERE();
+}
+
+
+
+void B501_Play_Button(int P_Toggler)
+{
+           if ((iCtl_F5_Toggler || P_Toggler)
+           &&   !MParse.Stop_Flag  )
+               Mpeg_Stop_Rqst();
+           else
+           {
+               B555_Normal_Speed(0);
+
+               iRender_TimePrev  = 0;
+               if (MParse.Tulebox_SingleStep_flag)
+               {
+                 MParse.Tulebox_SingleStep_flag = 0;
+                 Mpeg_Drop_Init();
+               }
+
+               B500_CONTINUE_PLAY_HERE();
+           }
 }
 
 
@@ -4656,13 +4963,18 @@ void B550_PLAY(int P_Mode)
 
         B52_AudioChk();
 
+        if (iMsgLife <= 0)
+            iMsgLife  = 1;
+        else
+            iMsgLife += 1;
+
         if (iViewToolBar <= 256)
         {
           if (iPreview_Clip_Ctr >= 900 )
               iMsgLife += 3;
-          else
-          if (iMainWin_State > 0)
-               DSP_Msg_Clear();
+          //else
+          //if (iMainWin_State > 0)
+          //     DSP_Msg_Clear();
         }
 
 
@@ -4722,6 +5034,8 @@ void  B555_Normal_Speed(int P_Tell)
   PlayCtl.iDrop_B_Frames_Flag = 0;
 
   B52_AudioChk();
+
+  Set_Priority(hThread_MPEG, iCtl_Priority[1],  1,  1);
 
   if (P_Tell)
   {
@@ -4872,15 +5186,22 @@ void Set_AudioTrack(int P_Track)
   CheckMenuItem(hMenu, IDM_TRACK_8, MF_UNCHECKED);
 
   if (iAudio_SEL_Track == TRACK_AUTO)
+  {
       CheckMenuItem(hMenu, IDM_TRACK_AUTO, MF_CHECKED);
+      uCtl_Aud_PID = STREAM_AUTO;
+  }
   else
   if (iAudio_SEL_Track == TRACK_NONE)
+  {
       CheckMenuItem(hMenu, IDM_TRACK_NONE, MF_CHECKED);
+      uCtl_Aud_PID = STREAM_NONE;
+  }
   else
   {
      if (iAudio_SEL_Track < 0 || iAudio_SEL_Track > 7)
          iAudio_SEL_Track = 0;
 
+     uCtl_Aud_PID = uAudio_Track_PID[iAudio_SEL_Track];
      CheckMenuItem(hMenu, MENU_TRACK[iAudio_SEL_Track], MF_CHECKED);
   }
 
@@ -4909,7 +5230,7 @@ void Set_Priority(HANDLE P_Process, const int P_New_Priority,
   {HIGH_PRIORITY_CLASS, NORMAL_PRIORITY_CLASS, IDLE_PRIORITY_CLASS};
 
   int iRC, W_Pri_Ix;
-
+ 
   iRC = 1;
 
   if (P_New_Priority > 0 && P_New_Priority < 4)
@@ -4940,18 +5261,18 @@ void Set_Priority(HANDLE P_Process, const int P_New_Priority,
 void Set_OutFolderMode(const unsigned P_Menu_ix)
 {
   const unsigned OUT_FOLDER_MODE[4] =
-  {IDM_OUT_FOLDER_SAME, IDM_OUT_FOLDER_HERE, IDM_OUT_FOLDER_RECENT,
-                        IDM_OUT_FOLDER_FIRST};
+  {IDM_OUT_FOLDER_SAME, IDM_OUT_FOLDER_FIRST, IDM_OUT_FOLDER_RECENT,
+                        IDM_OUT_FOLDER_EVERY};
 
 
   CheckMenuItem(hMenu, IDM_OUT_FOLDER_SAME,   MF_UNCHECKED);
-  CheckMenuItem(hMenu, IDM_OUT_FOLDER_HERE,   MF_UNCHECKED);
+  CheckMenuItem(hMenu, IDM_OUT_FOLDER_FIRST,   MF_UNCHECKED);
   CheckMenuItem(hMenu, IDM_OUT_FOLDER_RECENT, MF_UNCHECKED);
-  CheckMenuItem(hMenu, IDM_OUT_FOLDER_FIRST,  MF_UNCHECKED);
+  CheckMenuItem(hMenu, IDM_OUT_FOLDER_EVERY,  MF_UNCHECKED);
 
   CheckMenuItem(hMenu, OUT_FOLDER_MODE[P_Menu_ix], MF_CHECKED);
 
-  iCtl_Out_Folder_Active = P_Menu_ix;
+  iCtl_OutFolder_Active = P_Menu_ix;
 }
 
 
@@ -4990,12 +5311,12 @@ void Set_Video_Stream(const unsigned P_New_Angle,
 
 
 //----------------------------
-
-void Set_PIDs(const unsigned P_New_PID,
+/*
+void Set_VPIDs(const unsigned P_New_PID,
                        const unsigned P_MenuId)
 {
 
-   CheckMenuItem(hMenu, IDM_PID_AUTO, MF_UNCHECKED);
+   CheckMenuItem(hMenu, IDM_PID_CURRENT, MF_UNCHECKED);
    CheckMenuItem(hMenu, IDM_PID_ALL,  MF_UNCHECKED);
 
    CheckMenuItem(hMenu, IDM_PID_1,  MF_UNCHECKED);
@@ -5029,7 +5350,7 @@ void Set_PIDs(const unsigned P_New_PID,
 
    Set_Video_Stream(STREAM_AUTO,  IDM_VIDTRK_AUTO);
 }
-
+*/
 
 
 
@@ -5053,6 +5374,8 @@ void B150_PLAY_FASTER(DWORD wmId)
   }
   else
   {
+      Set_Priority(hThread_MPEG, PRIORITY_NORMAL,  1,  1);
+
       if (MParse.FastPlay_Flag < (iCtl_CUE_BUTTON_Speed + 2))
           MParse.FastPlay_Flag++;
 
@@ -5145,10 +5468,10 @@ LRESULT CALLBACK About(HWND hAboutDlg, UINT message, WPARAM wParam,
          SetDlgItemText(hAboutDlg, IDA_VER_STR, szAppVer);
 
          // Get compilation date
-         strcpy( szTemp, "Built YYYY-MMM-DD");
-         memcpy( &szTemp[11], &__DATE__,    3 );
-         memcpy( &szTemp[15], &__DATE__[4], 2 );
-         memcpy( &szTemp[6],  &__DATE__[7], 4 );
+         strcpy( szTemp, "Build: YYYY-MMM-DD");
+         memcpy( &szTemp[12], &__DATE__,    3 );
+         memcpy( &szTemp[16], &__DATE__[4], 2 );
+         memcpy( &szTemp[7],  &__DATE__[7], 4 );
 
          SetDlgItemText(hAboutDlg, IDA_BUILD, szTemp);
 
@@ -5175,7 +5498,7 @@ LRESULT CALLBACK About(HWND hAboutDlg, UINT message, WPARAM wParam,
 }
 
 
-/* register the window class */
+// register the window class 
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
 
@@ -5189,7 +5512,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
    wcex.lpfnWndProc   = (WNDPROC)WndProc;
    wcex.cbClsExtra    = false;
    wcex.cbWndExtra    = false;
-   wcex.hInstance     = hInstance;
+   wcex.hInstance     = hInstance; 
    wcex.hIcon         = LoadIcon(hInstance, (LPCTSTR)IDI_MOVIE);
    wcex.hCursor       = LoadCursor(NULL, IDC_ARROW);
    wcex.hbrBackground = CreateSolidBrush(iCtl_Mask_Colour);
@@ -5221,10 +5544,21 @@ void ClearMPALib(int P_Mpa_NUM)
 
   iTry = 0;
 
-  if(!MPAdec.hDLL)  
+  if (!MParse.Stop_Flag)
+      Mpeg_Stop_Rqst();
+
+  if(!MPAdec.hDLL)
+  {
     FreeLibrary(MPAdec.hDLL); 
+    MPAdec.hDLL = 0;  byMPALib_OK = 0;
+  }
 
   iMPALib_Status = -1 ; // Set decoder status to UNKNOWN
+  if (MParse.ShowStats_Flag)
+  {
+     SetDlgItemText(hStats, IDC_MPAdec_NAME, " ");
+     SetDlgItemText(hStats, STATS_MPAdec_STATUS, " ");
+  }
 
   
   if (P_Mpa_NUM < 0)
@@ -5433,8 +5767,9 @@ void Set_Bmp_Fmt(const int P_NewSetting)
 void Set_Time_Fmt(const int P_NewSetting)
 {
 
-   const int MenuFld[5] = {0, IDM_TIME_REL, IDM_TIME_GOP,
-                              IDM_TIME_PTS, IDM_TIME_FILE
+   const int MenuFld[8] = {0, IDM_TIME_REL,  IDM_TIME_GOP, IDM_TIME_PTS, 
+                              IDM_TIME_FILE, IDM_TIME_SCR, 
+                              IDM_TIME_HEX,  IDM_TIME_TOD_REL
    };
 
 
@@ -5446,6 +5781,9 @@ void Set_Time_Fmt(const int P_NewSetting)
    CheckMenuItem(hMenu, MenuFld[2],      MF_UNCHECKED);
    CheckMenuItem(hMenu, MenuFld[3],      MF_UNCHECKED);
    CheckMenuItem(hMenu, MenuFld[4],      MF_UNCHECKED);
+   CheckMenuItem(hMenu, MenuFld[5],      MF_UNCHECKED);
+   CheckMenuItem(hMenu, MenuFld[6],      MF_UNCHECKED);
+   CheckMenuItem(hMenu, MenuFld[7],      MF_UNCHECKED);
 
    CheckMenuItem(hMenu, MenuFld[P_NewSetting], MF_CHECKED);
 
@@ -5536,8 +5874,11 @@ void  Set_Frame_Rate(int P_NewSetting)
                            IDM_FRAME_RATE_01
    };
 
-
-   iView_FrameRate_Code = P_NewSetting ;
+   iOverride_FrameRate_Code = P_NewSetting;
+   if (iOverride_FrameRate_Code)
+       iView_FrameRate_Code = iOverride_FrameRate_Code;
+   else
+       iView_FrameRate_Code = MPEG_Seq_frame_rate_code;
    FrameRate2FramePeriod();
 
    if (! P_NewSetting)
@@ -5713,7 +6054,7 @@ void Set_Wheel_Scroll(int P_Amt)
 
 
 
-void Set_Menu(int P_New_ix, int *P_Menu_Fld)
+void Set_Menu_Array(int P_New_ix, int *P_Menu_Fld)
 {
   
    int j, iMenu_New_ix, *lp_iMenu_Fld;
@@ -5766,6 +6107,7 @@ void Set_XTN_PS(char P_Xtn[8])
   CheckMenuItem(hMenu, IDM_XTN_MPG_UPPER,  MF_UNCHECKED);
   CheckMenuItem(hMenu, IDM_XTN_MPG_LOWER,  MF_UNCHECKED);
   CheckMenuItem(hMenu, IDM_XTN_M2P,        MF_UNCHECKED);
+  CheckMenuItem(hMenu, IDM_XTN_VID_MP2,    MF_UNCHECKED);
   CheckMenuItem(hMenu, IDM_XTN_SAME,       MF_UNCHECKED);
   CheckMenuItem(hMenu, IDM_XTN_PS_OTHER,   MF_UNCHECKED);
 
@@ -5776,6 +6118,9 @@ void Set_XTN_PS(char P_Xtn[8])
    else
    if (!stricmp(P_Xtn, "m2p"))
        CheckMenuItem(hMenu, IDM_XTN_M2P,  MF_CHECKED);
+   else
+   if (!stricmp(P_Xtn, "mp2"))
+       CheckMenuItem(hMenu, IDM_XTN_VID_MP2,  MF_CHECKED);
    else
    if (!strcmp(P_Xtn, "MPG"))
        CheckMenuItem(hMenu, IDM_XTN_MPG_UPPER,  MF_CHECKED);
@@ -5834,6 +6179,8 @@ void Set_XTN_AUD(char P_Xtn[8])
 // --------------------------------------------------------
 void Set_ADD(int P_Mode)
 {
+  unsigned int uItem;
+
   CheckMenuItem(hMenu, IDM_ADD_OFF,     MF_UNCHECKED);
   CheckMenuItem(hMenu, IDM_ADD_REMIND,  MF_UNCHECKED);
   CheckMenuItem(hMenu, IDM_ADD_AUTO,    MF_UNCHECKED);
@@ -5841,15 +6188,18 @@ void Set_ADD(int P_Mode)
    switch (P_Mode)
    {
       case 0:
-         CheckMenuItem(hMenu, IDM_ADD_OFF,    MF_CHECKED);
+         uItem = IDM_ADD_OFF;
          break;
       case 1:
-        CheckMenuItem(hMenu, IDM_ADD_REMIND, MF_CHECKED);
+         uItem = IDM_ADD_REMIND;
          break;
       case 2:
-        CheckMenuItem(hMenu, IDM_ADD_AUTO,   MF_CHECKED);
+         uItem = IDM_ADD_AUTO;
          break;
+      default:
+         uItem = 0;
    }
+   CheckMenuItem(hMenu, uItem,    MF_CHECKED);
 
    Add_Automation = P_Mode;
 }
@@ -5929,6 +6279,7 @@ void Set_ALIGN_HORIZ(int P_Mode, int P_Refresh)
 static void B910_Main_INIT(HWND hWnd, /* UINT message, */ WPARAM wParam,
                                                           LPARAM lParam)
 {
+  int iTxt;
   DragAcceptFiles(hWnd, true);
 
   AC3_PreScale_Ratio = 1.0;
@@ -5938,14 +6289,29 @@ static void B910_Main_INIT(HWND hWnd, /* UINT message, */ WPARAM wParam,
   hMenu     = GetMenu(hWnd);
   hMain_GUI  = GetCurrentProcess();
 
-  SetBkColor(  hDC, iCtl_Back_Colour); // iCtl_Mask_Colour);  // Background = Overlay key
 
-  if (iCtl_Mask_Colour == iColor_Menu_Bk) // Overlay key Mid Grey ?
-     SetTextColor(hDC, 0x000000);         // Text = Black
+  if (iCtl_Mask_Colour == iColor_Menu_BG)  // Overlay key Mid Grey ?
+  {
+      iTxt          = 0x010101;
+      iColor_Msg_BG = iCtl_Mask_Colour;
+  }
   else
-     SetTextColor(hDC, iCtl_Text_Colour); // Text = Bright Blue
+  if (iCtl_Mask_Colour == 0)              // Overlay key Black ?
+  {
+      iTxt          = 0xFFEEEE;
+      iColor_Msg_BG = iCtl_Mask_Colour;
+  }
+  else
+  {
+      iTxt          = iCtl_Text_Colour;
+      iColor_Msg_BG = iCtl_Back_Colour;
+  }
 
-  // register VFAPI
+  SetTextColor(hDC, iTxt); 
+  SetBkColor(  hDC, iColor_Msg_BG);  // Background = Overlay key
+
+
+  // register VFAPI 
   /*
   HKEY key; DWORD trash;
 
@@ -6145,7 +6511,7 @@ static void CheckFlag()
    }
 */
 
-   Set_Menu(AC3_DRC_FLag, &DRC_MenuId[0]);
+   Set_Menu_Array(AC3_DRC_FLag, &DRC_MenuId[0]);
    /*
    switch (AC3_DRC_FLag)
    {
@@ -6269,6 +6635,8 @@ void ProcessReset(char P_Reason[3])
 //      EnableMenuItem(hMenu, IDM_PROCESS_WAV, MF_GRAYED);
 
       ZeroMemory(&process, sizeof(PROCESS));
+      process.iOut_DropCrud = iCtl_Out_DropCrud;
+
       BwdGop.ix   = 0;  BwdGop.iOrg   = 0;
       BwdFast1.ix = 0;  BwdFast1.iOrg = 0;
       process.trackright = TRACK_PITCH;
@@ -6436,51 +6804,6 @@ void ERRMSG_FileXA(char P_Desc, char P_Action,
 
 
 
-//---------
-
-int B195_NotMpeg2_Msg(int P_Stage)
-{
-  int iRC;
-
-  iRC = IDOK; 
-
-  S100_Stats_Hdr_Main(0);
-
-  if (iCtl_WarnMpeg1 || P_Stage)
-      sprintf(szMsgTxt, NON_Mpeg2_PS,
-                          (int)(process.PACK_Loc), StatsPrev.VobTxt);
-  else
-      strcpy(szMsgTxt, NOT_MPEG2_BRIEF);
-
-  if (! Mpeg_Version_Alerted || P_Stage)
-  {
-     if (!MParse.SeqHdr_Found_Flag || P_Stage)
-     {
-        if (iCtl_WarnMpeg1 && Mpeg_Version_Alerts_Session < 3)
-        {
-           Mpeg_Version_Alerts_Session++;
-           iRC = //MessageBox(hWnd_MAIN, szMsgTxt, "Mpg2Cut2 - CONFIRM", MB_OKCANCEL);
-                 Warning_Box(&szMsgTxt[0], 0, &iCtl_WarnMpeg1, IDM_WARN_MPEG1, MB_OKCANCEL);
-
-        }  
-        else
-           iRC = 1;
-     }
-
-     Mpeg_Version_Alerted++;
-  }
-
-  if (iRC == 1 && !P_Stage)
-  {
-           Set_Toggle_Menu('S', &iPES_Mpeg_Any, IDM_MPEG_ANY);
-           //Chg2RGB24(1,0);
-  }
-  
-  DSP1_Main_MSG(0,0);
-  
-  return iRC;
-}
-
 
 unsigned char *lpNextChr;
 
@@ -6568,7 +6891,7 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
   bDBGStr = 0;
 
   iFin_Done = 0;
-  iMainWin_State = 0; iAutoPlay = 0;
+  iMainWin_State = 0; iAutoPlay = 0; iOutNow = 0;
   //iViewToolBar = 256;
 
   memset(&BLANK44[0], ' ', 44);
@@ -6584,7 +6907,7 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
   szInFolder[0] = 0;
 
 
-  iBusy = 0;  uLastHelpTime = 0;
+  iBusy = 0;  uLastHelpTime = 0; hCSR_CROSS = 0;
   process.Delay_Sign[1] = 0;
 
   WAV_Fmt_Brief[0] = 0;
@@ -6643,13 +6966,14 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
 
   // Dummy command lines for testing complicated invokation options
   //  Another alternative is to use BAT files.
-  //lpCmdLine = &"\"F:\\$_VIDCAP\\_T\\p8_PALL.MPG\" \"KKL8329.MPG\" \"__NTSC_DVD_BP.VOB\" ";
-  //lpCmdLine = &"F:\\$_VIDCAP\\_T\\p8_PALL.MPG";
+  //lpCmdLine = &"\"G:\\$_VIDCAP\\_T\\A_QUITE_LONG_FOLDER_NAME_THIS_ONE_IS_I_THINK_GABBA_GABBA_HEY_\\KKL7701.MPG\" \"G:\\$_VIDCAP\\_T\\A_QUITE_LONG_FOLDER_NAME_THIS_ONE_IS_I_THINK_GABBA_GABBA_HEY_\\KKL7701M.MPG\"  \"G:\\$_VIDCAP\\_T\\A_QUITE_LONG_FOLDER_NAME_THIS_ONE_IS_I_THINK_GABBA_GABBA_HEY_\\KKL7701N.MPG\"  \"G:\\$_VIDCAP\\_T\\A_QUITE_LONG_FOLDER_NAME_THIS_ONE_IS_I_THINK_GABBA_GABBA_HEY_\\KKL7701P.MPG\" O=TEST  ";
+  //lpCmdLine = &"G:\\$_VIDCAP\\_T\\p8_PALL.MPG ";
+  //lpCmdLine = &"G:\\$_VIDCAP\\_T\\$_KKL_9313.EDL";
 
 
   if (lpCmdLine)
   {
-    strcpy(szTmp1, lpCmdLine);
+    strncpy(szTmp1, lpCmdLine, (sizeof(szTmp1)-1));
     cPassed1 = (char)szTmp1[0] ;
 
     if (cPassed1 > 0)  // ' ')
@@ -6666,7 +6990,7 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
       {
         // NEW FORMAT PARM LINE
 
-        // First Parm is File Name maybe in quotes with embedded spaces
+        // First Parm is File Name, maybe in quotes with embedded spaces
 
         lpNextChr = stpToken((unsigned char*)(&szTmp1[0]), 
                              (unsigned char*)(lpCmdLine),  0);
@@ -6749,6 +7073,16 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
              if (!stricmp(szTmp1,"PLAY"))
              {
                 iAutoPlay = 1;
+             }
+             else
+             if (!stricmp(szTmp1,"DEFER"))
+             {
+                iOutNow = -1;
+             }
+             else
+             if (!stricmp(szTmp1,"NOW"))
+             {
+                iOutNow =  1;
              }
              else
              if (!stricmp(szTmp1,"REM"))  // Comment out the rest of the parm area

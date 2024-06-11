@@ -114,7 +114,7 @@ int  C800_Clip_FILE(int P_Action, int P_Auto, char P_OpenMode)
   {
      iEDL_FileBase = File_Limit;
      iEDL_Base     = iEDL_ctr;
-     strcpy(szOpenDesc, "Append");
+     strcpy(szOpenDesc, "ADD");
   }
 
   
@@ -453,7 +453,7 @@ int  C800_Clip_FILE(int P_Action, int P_Auto, char P_OpenMode)
                else
                if (szSentinel == 'c')  // LOWER-CASE = extension to clip info
                {
-                   fscanf(CUTFile, "%02d,%08u,x%08X,0,0,0,0,0,0,0,0,0,0,0\n",
+                   fscanf(CUTFile, "%d,%u,x%X,0,0,0,0,0,0,0,0,0,0,0\n",
                         &iTmp1,
                         &EDList.uFrom_TCorrection[iEDL_ctr],
                         &EDList.uFrom_FPeriod_ps [iEDL_ctr]);
@@ -465,7 +465,7 @@ int  C800_Clip_FILE(int P_Action, int P_Auto, char P_OpenMode)
                    HiLoc1 = LoLoc1 +1;
 
                    //fscanf(CUTFile, "P=");
-                   fscanf(CUTFile, "%02d,%08u,x%08X,x%08X,x%08X\n", 
+                   fscanf(CUTFile, "%d,%u,x%X,x%X,x%X\n", 
                               &process.CurrFile,
                               &process.CurrPTS,
                               LoLoc1, HiLoc1,
@@ -485,7 +485,7 @@ int  C800_Clip_FILE(int P_Action, int P_Auto, char P_OpenMode)
                {
                    //fscanf(CUTFile, "J=");   // Preamble len
                    iTmp1 = 0;
-                   fscanf(CUTFile, "%04d\n", &iTmp1); // 32 bit
+                   fscanf(CUTFile, "%d\n", &iTmp1); // 32 bit
                    process.preamble_len = iTmp1;  // 64 bit
                    process.Preamble_Known = 1;
                }
@@ -504,7 +504,6 @@ int  C800_Clip_FILE(int P_Action, int P_Auto, char P_OpenMode)
 
           }  // END-ELSE  NORMAL_LOAD
 
-          fclose(CUTFile);
           iEDL_Chg_Flag = 0;
 
           if (iEDL_ctr > 0)
@@ -550,6 +549,8 @@ int  C800_Clip_FILE(int P_Action, int P_Auto, char P_OpenMode)
 
              fscanf(CUTFile, "\n");
           }
+
+          fclose(CUTFile);
 
           if (iBAD_Ctr)
               MessageBox(hWnd_MAIN, szBuffer, "Mpg2Cut2", MB_OK);

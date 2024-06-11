@@ -23,7 +23,7 @@ struct OLDSTATS
   int Old_Pack_Min_Size, Old_Pack_Max_Size, Old_Pack_Avg_Size; 
   int iMuxRate;
   int Old_aspect_ratio_code, Old_Nom_kBitRate;
-  float Old_Frame_Rate;
+  double Old_Frame_Rate;
   char szFrameRate[16];
   int chroma_format,  Profile, Level;
   int horizontal_size, vertical_size;
@@ -39,6 +39,7 @@ LRESULT CALLBACK Statistics(HWND, UINT, WPARAM, LPARAM);
 void  Stats_FPS() //int P_Force)
 {
   int iFrames_Diff, iTrue_Pct, iTmp1, iTmp2;
+  // int iCurrByteRateAvg;
   unsigned uNew_Time_ms, uTime_DIFF_adj, uTmp1;
   char cTmp1;
 
@@ -112,14 +113,24 @@ void  Stats_FPS() //int P_Force)
 
 
          // Trap poor performance
-         if (iFrames_Diff > 2 
-         // && PlayCtl.iDrop_Behind 
+         //if (iFrames_Diff > 5 
+         // &&  !PlayCtl.iMaxedOut
+         // &&  PlayCtl.iDrop_Behind 
          // &&  PlayCtl.iFPS_Dec_Pct < 70
-         )
+         //)
              Timing_DropMore();
 
          iVideoBitRate_Avg = (iVideoBitRate_Bytes<<3) / PlayCtl.iVideoTime_DIFF_ms;
                              // * iFrame_Rate_int / iFrames_Diff) >>7 ;// fFrame_Rate_Orig / iFrames_Diff) >>7 ;
+
+         // use this to gradually update the file average
+         if (iVideoBitRate_Avg > 320000)
+         {
+             process.ByteRateAvg[File_Ctr] = 
+                                 ( (process.ByteRateAvg[File_Ctr] * 3)
+                                 + (iVideoBitRate_Avg * 21 / 160) // increase by 5% (21/20) and convert bits to bytes (/8), which works out to *21/160
+                                 ) / 4;
+         }
 
          if (MParse.ShowStats_Flag)
          {
@@ -222,38 +233,6 @@ void  Stats_FPS() //int P_Force)
       
     //PlayCtl.uTime_DIFF_s = PlayCtl.iVideoTime_DIFF_ms / 1000;
 
-    if (PlayCtl.iVideoTime_DIFF_ms
-    &&  MPEG_Pic_Type == I_TYPE
-    && (process.Action == ACTION_FWD_GOP || process.Action == ACTION_INIT))
-    {
-       iVideoBitRate_Avg = (iVideoBitRate_Bytes * 360 ) / PlayCtl.iVideoTime_DIFF_ms; //  360=8*45000/1k
-
-       if (MParse.ShowStats_Flag)
-       {
-         sprintf(szBuffer,   "%d",    iVideoBitRate_Avg) ;
-         SetDlgItemText(hStats,     IDC_BITRATE_AVG, szBuffer);
-
-            if (iMuxChunkRate) //(iNom_kBitRate)
-                iTmp1 = iMuxChunkRate * 2 / 5; // iNom_kBitRate;
-            else
-            if (iNom_kBitRate)
-                iTmp1 = iNom_kBitRate;
-            else
-            if (Coded_Pic_Width <= 400)
-               iTmp1 =  2000;
-            else
-            if (Coded_Pic_Width < 769)
-               iTmp1 = 10000;
-            else
-               iTmp1 = 40000;
-
-            iTmp1 = iVideoBitRate_Avg * 100 / iTmp1; // Calculate percantage 
-            if (iTmp1 > 200)
-                iTmp1 = 200;
-            SendDlgItemMessage(hStats, IDC_BITRATE_BAR, PBM_SETPOS, 
-                                            iTmp1,  0); 
-       }
-    }
   }
 
 
@@ -434,13 +413,13 @@ void S100_Stats_Hdr_Main(int P_Refresh)
 
   if (!FILM_Purity)
   {
-     if (frame_rate > 28 && frame_rate < 31)
+     if (fFrame_rate > 28.0 && fFrame_rate < 31.0)
          sprintf(szTmp32, "NTSC");
      else
-     if (frame_rate > 58 && frame_rate < 62)
+     if (fFrame_rate > 58.0 && fFrame_rate < 62.0)
          sprintf(szTmp32, "NTSC+ ");
      else
-     if (frame_rate == 25)
+     if (fFrame_rate == 25.0)
      {
        if (Coded_Pic_Height >= 576 || Coded_Pic_Height == 288 || Coded_Pic_Height == 144)
          sprintf(szTmp32, "PAL");
@@ -448,7 +427,7 @@ void S100_Stats_Hdr_Main(int P_Refresh)
          sprintf(szTmp32, "PAL ?");
      }
      else
-     if (frame_rate == 50)
+     if (fFrame_rate == 50.0)
      {
          sprintf(szTmp32, "PAL+ ");
      }
@@ -553,9 +532,52 @@ void S100_Stats_Hdr_Main(int P_Refresh)
   SetDlgItemText(hStats, IDC_OVL_MODE, szTmp32);
 
 
+  if (MPEG_Pic_Type == I_TYPE
+  &&  process.Action == ACTION_FWD_GOP)
+  {
+       //if (PlayCtl.iVideoTime_DIFF_ms)
+       //{
+       //    iVideoBitRate_Avg = (iVideoBitRate_Bytes * 360 ) / PlayCtl.iVideoTime_DIFF_ms; //  360=8*45000/1k
+       //}
+       //else
+       {
+           iVideoBitRate_Avg = (int) // (process.i64NewByteRate)
+                                    process.ByteRateAvg[process.CurrFile]
+                             / 128;
+       }
+
+       if (MParse.ShowStats_Flag)
+       {
+           sprintf(szBuffer,   "%d",    iVideoBitRate_Avg) ;
+           SetDlgItemText(hStats,     IDC_BITRATE_AVG, szBuffer);
+
+           if (iMuxChunkRate) //(iNom_kBitRate)
+               iTmp1 = iMuxChunkRate * 2 / 5; // iNom_kBitRate;
+           else
+           if (iNom_kBitRate)
+               iTmp1 = iNom_kBitRate;
+           else
+           if (Coded_Pic_Width <= 400)
+              iTmp1 =  2000;
+           else
+           if (Coded_Pic_Width < 769)
+              iTmp1 = 10000;
+           else
+              iTmp1 = 40000;
+
+           iTmp1 = iVideoBitRate_Avg * 100 / iTmp1; // Calculate percantage 
+           if (iTmp1 > 200)
+               iTmp1 = 200;
+           SendDlgItemMessage(hStats, IDC_BITRATE_BAR, PBM_SETPOS, 
+                                            iTmp1,  0); 
+       }
+  }
+
+
+
   S300_Stats_Audio_Desc();
 
-  if (P_Refresh || WAV_Fmt_Flag == 1)
+  if (WAV_Fmt_Flag == 1)
   {
       SetDlgItemText(hStats, STATS_AUDIO_WAV, WAV_Fmt_Brief);
       WAV_Fmt_Flag = 0;
@@ -793,7 +815,7 @@ void S200_Stats_Pic_Main(int P_Force)
 
   PTS_2Field( process.VideoPTS, IDC_VID_PTS);
   //pts = process.VideoPTS/45000; //90000 ;
-  //iTmp1 = (int)((process.VideoPTS - (pts * 90000)) / frame_rate) ;
+  //iTmp1 = (int)((process.VideoPTS - (pts * 90000)) / fFrame_rate) ;
   //sprintf(szBuffer, "%d:%02d:%02d.%04d", 
   //                   pts/3600, (pts%3600)/60, pts%60, iTmp1);
   //SetDlgItemText(hStats, IDC_VID_PTS, szBuffer);
@@ -815,7 +837,7 @@ void S200_Stats_Pic_Main(int P_Force)
           SetDlgItemText(hStats, IDC_AUDIO_PTS, "");
 
     //pts = process.AudioPTS/90000;
-      //iTmp1 = (int)((process.AudioPTS - (pts * 90000)) / frame_rate) ;
+      //iTmp1 = (int)((process.AudioPTS - (pts * 90000)) / fFrame_rate) ;
     //sprintf(szBuffer, "%d:%02d:%02d.%04d", 
     //            pts/3600, (pts%3600)/60, pts%60, iTmp1);
 
@@ -863,10 +885,11 @@ void S333_Trk_Audio_Desc(HANDLE hDial, unsigned int *TXT_FLD)
   iTrk_Srch = 0;
   while (iTrk_Srch < 8)
   {
-     if (mpa_Ctl[iTrk_Srch].uStream)
+     if (mpa_Ctl[iTrk_Srch].cStream)
      {
         iTrk_External = iTrk_Srch + 1;
-        uAudio_Track_Stream[iTrk_External] = mpa_Ctl[iTrk_Srch].uStream;
+        cAudio_Track_Stream[iTrk_External] = mpa_Ctl[iTrk_Srch].cStream;
+        uAudio_Track_PID   [iTrk_External] = mpa_Ctl[iTrk_Srch].uPID;
         S370_AudioTrackDesc(FORMAT_MPA, iTrk_Srch, iTrk_External);
         SetDlgItemText(hDial, TXT_FLD[iTrk_External], szBuffer);
      }
@@ -884,10 +907,11 @@ void S333_Trk_Audio_Desc(HANDLE hDial, unsigned int *TXT_FLD)
     iTrk_Srch = 0;
     while (iTrk_External < 8 && iTrk_Srch < 8)
     {
-      if (SubStream_CTL[iFormat][iTrk_Srch].uStream)
+      if (SubStream_CTL[iFormat][iTrk_Srch].cStream)
       {
           iTrk_External++;          
-          uAudio_Track_Stream[iTrk_External] = SubStream_CTL[iFormat][iTrk_Srch].uStream;
+          cAudio_Track_Stream[iTrk_External] = SubStream_CTL[iFormat][iTrk_Srch].cStream;
+          uAudio_Track_PID   [iTrk_External] = SubStream_CTL[iFormat][iTrk_Srch].uPID;
           S370_AudioTrackDesc(iFormat, iTrk_Srch, iTrk_External);
           SetDlgItemText(hDial, TXT_FLD[iTrk_External], szBuffer);
       }
@@ -1073,9 +1097,11 @@ void Stats_Show(int refresh, int P_Visibility)
 void Stats_Volume_Boost()
 {
   char cOvfl;
+  int  iBoost_External, iAuto_External;
 
-  if (  ( ( !strcmp(szAudio_Status, "Loaded") || szAudio_Status[0] <= ' ')
-          && iCtl_Volume_Boost)
+  if (  ( ( !strcmp(szAudio_Status, "Loaded") 
+                 || szAudio_Status[0] <= ' ')
+         && iVolume_Boost)
   ||  ! MParse.ShowStats_Flag)
   {
         if (iVolume_Boost  <= 0)
@@ -1089,13 +1115,27 @@ void Stats_Volume_Boost()
            else
                cOvfl = ' ';
 
+           if (iVolume_Boost)
+               iBoost_External = iVolume_Boost - K_BOOST_DENOM;
+           else
+               iBoost_External = 0;
+
+           if (iVolume_AUTO)
+               iAuto_External  = iVolume_AUTO  - K_BOOST_DENOM;
+           else
+               iAuto_External = 0;
+
            sprintf(szBuffer, "Boost%c%d:%d", cOvfl, 
-                              (iVolume_Boost-K_BOOST_DENOM), 
-                              (iVolume_BOLD-K_BOOST_DENOM));
+                             iBoost_External, iAuto_External);
         }
   }
   else
-      sprintf(szBuffer, szAudio_Status); 
+  {
+      sprintf(szBuffer, szAudio_Status);
+      if (iMsgLife <= 0)
+          szAudio_Status[0] = 0;
+  }
+
 
   szBuffer[31] = 0;
   if (strcmp(OldStats.szAudioBoost, szBuffer))
@@ -1110,6 +1150,8 @@ void Stats_Volume_Boost()
       strcpy(OldStats.szAudioBoost, szBuffer);
   }
 
+  if (hVolDlg0)
+      Vol_Show_All();
 }
 
 
@@ -1117,11 +1159,32 @@ void Stats_Volume_Boost()
 
 //-------------------------------------------
 
+char szBITS[33];
+void BitConv(int in)
+{
+  char *lcOUT;
+  int iLoop, iWork;
+
+  iWork = in;
+  lcOUT = &szBITS[0];
+  iLoop = 32;
+  while (iLoop > 0)
+  {
+   if (iWork & 0x80000000)
+       *lcOUT = '1';
+   else
+       *lcOUT = ' ';
+   iWork<<=1;
+   lcOUT++;
+   iLoop--;
+  }
+  szBITS[32] = 0;
+}
 
 
 char *lsABBR, szChannels[4];
 int iTrack, iFormat;
-unsigned uMode, uBitRate, ukHz;
+unsigned uChannel_ix, uBitRate, ukHz;
 
 
 
@@ -1130,6 +1193,8 @@ void S370_AudioTrackDesc(int P_Track_Format,
                          int P_Internal_Trk,
                          int P_External_Trk) 
 {
+  unsigned short sPID;
+  char szPID[8];
 
   iTrack  = P_Internal_Trk;
   iFormat = P_Track_Format;
@@ -1137,6 +1202,7 @@ void S370_AudioTrackDesc(int P_Track_Format,
   if (iFormat >= 11)
       iFormat = 11;
   lsABBR = FORMAT_ABBR[iFormat];
+  sPID = 0;
 
   if (iTrack >= CHANNELS_MAX)
   {
@@ -1153,19 +1219,23 @@ void S370_AudioTrackDesc(int P_Track_Format,
       szTmp32[0] = 0;
   else
   if (iFormat == FORMAT_MPA)    //  MPEG Audio
+  {
       strcpy(szTmp32, mpa_Ctl[iTrack].desc);
+      sPID          = mpa_Ctl[iTrack].uPID;
+  }
   else
   if (iFormat == FORMAT_LPCM)
   {
-      uMode = SubStream_CTL[FORMAT_LPCM][iTrack].mode;
-      if (uMode == 0)  strcpy(szChannels, "M"); 
+      uChannel_ix = SubStream_CTL[FORMAT_LPCM][iTrack].uChannel_ix;
+      if (uChannel_ix == 0)  strcpy(szChannels, "M"); 
       else
-      if (uMode == 1)  strcpy(szChannels, "S"); 
+      if (uChannel_ix == 1)  strcpy(szChannels, "S"); 
       else
-         sprintf(szChannels, "%d", uMode); 
+         sprintf(szChannels, "%d", uChannel_ix); 
 
-      uBitRate = SubStream_CTL[FORMAT_LPCM][iTrack].uBitRate;
+      uBitRate = SubStream_CTL[FORMAT_LPCM][iTrack].uBitRate_ix;
       ukHz     = SubStream_CTL[FORMAT_LPCM][iTrack].uSampleRate / 1000;
+      sPID     = SubStream_CTL[FORMAT_LPCM][iTrack].uPID;
 
       sprintf(szTmp32, "%s %s %d %dkHz",  
           lsABBR, szChannels, uBitRate, ukHz);
@@ -1173,17 +1243,41 @@ void S370_AudioTrackDesc(int P_Track_Format,
   else
   if (iFormat >= FORMAT_AC3 && iFormat <= FORMAT_DDPLUS)
   {
-      uMode = SubStream_CTL[iFormat][iTrack].mode, 
-      uBitRate = SubStream_CTL[iFormat][iTrack].uBitRate;
+      sPID        = SubStream_CTL[iFormat][iTrack].uPID;
+      uChannel_ix = SubStream_CTL[iFormat][iTrack].uChannel_ix,
+      uBitRate    = SubStream_CTL[iFormat][iTrack].uBitRate;
 
-      sprintf(szTmp32, "%s %s %dk",   lsABBR, 
-                                     AC3Mode[uMode], 
-                                     AC3Rate[uBitRate]);
+      if (iFormat == FORMAT_DTS)
+      {
+         if (iAudioDBG)
+         {
+             BitConv(iAC3_Attr);
+             sprintf(szTmp32, "%s %s",  lsABBR, &szBITS);
+          //   sprintf(szTmp32, "%s c%d r%d",  lsABBR, uChannel_ix, uBitRate);
+         }
+         else
+             strcpy(szTmp32, lsABBR);
+      }
+      else
+      {
+         sprintf(szTmp32, "%s %s %uk",  lsABBR, 
+                                        szAC3Channel[uChannel_ix], 
+                                         uBitRate);
+      }
+
   }
   else
+  {
       sprintf(szTmp32, "? %X %02X", P_Track_Format, P_Internal_Trk) ;
+      sPID     = SubStream_CTL[iFormat][iTrack].uPID;
+  }
 
-  sprintf(szBuffer, "%d. %s", P_External_Trk, szTmp32);
+  if (MParse.SystemStream_Flag >= 0) // Transmission stream (TS or PVA) ?
+      szPID[0] = 0;
+  else
+      sprintf(szPID, ":%d", sPID);
+
+  sprintf(szBuffer, "%d. %s %s", P_External_Trk, szTmp32, szPID);
 }
 
 

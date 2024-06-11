@@ -2,7 +2,7 @@
 //       MPEG OUTPUT MODULE - Main
 //
 // Contains the main high level routines for creating the output file
-//
+// 
 //
 
 #include "windows.h"
@@ -13,7 +13,7 @@
 
 #include "out.h"
 #include "Audio.h"
-
+#include "TXT.h"
 
 #define true 1
 #define false 0
@@ -127,9 +127,9 @@ void uSwapFormat(void *P_Out, void *P_In, const int P_Len)
     int iFreeMB;
 __int64 i64FreeBytes;
 
-  int     iOut_Clip_ctr, iOut_Bridged_Flag, iOutVOB;
+  int   iOut_Bridged_Flag, iOutVOB;
 
-          char cOut_ACT;
+ char cOut_ACT;
   int iKill_PTS_Flag;
 
  DWORD dwOrgCanvas;
@@ -160,7 +160,7 @@ void Out_Status_Msg()
 void Out_Accessing_Msg()
 {
   
-      strcpy(szMsgTxt,"Accessing...");
+      strcpy(szMsgTxt,FILE_ACCESSING); // "Accessing..."
       Out_Status_Msg();
 }
 
@@ -253,7 +253,7 @@ void  Out_Name_Part_Xtn(int P_Accept)
                    {
                        iOverride = (iOverride*10) + (int)(cTST) - '0'; // 3rd digit
 
-                       if (iAccept)  // Optionally accept the user's initial suggestion
+                       if (iAccept > 0)  // Optionally accept the user's initial suggestion
                        {
                            process.iOut_Part_Ctr = iOverride - 1;
                            Out_SzPart();
@@ -293,13 +293,29 @@ void  Out_Name_Part_Xtn(int P_Accept)
 }
 
 
-void Out_ReInstatePicture()
+void Out_ReInstatePicture()      // Rebuild/Restore video display
 {
   int iOK = 0;
 
-  if (MParse.iColorMode != STORE_RGB24
-  &&  iCtl_Ovl_Release && !iCtl_View_RGB_Always)
+  // szMsgTxt[0] = 0;
+
+  DSP_Msg_Clear();
+
+
+  if (!MParse.SeqHdr_Found_Flag)
   {
+      iKick.Action = ACTION_INIT;
+      MPEG_processKick();
+  }
+  else
+  if (IsIconic(hWnd_MAIN))
+  {
+  }
+  else
+  {
+    if (MParse.iColorMode != STORE_RGB24
+    &&  iCtl_Ovl_Release && !iCtl_View_RGB_Always)
+    {
       iShowVideo_Flag = iCtl_ShowVideo_Flag;
       if (DDOverlay_Flag)
           D300_FREE_Overlay();
@@ -310,11 +326,12 @@ void Out_ReInstatePicture()
           //D200_UPD_Overlay();
           iOK = 1;
       }   
-  }
+    }
   
-  if (iOK == 0)
-  {
+    if (iOK == 0)
+    {
       RenderRGB24();
+    }
   }
 
   iBusy = 0;
@@ -332,7 +349,7 @@ int Out_Dup_Name_TST(char *lpOutName)
 
 //----------------------------------------
 
-void OUT_SAVE(char P_Act)
+void OUT_SAVE_GO(char P_Act)
 {
 
   const int K_FrameCode[7] 
@@ -348,24 +365,15 @@ void OUT_SAVE(char P_Act)
                 iFreeClusters, iTotalClusters ;
 
   int  iTmp8, iLen;
+  unsigned int uTmp1;
 
-  char szTmp3[4], cTmp1, szTitle[32], szReference[_MAX_PATH], szTmp160[160];
+  char szDRIVE[4], szTitle[32], szReference[_MAX_PATH];
+  char szFileSystem[16], szVolName[64], szTmp160[160];
+  char cTmp1;
 
    //__int64 i64Tmp1; //, i64Tmp2;
 
-  if (DBGflag) DBGout("\n***\n*** OUT-SAVE STARTED\n***\n");
-
-  //Enable_Disable(false, 0, true);
-  iBusy = 1;
-  hThread_OUT = 0;
-            
-  if (DDOverlay_Flag && iCtl_Ovl_Release)
-      D300_FREE_Overlay();
-
-
-  Mpeg_Stop_Rqst();
-
-  cOut_ACT = P_Act;
+  //cOut_ACT = P_Act;
 
   File_Final       = File_Limit - 1;
   ZeroMemory(&uFileSubStream_Id, sizeof(uFileSubStream_Id));
@@ -448,7 +456,7 @@ void OUT_SAVE(char P_Act)
         */
         if (Mpeg_Version_Alerted < 2)
         {
-          iRC2 = B195_NotMpeg2_Msg(1);
+          iRC2 = F595_NotMpeg2_Msg(1);
           if (iRC2 != IDOK)
             return;
         }
@@ -460,7 +468,11 @@ void OUT_SAVE(char P_Act)
         iEDL_ClipFrom = iEDL_ctr;
         iEDL_ClipTo   = iEDL_ClipFrom + 1;
      }
-
+     else
+     {
+        iEDL_ClipFrom = 0;
+        iEDL_ClipTo   = iEDL_ctr;
+     }
 
      C000_Clip_TOTAL_MB(cOut_ACT);
   }
@@ -503,14 +515,34 @@ void OUT_SAVE(char P_Act)
   }
   */
 
+
+  // Leadtek option implies repaint of mask area
+  //if (iCtl_Mask_Colour == iColor_Menu_BG // Overlay key Mid Grey ?  (Leadtek compat)
+  //&&  MParse.iColorMode != STORE_RGB24)  // Overlay mode ?
+  //    DD_OverlayMask(0); // black out overlay area
+  
+
+
+
   _fmode  = _O_BINARY;
   iPlayAudio  = 0;
 
-  Out_CanFlag = 0 ;   Out_PauseFlag = 0;
+  Out_CanFlag = 0 ;   Out_PauseFlag = 0;  iOutSuspCtr = 0;
   iOut_Clip_ctr = 0; iOut_Bridged_Flag = 0;
 
+
+  if (iCtl_Out_KillPadding 
+             // && !iFixedRate 
+             && (!iOutVOB || !MParse.iVOB_Style))
+    iOut_KillPadding = 1;
+  else
+    iOut_KillPadding = 0;
+
+
+
   iOut_Parse_AllPkts = (iCtl_Out_Parse_AllPkts && iCtl_Out_Parse)
-                    |  process.iOut_DropCrud  // Force packet parsing
+                    |   process.iOut_DropCrud  // Force packet parsing  
+                    |   iOut_KillPadding
                     |  !iOut_Audio_All;
 
   
@@ -585,8 +617,8 @@ void OUT_SAVE(char P_Act)
 
   // Mpeg-1 can only support a limited range of frame rates
   // Mpeg-2 can support others, but requires extra fiddling
-  if (iView_FrameRate_Code
-  && (iView_FrameRate_Code < 9  || process.Mpeg2_Flag))    //  ||  DBGflag))
+  if (iOverride_FrameRate_Code
+  && (iOverride_FrameRate_Code < 9  || process.Mpeg2_Flag))    //  ||  DBGflag))
   {
       if (iCtl_Out_Parse)
         szTmp160[0] = 0;
@@ -594,20 +626,20 @@ void OUT_SAVE(char P_Act)
         strcpy(szTmp160, lpPARSE_QRY);
 
       sprintf(szBuffer, "FORCE Frame Rate to %02f FPS ?%s",
-                               frame_rate_Table[iView_FrameRate_Code]);
+                               frame_rate_Table[iOverride_FrameRate_Code]);
       iRC2 = MessageBox(hWnd_MAIN, szBuffer,  "Mpg2Cut2 - CONFIRM", MB_YESNO);
       switch (iRC2)
       {
          case IDOK: 
          case IDYES: 
               iOut_Fix_Frame_Rate = 1;
-              if (iView_FrameRate_Code < 9)  // Standard Rate ?
+              if (iOverride_FrameRate_Code < 9)  // Standard Rate Code ?
               {
-                  iOutFrameRateCode = iView_FrameRate_Code; // SEQ hdr only
+                  iOutFrameRateCode = iOverride_FrameRate_Code; // SEQ hdr only
               }
               else
               {  // Non-Standard rates implemented as Ratio of a Std rate
-                 iTmp1 = iView_FrameRate_Code - 9;
+                 iTmp1 = iOverride_FrameRate_Code - 9;
                  iOutFrameRateCode = K_FrameCode [iTmp1]; // for SEQ hdr
                  iOutFRatioCode    = K_FrameRatio[iTmp1]; // for seq EXTN hdr
               }
@@ -818,10 +850,16 @@ void OUT_SAVE(char P_Act)
       iRC2 = -1;
       while (iRC2 < 0)
       {
-         // Let user choose output file name and path
-         iRC = X800_PopFileDlg(szOutput, hWnd_MAIN, SAVE_VOB, -1, &szTitle[0]);
+         if (iOutNow <= 0)
+         {
+             // Let user choose output file name and path
+             iRC = X800_PopFileDlg(szOutput, hWnd_MAIN, SAVE_VOB, -1, &szTitle[0]);
+             DSP_Msg_Clear(); // DSP_Blank_Msg_Clean();
+         }
+         else
+           iRC = 1;
 
-         DSP_Msg_Clear(); // DSP_Blank_Msg_Clean();
+         iOutNow = 0;
 
          if (iRC)
          {
@@ -834,7 +872,7 @@ void OUT_SAVE(char P_Act)
               }
             }
 
-            process.iOutFolder = 1;
+            process.iOutFolder_Flag = 1;
 
             iRC2 = Out_Dup_Name_TST(&szOutput[0]);
             if (iRC2 == 0)  // No Duplicates ?
@@ -860,10 +898,10 @@ void OUT_SAVE(char P_Act)
 
          if (szOutput[1] ==':')
          {
-            strcpy(szTmp3, "C:\\");
-            szTmp3[0] = szOutput[0];
+            strcpy(szDRIVE, "C:\\");
+            szDRIVE[0] = szOutput[0];
             Out_Accessing_Msg();
-            iRC2 = GetDiskFreeSpace(&szTmp3[0], //&szOutput[0],
+            iRC2 = GetDiskFreeSpace(&szDRIVE[0], //&szOutput[0],
                                     &iSectorsPerCluster, &iBytesPerSector,
                                     &iFreeClusters, &iTotalClusters);
             DSP_Msg_Clear(); // DSP_Blank_Msg_Clean();
@@ -883,8 +921,8 @@ void OUT_SAVE(char P_Act)
 
          if (iFreeMB < iLen)
          {
-              sprintf(szBuffer, "SPACE INSUFFICIENT on drive %c:\n\nFree = %d MB    Need = %d MB\n\nTRY ELSEWHERE ? ",
-                                    szTmp3[0], iFreeMB, iEDL_TotMB);
+              sprintf(szBuffer, FILE_NO_SPACE,
+                                    szDRIVE[0], iFreeMB, iEDL_TotMB);
               iRC2 = MessageBox(hWnd_MAIN, szBuffer,  szAppName, MB_YESNOCANCEL);
               switch (iRC2)
               {
@@ -894,26 +932,99 @@ void OUT_SAVE(char P_Act)
               }
          }
 
-         /*
-         GetVolumeInformation(
-           LPCTSTR lpRootPathName,           // address of root directory of the file system 
-           LPTSTR lpVolumeNameBuffer,        // address of name of the volume  (VOLSER)
-           DWORD nVolumeNameSize,            // length  of lpVolumeNameBuffer 
-           LPDWORD lpVolumeSerialNumber,     // address of volume serial number 
-           LPDWORD lpMaximumComponentLength, // address of system’s maximum filename length
-           LPDWORD lpFileSystemFlags,        // address of file system flags 
-           LPTSTR  lpFileSystemNameBuffer,   // address of name of file system 
-           DWORD nFileSystemNameSize         // length  of lpFileSystemNameBuffer 
-         );
-         */
-
+         
          if (iFreeMB >= iEDL_TotMB)
          {
-              Out_GO(); //cOut_ACT);
-              iRC = 0;
+             // Trap file >4GB not compat with FAT file system
+             iRC = 1;
+             if (iEDL_TotMB > 4095 && cOut_ACT != 'P')
+             {
+                strcpy(szFileSystem, "NTFS");
+                szVolName[0] = 0;
+                GetVolumeInformation(
+                        &szDRIVE[0],       // addr of root directory of the file system 
+                        &szVolName[0],     // addr of name of the volume  (VOLSER)
+                  sizeof(szVolName),    // len  of lpVolumeNameBuffer 
+                         NULL,          // addr of volume serial number 
+                         NULL,          // addr of system’s maximum filename length
+                        &uTmp1,         // addr of file system flags 
+                        &szFileSystem[0],  // addr of name of file system 
+                  sizeof(szFileSystem));  // len  of lpFileSystemNameBuffer 
+
+                if(stricmp(szFileSystem, "NTFS"))
+                {
+                   sprintf(szBuffer, FILE_TOO_BIG,
+                                      szFileSystem, szDRIVE[0], szVolName);
+                   iRC2 = MessageBox(hWnd_MAIN, szBuffer,  szAppName, MB_YESNOCANCEL);
+                   switch (iRC2)
+                   {
+                      case IDNO:  break;
+                      case IDYES: break;
+                      default:    iRC = 0;
+                   }
+                }
+             }
+
+             if (iRC)
+             {
+                 Out_GO(); //cOut_ACT);
+                 iRC = 0;
+             }
          }
       } // ENDIF
   } //ENDWHILE
+
+
+  return ;
+}
+
+//----------------------------------------
+
+void OUT_SAVE(char P_Act)
+{
+
+  //char cOut_ACT;
+  int iRC;
+
+  if (DBGflag) DBGout("\n***\n*** OUT-SAVE STARTED\n***\n");
+
+  cOut_ACT = P_Act;
+
+  Mpeg_Stop_Rqst();
+
+  //Enable_Disable(false, 0, true);
+  iBusy = 1;
+  hThread_OUT = 0;
+  Sleep(50);
+            
+  if (DDOverlay_Flag && iCtl_Ovl_Release)
+      D300_FREE_Overlay();
+
+  // Leadtek option implies repaint of mask area
+  //if (iCtl_Mask_Colour == iColor_Menu_BG // Overlay key Mid Grey ?  (Leadtek compat)
+  //&&  MParse.iColorMode != STORE_RGB24)  // Overlay mode ?
+  //    DD_OverlayMask(0); // black out overlay area
+  
+  if (cOut_ACT == 'P')  // Save Parts ?
+  {
+      iRC = DialogBox(hInst, (LPCTSTR)IDD_TRACKSEL,
+                                   hWnd_MAIN, (DLGPROC)Out_Part_Dialog);
+
+      process.iOutUnMux   = 0;
+      if (iCtl_Out_SplitSegments == -1)
+          process.iOut_AutoSPLIT  =  1;
+      else
+          process.iOut_AutoSPLIT  =  0;
+
+      if (iRC)
+          cOut_ACT = 'L';
+      else
+          cOut_ACT = 0; // Abandon
+  }
+
+
+  if (cOut_ACT)
+      OUT_SAVE_GO(cOut_ACT);
 
   // Allow for cancel 
   if (!hThread_OUT)
@@ -921,8 +1032,6 @@ void OUT_SAVE(char P_Act)
       Out_ReInstatePicture();
   }
 
-
-  return ;
 }
 
 
@@ -1098,6 +1207,15 @@ void OUT_File_END()
 
       }
       */
+
+
+
+      //iRC = fflush(FileDCB[iFileIx]); // Force flushing of buffers to help narrow down I/O errors
+      //if (iRC)
+      //{
+      //    Msg_LastError("OutFlush", iRC, 'b');
+      //}
+
 
       //  CloseHandle(FileDCB[iFileIx]);  // hFile
       iRC = _close(FileDCB[iFileIx]);
@@ -1411,7 +1529,7 @@ DWORD WINAPI Out_ACTION(LPVOID nParam)
           break;
        }
 
-       if (! iOut_FileCreated_Flag) //  || process.iOut_AutoSPLIT)
+       if (iOut_FileCreated_Flag <= 0) //  || process.iOut_AutoSPLIT)
        {
           Out_Name_Part_Xtn(-1);
           iRC = Out_File_BEGIN();
@@ -1484,6 +1602,8 @@ DWORD WINAPI Out_ACTION(LPVOID nParam)
     i64Progress_Prev_Copied = 0;
     Out_Progress_Chk(-1);
 
+    strcpy(szMsgTxt, "Done.");
+    Out_Status_Msg();
     SetWindowText(hWnd_MAIN, "DONE !");
     UpdateWindow(hWnd_MAIN);
 
@@ -1615,7 +1735,15 @@ DWORD WINAPI Out_ACTION(LPVOID nParam)
           process.iWarnSize_3 = 0; process.iWarnSize_4 = 0;
         }
 
-        SetForegroundWindow(hWnd_MAIN);  // SetFocus(hWnd);
+        if (iCtl_WarnDone)
+            SetForegroundWindow(hWnd_MAIN);  // SetFocus(hWnd);
+        else
+            if (iMainWin_State < 0)
+            {
+                Sleep(500);
+                MessageBeep(MB_OK);
+            }
+        
         C000_Clip_TOTAL_MB('a');
     }
 
@@ -1625,7 +1753,12 @@ DWORD WINAPI Out_ACTION(LPVOID nParam)
   }
 
   // Restore current browse position for further user selection
-  _lseeki64(FileDCB[process.ToPadFile], process.ToPadLoc, SEEK_SET);
+   _lseeki64(FileDCB[process.CurrFile],  process.CurrLoc, SEEK_SET);
+ //_lseeki64(FileDCB[process.ToPadFile], process.ToPadLoc, SEEK_SET);
+
+  if (iMainWin_State >= 0 && (iViewToolBar & 1))
+      T110_Upd_Posn_TrackBar();
+
   BwdGop.ix   = 0;  BwdGop.iOrg   = 0;
   BwdFast1.ix = 0;  BwdFast1.iOrg = 0;
 
@@ -2414,9 +2547,17 @@ void Out_Progress_Chk(int P_Show)
   {
       iProgress_TimeRate = (int)(i64DiffBytes / (__int64)(iProgress_DiffTime)); //  only count write activity, not read overhead
 
-      if (cpu.sse2) // P4 ?   
-        iSanityLimit = 30000; // SATA on P4 can be way faster than IDE on P3
-      else
+      if (cpu.sse2) // P4 ?    SATA on P4 can be way faster than ATA on P3
+      {
+        if (winVer.dwMajorVersion >= 7)  // Later OS probably run on very fast machine
+            iSanityLimit = 60000; 
+        else
+        if (winVer.dwMajorVersion >= 6)  // Vista and later probably run on a fast machine
+            iSanityLimit = 50000; 
+        else
+            iSanityLimit = 40000; 
+      }
+      else // Probably P3 ATA
       if (iCtl_Priority[2] == PRIORITY_HIGH)
         iSanityLimit = 18000;
       else
@@ -2434,14 +2575,15 @@ void Out_Progress_Chk(int P_Show)
 
       if (P_Show > 0)
       {
-          sprintf(szBuffer,
+          sprintf(szMsgTxt,
                "Clip #%d  %d MB / %d MB clip. %d %%... %d kB/s ",
                   iOut_Clip_ctr,
                          iCurrMB, iFudgeClipMB,
                          iCurr_pct, 
                          iProgress_TimeRate);
-          if (DBGflag) DBGout(szBuffer)  ;
-          SetDlgItemText(hProgress, IDC_PROGRESS_TXT, szBuffer);
+          if (DBGflag) DBGout(szMsgTxt);
+          //Out_Status_Msg();
+          SetDlgItemText(hProgress, IDC_PROGRESS_TXT, szMsgTxt);
           SendMessage(hBar, PBM_SETPOS,  iCurr_pct, 0);
 
 

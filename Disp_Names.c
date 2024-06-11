@@ -4,7 +4,8 @@
 #include "global.h"
 #include "PLUG.h"
 #include "commctrl.h"
-
+#include "TXT.h"
+ 
 #define true  1
 #define false 0
 
@@ -900,21 +901,25 @@ void F790_Video_OK(HWND hNamesDlg)
 //#define DEFAULT_ALLF 
 //#define DEFAULT_ALLX
 
-char *szFilter, *szBufPtr, *szSlashPTR, *szTmp1;
+char *lsFilter, *lsBufPtr, *lsSlashPTR, *lsTMPslash;
 
 void X805_Default_Filter()
 {
-   szBufPtr = stpcpy1(szBufPtr, "MPEG Stream (*.vob; *.mpg; *.mpeg; *.m2p; *.m2v; *.mpv; *.m1p; *.m1v; *.EVO; *.ts; *.pva; *.m2t)");  //    DEFAULT_DESC);
-   szBufPtr = stpcpy1(szBufPtr, "*.vob;*.mpg;*.mpeg;*.m2p;*.m2v;*.mpv;*.m1p;*.m1v;*.EVO;*.get*;*.part*;*.0*;*.PVA;*.ts;*.m2t");    //    DEFAULT_FILT);
-   szBufPtr = stpcpy1(szBufPtr, "All Files (*.*)");  //    DEFAULT_ALLF);
-   szBufPtr = stpcpy1(szBufPtr, "*.*"  );  //    DEFAULT_ALLX);
+   lsBufPtr = stpcpy1(lsBufPtr, "MPEG Stream (*.vob; *.mpg; *.mpeg; *.m2p; *.mp2; *.m2v; *.mpv; *.m1p; *.m1v; *.EVO; *.ts; *.pva; *.m2t)");  //    DEFAULT_DESC);
+   lsBufPtr = stpcpy1(lsBufPtr, "*.vob;*.mpg;*.mpeg;*.m2p;*.mp2;*.m2v;*.mpv;*.m1p;*.m1v;*.EVO;*.get*;*.part*;*.0*;*.PVA;*.ts;*.m2t");    //    DEFAULT_FILT);
+   lsBufPtr = stpcpy1(lsBufPtr, "Transport Stream (*.ts; *.pva; *.m2t)");  //    DEFAULT_DESC);
+   lsBufPtr = stpcpy1(lsBufPtr, "*.ts;*.pva;*.m2t");                       //    DEFAULT_FILT);
+   lsBufPtr = stpcpy1(lsBufPtr, "Elementary Stream (*.m2v; *.mpv; *.m1v)");  //    DEFAULT_DESC);
+   lsBufPtr = stpcpy1(lsBufPtr, "*.m2v;*.mpv;*.m1v");                        //    DEFAULT_FILT);
+   lsBufPtr = stpcpy1(lsBufPtr, "All Files (*.*)");  //    DEFAULT_ALLF);
+   lsBufPtr = stpcpy1(lsBufPtr, "*.*"  );  //    DEFAULT_ALLX);
          
-         //szBufPtr = stpcpy1(szBufPtr,     "All Files (*.*)");
-         //szBufPtr = stpcpy1(szBufPtr,     "*.*");
+         //lsBufPtr = stpcpy1(lsBufPtr,     "All Files (*.*)");
+         //lsBufPtr = stpcpy1(lsBufPtr,     "*.*");
 
-   *szBufPtr = 0;  // END of buffer needs extra null
+   *lsBufPtr = 0;  // END of buffer needs extra null
 
-   szFilter  = &szBuffer[0]; // Point to start of buffer
+   lsFilter  = &szBuffer[0]; // Point to start of buffer
 }
 
 
@@ -934,16 +939,16 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
   iRC = 0;
 //  int count = 0;
 
-  szSlashPTR = lpLastSlash(pstrFileName);
-  if (szSlashPTR)
-      szSlashPTR++;
+  lsSlashPTR = lpLastSlash(pstrFileName);
+  if (lsSlashPTR)
+      lsSlashPTR++;
   else
-      szSlashPTR = pstrFileName;
+      lsSlashPTR = pstrFileName;
 
   ofn.lpstrInitialDir = NULL;
 
   // Default File filter
-  szBufPtr = &szBuffer[0];
+  lsBufPtr = &szBuffer[0];
   X805_Default_Filter();
 
 
@@ -955,7 +960,7 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
       // Optionally build partial file name wild cards 
       // based on previous name
 
-      lpFName = szSlashPTR; // lpLastSlash(&szInput[0]);
+      lpFName = lsSlashPTR; // lpLastSlash(&szInput[0]);
 
       if (szInput[0] > ' '  &&  P_Trunc >= 0)
       {
@@ -976,15 +981,15 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
                 //szFile_Prefix, szFile_Prefix, szFile_Prefix, szFile_Prefix, 
                 //szFile_Prefix, szFile_Prefix, szFile_Prefix, szFile_Prefix, 
                 //szFile_Prefix, szFile_Prefix, szFile_Prefix, szFile_Prefix,
-                szFile_Prefix, cInExt);
+                szFile_Prefix, szInExt3_lowercase);
 
          // How come string handling is easier in Cobol than in "C" ? !        
-         szBufPtr = stpcpy1(&szBuffer[0], "Similar MPEG-2 Stream");
-         szBufPtr = stpcpy1(szBufPtr,     &szTemp[0]);
-         szBufPtr = stpcpy1(szBufPtr,     "MPG Files (*.mpg)");
-         szBufPtr = stpcpy1(szBufPtr,     "*.mpg");
-         szBufPtr = stpcpy1(szBufPtr,     "VOB Files (*.VOB)");
-         szBufPtr = stpcpy1(szBufPtr,     "*.VOB");
+         lsBufPtr = stpcpy1(&szBuffer[0], "Similar MPEG-2 Stream");
+         lsBufPtr = stpcpy1(lsBufPtr,     &szTemp[0]);
+         lsBufPtr = stpcpy1(lsBufPtr,     "MPG Files (*.mpg)");
+         lsBufPtr = stpcpy1(lsBufPtr,     "*.mpg");
+         lsBufPtr = stpcpy1(lsBufPtr,     "VOB Files (*.VOB)");
+         lsBufPtr = stpcpy1(lsBufPtr,     "*.VOB");
          
          X805_Default_Filter();
 
@@ -997,7 +1002,7 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
     case SAVE_VOB:
 
         iTmp = 0;
-        szBufPtr = &szBuffer[0];
+        lsBufPtr = &szBuffer[0];
 
         if (ofn.lpstrDefExt)
         {
@@ -1008,16 +1013,16 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
              iTmp = sprintf(szTemp, "*.%s;*.m1v;*.m2v;*.mpv;",
                                     ofn.lpstrDefExt);
 
-             szBufPtr = stpcpy1(&szBuffer[0], "Mpeg Elementary Stream");
+             lsBufPtr = stpcpy1(&szBuffer[0], "Mpeg Elementary Stream");
           }
           else
           if (stricmp(szOut_Xtn_RULE, "vob")
           &&  *ofn.lpstrDefExt > ' ')
           {
-              iTmp = sprintf(szTemp, "*.%s;*.vob;*.mpg;*.mpeg;*.m2p;*.EVO;*.m2t;",
+              iTmp = sprintf(szTemp, "*.%s;*.vob;*.mpg;*.mpeg;*.m2p;*.mp2;*.EVO;*.m2t;",
                                      ofn.lpstrDefExt);
 
-              szBufPtr = stpcpy1(&szBuffer[0], "MPEG Stream");
+              lsBufPtr = stpcpy1(&szBuffer[0], "MPEG Stream");
           }
 
         }
@@ -1025,43 +1030,47 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
         if (iTmp)
         {
            // How come string handling is easier in Cobol than in "C" ? ! !        
-           szBufPtr = stpcpy1(szBufPtr,     &szTemp[0]);
-           szBufPtr = stpcpy1(szBufPtr,     "All Files (*.*)");
-           szBufPtr = stpcpy1(szBufPtr,     "*.*");
-          *szBufPtr = 0;
+           lsBufPtr = stpcpy1(lsBufPtr,     &szTemp[0]);
+           lsBufPtr = stpcpy1(lsBufPtr,     "All Files (*.*)");
+           lsBufPtr = stpcpy1(lsBufPtr,     "*.*");
+          *lsBufPtr = 0;
              
-          szFilter = (char *)(&szBuffer);
+          lsFilter = (char *)(&szBuffer);
         }
 
-        if (iCtl_Out_Folder_Active) // Override default folder ?
+        if (!iCtl_OutFolder_Active             // Same as input folder ?
+        &&   process.iOutFolder_Flag == 0)     // FIRST TIME
         {
-            if (process.iOutFolder                        // NOT FIRST TIME
-            &&  iCtl_Out_Folder_Active != 2               // NOT "MOST RECENT"
-            && (WindowsVersion < 0x80000000 || DBGflag )) //  Windows NT, Win2k, WinXP ?
+            ofn.lpstrInitialDir = &szInFolder[0]; // use input folder
+        }
+        else // Override default folder 
+        {
+            if (process.iOutFolder_Flag == 0            // FIRST TIME
+            ||  iCtl_OutFolder_Active   == 3)           // ALWAYS RESET
+            //|| WindowsVersion >= 0x80000000) //  Windows 95 or 98
             {
-               strcpy(szTMPname,  pstrFileName);
-               szTmp1 = lpLastSlash(pstrFileName);  // How about: (szSlashPTR-1)
-               if (!szTmp1)
-                    szTmp1 = pstrFileName;
-               *szTmp1 = 0;
-
+                strcpy(szTMPname, &szCtl_OutFolder[0]); // Win98 allows both at same time
             }
             else
-            {
-                strcpy(szTMPname, &szCtl_Out_Folder[0]); // Win98 allows both at same time
+            {  // extract folder path to use for InitialDir
+               strcpy(szTMPname,  pstrFileName);
+               lsTMPslash = lpLastSlash(szTMPname); // pstrFileName);  // How about: (lsSlashPTR-1)
+               if (!lsTMPslash)
+                    lsTMPslash = &szTMPname[0]; //pstrFileName;
+               *lsTMPslash = 0;
+
             }
 
             ofn.lpstrInitialDir = &szTMPname[0];
 
+            // optionally strip folder name from file name prompt area
             if ((WindowsVersion < 0x80000000 || DBGflag ) // Windows NT+ ?
-                || ! iCtl_Out_Folder_Both)                // Treat Win98 same as Win2K
+                || ! iCtl_OutFolder_Both)                // Treat Win98 same as Win2K
             {
-                strcpy(pstrFileName, szSlashPTR);
+                strcpy(pstrFileName, lsSlashPTR);
             }
             
         }
-        //else
-        //      ofn.lpstrInitialDir = NULL;
         
       break;
 
@@ -1072,9 +1081,9 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
               ofn.lpstrDefExt = &"BMP";
               if (WindowsVersion < 0x80000000 || DBGflag ) // Windows NT ?
               {
-                  strcpy(pstrFileName, szSlashPTR);
+                  strcpy(pstrFileName, lsSlashPTR);
               }
-              szFilter = TEXT ("Image (*.bmp)\0*.*.bmp\0")  \
+              lsFilter = TEXT ("Image (*.bmp)\0*.*.bmp\0")  \
                      TEXT ("All Files (*.*)\0*.*\0");
       break;
 
@@ -1086,9 +1095,9 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
 
               //if (WindowsVersion < 0x80000000 || DBGflag ) // Windows NT ?
               //{
-              //    strcpy(pstrFileName, szSlashPTR);
+              //    strcpy(pstrFileName, lsSlashPTR);
               //}
-              szFilter = TEXT ("Edit List (*.EDL)\0*.EDL\0")  \
+              lsFilter = TEXT ("Edit List (*.EDL)\0*.EDL\0")  \
                      TEXT ("All Files (*.*)\0*.*\0");
       break;
 
@@ -1098,31 +1107,31 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
               ofn.lpstrDefExt = &"CHAP";
               if (WindowsVersion < 0x80000000 || DBGflag ) // Windows NT ?
               {
-                  strcpy(pstrFileName, szSlashPTR);
+                  strcpy(pstrFileName, lsSlashPTR);
               }
-              szFilter = TEXT ("Edit List (*.CHAP)\0*.CHAP\0")  \
+              lsFilter = TEXT ("Edit List (*.CHAP)\0*.CHAP\0")  \
                      TEXT ("All Files (*.*)\0*.*\0");
       break;
 
 
 /*   case SAVE_AVI:
-         szFilter = TEXT ("AVI File (*.avi)\0*.avi; *.ac3; *.wav; *.mpa\0")   \
+         lsFilter = TEXT ("AVI File (*.avi)\0*.avi; *.ac3; *.wav; *.mpa\0")   \
             TEXT ("All Files (*.*)\0*.*\0");
          break;
 
       case OPEN_D2V:
-         szFilter = TEXT ("DVD2AVI Project File (*.d2v)\0*.d2v\0")  \
+         lsFilter = TEXT ("DVD2AVI Project File (*.d2v)\0*.d2v\0")  \
             TEXT ("All Files (*.*)\0*.*\0");
          break;
 
       case SAVE_D2V:
-         szFilter = TEXT ("DVD2AVI Project File (*.d2v)\0*.d2v; *.ac3; *.wav; *.mpa\0")   \
+         lsFilter = TEXT ("DVD2AVI Project File (*.d2v)\0*.d2v; *.ac3; *.wav; *.mpa\0")   \
             TEXT ("All Files (*.*)\0*.*\0");
          break;
 
       case OPEN_WAV:
       case SAVE_WAV:
-         szFilter = TEXT ("WAV File (*.wav)\0*.wav\0")  \
+         lsFilter = TEXT ("WAV File (*.wav)\0*.wav\0")  \
             TEXT ("All Files (*.*)\0*.*\0");
          break;*/
   }
@@ -1130,7 +1139,7 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
   ofn.lStructSize     = sizeof (OPENFILENAME) ;
   ofn.hwndOwner       = hOwner ;
   ofn.hInstance       = hInst ;
-  ofn.lpstrFilter     = szFilter ;
+  ofn.lpstrFilter     = lsFilter ;
   ofn.nMaxFile        = _MAX_PATH ;
   ofn.nMaxFileTitle   = _MAX_PATH ;
   ofn.lpstrFile       = pstrFileName;
@@ -1142,7 +1151,7 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
 
   //ofn.lpstrDefExt       = "mpg";
 
-  strcpy(szMsgTxt,"Accessing...");
+  strcpy(szMsgTxt,FILE_ACCESSING); // "Accessing..."
   DSP1_Main_MSG(0,0);
   iMsgLife = 0;   szMsgTxt[0] = 0;
 
@@ -1170,11 +1179,11 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
              {
                 if (dTmp1 == FNERR_INVALIDFILENAME)  // Typo ?
                 {
-                    sprintf(szBuffer, "BAD STRUCTURE in File Name or Folder Name\n\nFile = %s\n\n",
+                    sprintf(szBuffer, FILE_BAD_STRUCTURE, // "BAD STRUCTURE in File Name or Folder Name\n\nFile = %s\n\n",
                                             pstrFileName);
                 }
                 else
-                    sprintf(szBuffer, "Cannot show a File List Window For\n\nFile =%s\n\n",
+                    sprintf(szBuffer, FILE_LIST_ERROR, // "Cannot show a File List Window For\n\nFile =%s\n\n",
                                             pstrFileName);
  
                 MessageBox(hWnd_MAIN, szBuffer, szAppName, MB_OK);
@@ -1198,12 +1207,12 @@ int X800_PopFileDlg(PTSTR pstrFileName, HWND hOwner,
            if  (P_Action == SAVE_VOB)
            {   // Remember the output folder
                strcpy(&szOutFolder[0], ofn.lpstrFile);
-               szTmp1 = lpLastSlash(&szOutFolder[0]);
-               if (!szTmp1)
-                    szTmp1 = &szOutFolder[0];
-              *szTmp1 = 0;
-              if (iCtl_Out_Folder_Active == 2)  // Use most recent output folder
-                  strcpy(&szCtl_Out_Folder[0], &szOutFolder[0]);
+               lsTMPslash = lpLastSlash(&szOutFolder[0]);
+               if (!lsTMPslash)
+                    lsTMPslash = &szOutFolder[0];
+              *lsTMPslash = 0;
+              if (iCtl_OutFolder_Active == 2)  // Use most recent output folder
+                  strcpy(&szCtl_OutFolder[0], &szOutFolder[0]);
            }
 
   }

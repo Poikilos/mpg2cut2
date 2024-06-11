@@ -1,13 +1,11 @@
 
 //#define TRACK_HEIGHT  28 // was 30
-//#define TOOL_BAR_WIDTH    476
-//#define INIT_HEIGHT       240
-int iMIN_FULLBAR_WIDTH, iMEDIUMBAR_WIDTH, iDUALBAR_WIDTH, iSTACKBAR_WIDTH; //  560
 
+//#define INIT_HEIGHT       240
 #define MIN_OVL_HEIGHT 240 
 
 HWND hOpenButton, hZoomButton, hAddButton,
-           hLumButton,  hBmpButton, 
+           hLumButton,  hBmpButton, hVolButton, 
            hMarkLeft,   hMarkRight,
            //  hPlayF, hPlayS, 
            hFastX; 

@@ -89,7 +89,7 @@ __forceinline static void form_component_prediction(unsigned char *src, unsigned
 
 void Pic_DECODE()
 {
-  int iDrop_B_Now_flag, iDrop_This_flag;
+  int iDrop_This_flag;
 
 #ifdef DBG_RJ
   if (DBGflag)
@@ -101,7 +101,7 @@ void Pic_DECODE()
 
   if (MPEG_Pic_Type < 4)
   {
-      PlayCtl.iPendingSeq[MPEG_Pic_Type] = MPEG_Pic_Temporal_Ref;
+      PlayCtl.uPendingSeq[MPEG_Pic_Type] = MPEG_Pic_Temporal_Ref;
   }
 
   iGOPdiff = iPICtime - iGOPtime;

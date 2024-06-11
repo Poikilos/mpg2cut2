@@ -6,9 +6,10 @@
 
 void  Nav_Jump_Fwd(JUMPTBL *BwdTbl)
 {
-      if  (BwdTbl->i64Loc[BwdTbl->ix]  <  process.CurrLoc
-      ||   BwdTbl->iFile [BwdTbl->ix]  <  process.CurrFile)
-      {
+  
+  if  (BwdTbl->i64Loc[BwdTbl->ix]  <  process.CurrLoc
+  ||   BwdTbl->iFile [BwdTbl->ix]  <  process.CurrFile)
+  {
       //  Push  onto  circular  Location  LIFO  stack
 
           if (BwdTbl->ix  <  JUMPTBL_MAX)
@@ -24,15 +25,21 @@ void  Nav_Jump_Fwd(JUMPTBL *BwdTbl)
               if  (BwdTbl->iOrg  <  JUMPTBL_MAX)
                    BwdTbl->iOrg++;
               else
+              {
                    BwdTbl->iOrg = 0;
+              }
           }
           else
           {
           }
-      }  //  ENDIF  Location  has  progressed
-      else
-      {
-      }
+
+
+
+  }  //  ENDIF  Location  has  progressed
+  else
+  {
+            // BUG IF WE ARRIVE HERE ?
+  }
 }
 
 
@@ -60,13 +67,13 @@ void Nav_Jump_BWD(JUMPTBL *BwdTbl)
             }
             else
             {
-              if  (iNav_Index)
+              if  (iCTL_FastBack)
               {
                  //  If  we  have  been  single  stepping,
                  //  then  may  need  to  return  to  start  of  CURRENT  gop
                  //
                  //  if  (MPEG_Pic_Type  >  I_TYPE  &&  MPEG_Pic_Structure  ==  FULL_FRAME_PIC
-                 //                            &&  iNav_Index)
+                 //                            &&  iCTL_FastBack)
                  //          process.Action  =  ACTION_NEW_CURRLOC;
 
                  process.CurrLoc   =  i64Loc1;
