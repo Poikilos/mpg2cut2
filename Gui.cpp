@@ -5284,7 +5284,7 @@ void Set_AudioTrack(int P_Track)
       //    MenuUnTick(IDM_AUDPID_NONE);
       //}
   }
-  else
+  else 
   if (iAudio_SEL_Track == TRACK_NONE)
   {
       CheckMenuItem(hMenu, IDM_TRACK_NONE, MF_CHECKED);
