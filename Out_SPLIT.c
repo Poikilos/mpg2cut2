@@ -360,16 +360,17 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
         uMPA_Mpeg_Ver    = 4-((lpMpeg_ix3[1]>>3)&3);  // 0=Mpeg1 1=mpeg2 2=Reserved 3=mpeg2.5
         uMPA_Layer_Ix    = 3- (lpMpeg_ix3[1]>>1)&3;
         uMPA_kBitRate_Ix =    (lpMpeg_ix3[2]>>4)&15;
+        uMPA_SampFreq_Ix =    (lpMpeg_ix3[2]>>2)&3;
 
         if (uMPA_kBitRate_Ix >= 0x0F // Is the bitrate setting invalid ?
         ||  uMPA_kBitRate_Ix == 0x00 // Free Format is too hard
         ||  uMPA_Layer_Ix    == 0    // Is the mpeg layer invalid ?
+        ||  uMPA_SampFreq_Ix >= 3
         //||  uMPA_Mpeg_Ver    == 3    // Is the Mpeg VERSION valid ?
            )
             lpMpeg_ix3++;   // Not a reliable header - keep looking
         else
         {
-           uMPA_SampFreq_Ix =   (lpMpeg_ix3[2]>>2)&3;
            uMPA_Padding     =   (lpMpeg_ix3[2]>>1)&1;
            uMPA_Channel_ix  =   (lpMpeg_ix3[3]>>6)&3;
 
@@ -377,80 +378,86 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
            uMPA_Sample_Hz = MPA_SAMPLE_HZ[uMPA_25_LSF][uMPA_SampFreq_Ix];
            uMPA_kBitRate  = MPA_KBIT_RATE[uMPA_LSF][uMPA_Layer_Ix][uMPA_kBitRate_Ix];
 
-           MPA_FrameLen();
-            
-           if (iMPA_FrameLen <= 0)
+           // Check if rate combo is sensible
+           if (uMPA_Sample_Hz <= 32000  
+           &&  uMPA_kBitRate  >= 192)
+           {
                lpMpeg_ix3++;   // Not a reliable header - keep looking
+           }
            else
            {
-             lpNextHdr = lpMpeg_ix3 + iMPA_FrameLen;
-             if (DBGflag)
-                 lpPrevHdr = lpStart - 5;
 
-             iAdjacent_OK = 1;
-
-             // TODO: NEED some extra tests here so that 
-             // frame split across packets
-             // will not be accepted
-             // *UNLESS* previous frame points to it
-             //              (for rejects, maybe store bytes for later ?)
-
-
-
-             
-             if (uMPA_Layer < 3)   // Further check mp1, mp2. Dunno about mp3
+             MPA_FrameLen();
+            
+             if (iMPA_FrameLen <= 0)
+                 lpMpeg_ix3++;   // Not a reliable header - keep looking
+             else
              {
-                if (lpNextHdr  < lpMpeg_End_Packet) // Is next frame in same packet ?
-                {
-                   if (*lpNextHdr  != 0xFF ) // and is there really a header there
-                       iAdjacent_OK = 0;
-                   else
-                       lpHopeHdr = lpNextHdr; 
-                }
-                else
-                if (lpMpeg_ix3 != lpHopeHdr
-                &&  lpNextHdr  != lpMpeg_End_Packet) // Is frame end at pkt boundary ?
-                {
-                    lpPrevHdr = lpMpeg_ix3 - iMPA_FrameLen;
-                    if (lpPrevHdr  >= lpStart) // Is prev frame in same packet ?
-                    {
-                       if ((*lpPrevHdr  ) != 0xFF   // chk prev hdr of same length
-                       &&  (*lpPrevHdr-1) != 0xFF   // chk prev hdr of similar len
-                       &&  (*lpPrevHdr+1) != 0xFF ) // chk prev hdr of similar len
-                           iAdjacent_OK = 0;
-                     }
-                    else
-                    if (uMPA_Sample_Hz < 44100 && Coded_Pic_Width >= 400) // Unlikely combo
-                    {
-                           iAdjacent_OK = 0;
-                    }
-                }
-             } // end look ahead 
+               lpNextHdr = lpMpeg_ix3 + iMPA_FrameLen;
+               if (DBGflag)
+                   lpPrevHdr = lpStart - 5;
 
-             if (DBGflag)
-             {
-                sprintf(szBuffer, "   MP%u FRAME %uHz %04u samples len=%d Off=%04d Rem=%04d Prev=x%02X Next=x%02X", 
-                                      uMPA_Layer,  uMPA_Sample_Hz, uMPA_Samples,
-                                      iMPA_FrameLen,
+               iAdjacent_OK = 1;
+
+               // TODO: NEED some extra tests here so that 
+               // frame split across packets
+               // will not be accepted
+               // *UNLESS* previous frame points to it
+               //              (for rejects, maybe store bytes for later ?)
+         
+               if (uMPA_Layer < 3)   // Further check mp1, mp2. Dunno about mp3
+               {
+                  if (lpNextHdr  < lpMpeg_End_Packet) // Is next frame in same packet ?
+                  {
+                     if (*lpNextHdr  != 0xFF ) // and is there really a header there
+                         iAdjacent_OK = 0;
+                     else
+                         lpHopeHdr = lpNextHdr; 
+                  }
+                  else
+                  if (lpMpeg_ix3 != lpHopeHdr
+                  &&  lpNextHdr  != lpMpeg_End_Packet) // Is frame end at pkt boundary ?
+                  {
+                      lpPrevHdr = lpMpeg_ix3 - iMPA_FrameLen;
+                      if (lpPrevHdr  >= lpStart) // Is prev frame in same packet ?
+                      {
+                         if ((*lpPrevHdr  ) != 0xFF   // chk prev hdr of same length
+                         &&  (*lpPrevHdr-1) != 0xFF   // chk prev hdr of similar len
+                         &&  (*lpPrevHdr+1) != 0xFF ) // chk prev hdr of similar len
+                             iAdjacent_OK = 0;
+                      }
+                      else
+                      if (uMPA_Sample_Hz < 44100 && Coded_Pic_Width >= 400) // Unlikely combo
+                      {
+                          iAdjacent_OK = 0;
+                      }
+                  }
+               } // end look ahead 
+
+               if (DBGflag)
+               {
+                  sprintf(szBuffer, "   MP%u FRAME %uHz %04u samples len=%d Off=%04d Rem=%04d Prev=x%02X Next=x%02X", 
+                                       uMPA_Layer,  uMPA_Sample_Hz, uMPA_Samples,
+                                       iMPA_FrameLen,
                                       (lpMpeg_ix3 - lpStart),
                                       (lpMpeg_End_Packet - lpMpeg_ix3),
                                         *lpNextHdr, *lpPrevHdr);
-                DBGout(szBuffer) ;
-             }
+                  DBGout(szBuffer) ;
+               }
 
-             if (!iAdjacent_OK)  // and is there are nearby header at correct distance
-                  lpMpeg_ix3++;   // Not a reliable header - keep looking
-             else
-             {
-               if (!iOut_PTS_Matching)
-                   iScanResult = 1; // Stop Looking
+               if (!iAdjacent_OK)  // and is there are nearby header at correct distance
+                   lpMpeg_ix3++;   // Not a reliable header - keep looking
                else
-               if (uMPA_Sample_Hz)
                {
-                   uFrameTime_PTS =  (uMPA_Samples * 90000 / uMPA_Sample_Hz);
+                 if (!iOut_PTS_Matching)
+                     iScanResult = 1; // Stop Looking
+                 else
+                 if (uMPA_Sample_Hz)
+                 {
+                     uFrameTime_PTS =  (uMPA_Samples * 90000 / uMPA_Sample_Hz);
 
-                   if (DBGflag)
-                   {
+                     if (DBGflag)
+                     {
                        sprintf(szBuffer, "       FRAME %04ums =%05ut", 
                                               (uFrameTime_PTS/90), uFrameTime_PTS);
                         DBGout(szBuffer) ;
@@ -458,11 +465,11 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
                                         (unsigned int)(i64Diff_PTS/90),
                                         (unsigned int)(i64Diff_PTS));
                         DBGout(szBuffer) ;
-                   }
+                     }
 
-                   // Is this frame entirely ahead of the calculated trigger ?
-                   if (uFrameTime_PTS < (unsigned int)(i64Diff_PTS))
-                   {
+                     // Is this frame entirely ahead of the calculated trigger ?
+                     if (uFrameTime_PTS < (unsigned int)(i64Diff_PTS))
+                     {
                        i64Diff_PTS  -= uFrameTime_PTS;
                        i64Curr_PTS  += uFrameTime_PTS;
                        // Keep Looking
@@ -474,17 +481,17 @@ void Out_Find_MPA_Syncword()  // mp1, mp2, mp3 audio
                                         (unsigned int)(i64Curr_PTS));
                             DBGout(szBuffer) ;
                        }
-                   }
-                   else
-                   {
-                      iScanResult = 1; // Stop Looking
-                      uPTS_Accounted[uSubStream_Id] += uFrameTime_PTS;
-                   }
-               } // END-IF valid sample rate
-
-             } // END-IF look ahead seems ok
-           } // END-IF bit combos look OK
-        }  // END-IF leading Bits ok
+                     }
+                     else
+                     {
+                        iScanResult = 1; // Stop Looking
+                        uPTS_Accounted[uSubStream_Id] += uFrameTime_PTS;
+                     }
+                 } // END-IF valid sample rate
+               } // END-IF Adjcaent HDR OK
+             } // END-IF framelen OK
+           } // end-if sensible rate combo
+        } // END-IF index settings not reserved
      }  // END-IF  MPA Syncword
   } // ENDWHILE
 }

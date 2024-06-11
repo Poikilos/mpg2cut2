@@ -156,29 +156,34 @@ int Store_Timing_Chk(int P_Overlay)
   if (MParse.FastPlay_Flag)
   {
       iPeriod_Adj = iFrame_Period_ms;
-      switch (MParse.FastPlay_Flag)
+      if (iOverride_FrameRate_Code == 0
+      ||  MParse.FastPlay_Flag >= CUE_SLOW)
       {
-       case 0: break;
-       case 1: iPeriod_Adj = iPeriod_Adj * 2 / 3; break;
-       case 2: iPeriod_Adj = iPeriod_Adj / 2;     break;
-       case 3: iPeriod_Adj = iPeriod_Adj / 3;     break;
-       case 4: iPeriod_Adj = iPeriod_Adj / 4;     break; // MAX_WARP
+         switch (MParse.FastPlay_Flag)
+         {
+           case 0: break;
+           case 1: iPeriod_Adj = iPeriod_Adj * 2 / 3; break;
+           case 2: iPeriod_Adj = iPeriod_Adj / 2;     break;
+           case 3: iPeriod_Adj = iPeriod_Adj / 3;     break;
+           case 4: iPeriod_Adj = iPeriod_Adj / 4;     break; // MAX_WARP
 
-       case CUE_SLOW: 
-            if (iGOPtot == 1) // allow for I-Frame-only streams
-                iPeriod_Adj = iPeriod_Adj / 8;     
-            else
-                iPeriod_Adj = iPeriod_Adj * 2 / 3;     // CUE-SLOW
-            break; 
+           case CUE_SLOW: 
+                if (iGOPtot == 1) // allow for I-Frame-only streams
+                    iPeriod_Adj = iPeriod_Adj / 8;     
+                else
+                    iPeriod_Adj = iPeriod_Adj * 2 / 3;     // CUE-SLOW
+                break; 
 
-       default:  // CUE_QUICK..SUPER-CUE
-          iPeriod_Adj = iPeriod_Adj
-                      * (MParse.FastPlay_Flag + 1)
-                      / (MParse.FastPlay_Flag * 3);  // 1=0.666 2=0.5
+            default:  // CUE_QUICK..SUPER-CUE
+              iPeriod_Adj = iPeriod_Adj
+                          * (MParse.FastPlay_Flag + 1)
+                          / (MParse.FastPlay_Flag * 3);  // 1=0.666 2=0.5
+         }
       }
   }
   else
-  if (MParse.SlowPlay_Flag > 0)
+  if (MParse.SlowPlay_Flag > 0 
+  &&  iOverride_FrameRate_Code == 0)
   {
              if (MParse.SlowPlay_Flag == 1)
                  iTmp2 = 5;

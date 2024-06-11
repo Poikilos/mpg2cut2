@@ -78,8 +78,8 @@ there are 2 different configurations for keyboard commands:
 
 	Mark "IN"             [             Shift [
 	Mark "OUT"            ]             Shift ]
-	Go to "IN"            Shift [           [
-	Go to "OUT"           Shift ]           ]
+	Go to "IN"            Shift [             [
+	Go to "OUT"           Shift ]             ]
 	ADD clip              +
 
 
@@ -2150,8 +2150,16 @@ Parameter format :-
 
 "input-file" [...] FROM=hh:mm:ss.ff TO=hh:mm:ss.ff  O="output-file" xxx
 
-All parameters are optional, except for the input-file-name,
-which MUST be the FIRST parameter.
+All parameters are optional.
+The input-file-name list MUST be at the START.
+
+TIME CODE PARAMETERS:-
+
+Note that Time Code parameters are experimental,
+and many limitations apply.
+The input file must have mpeg packs at GOP boundaries,
+and the SCR must be in ascending order thoughout,
+and consistent with the corresponding PTS values.
 
 FROM= defaults to start of file
 TO=   defaults to end of file
@@ -2184,6 +2192,7 @@ If you want to eliminate the conversion to relative time,
 specify the keyword parameter ABS (Absoloute).
 Time codes must then match the actual SCR time stamps.
 
+Maximum of 32 pairs of FROM..TO selections.
 
 ------------------------------------------------------------------
 

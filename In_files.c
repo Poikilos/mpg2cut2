@@ -243,7 +243,7 @@ void F150_File_Begin(char P_Act)
         process.GoodLoc1 = MAXINT64;
         //MParse.SeqHdr_Found_Flag = 0;  <== PLANNED - Check downstream effect on Buffer flags
 
-        if (File_PreLoad <= 0) // FromTC.hour < 0)  // Not Parm2Clip mode 
+        if (File_PreLoad <= 0)   // Not Parm2Clip mode 
            MPEG_processKick(); 
     }
     
@@ -1875,7 +1875,7 @@ void F950_Close_Files(char P_ACTION)
 
    if (iKill) // == iTot)
    {
-       sprintf(szMsgTxt, "Deleted %d files", iKill);
+       sprintf(szMsgTxt, FILE_DELETED_N, iKill);
        DSP1_Main_MSG(0,0);
        DSP5_Main_FILE_INFO();
        MParse.Fault_Flag = 0;
@@ -1912,7 +1912,7 @@ int  F999_Del_or_Recycle(char *lpDSN)  // LPCTSTR
 
   if (iCtl_RecycleBin)
   {
-     strcpy(szMsgTxt,"Recycling...");
+     strcpy(szMsgTxt,FILE_RECYCLING);
      DSP1_Main_MSG(0,0);
      UpdateWindow(hWnd_MAIN);
 

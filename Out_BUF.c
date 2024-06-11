@@ -102,7 +102,7 @@ resume:
     {
       if  (iMsgTime == MAXINT31)  // MAXINT)    // (! iMsgLife)
       {
-          strcpy(szMsgTxt,"DISK SLOW - INPUT"); // Maybe failing Hard Drive OR drive had powered down since last use OR Fragmentation OR Competing Task 
+          strcpy(szMsgTxt,DISK_SLOW_IN); // Maybe failing Hard Drive OR drive had powered down since last use OR Fragmentation OR Competing Task 
           DSP1_Main_MSG(0,0);
           UpdateWindow(hWnd_MAIN);
       }

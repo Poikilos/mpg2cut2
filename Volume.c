@@ -310,6 +310,8 @@ void VOL304_Vol_Boost_Off()
 void VOL305_Volume_Lesser()
 {
 
+  iCtl_Vol_BoostCat_Flag[iVol_Boost_Cat] = 1;
+
   if (iVolume_Boost == 0)  // previously uncontrolled ?
   {
       iVolume_Boost = (K_BOOST_DENOM*5/8); // begin control at slight decrease 

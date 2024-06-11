@@ -6,7 +6,7 @@
 // VALIDATE SOME MORE
 __forceinline static void MPA_FrameLen()
 {
-  if (uMPA_SampFreq_Ix > 2   // invalid MPA sampling frequncy code
+  if (uMPA_SampFreq_Ix > 2   // invalid MPA sampling frequency code
   // ||  uMPA_Mpeg_Ver   == 3  // Invalid Mpeg Version ?
      )
   {

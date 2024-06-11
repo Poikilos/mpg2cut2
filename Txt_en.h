@@ -61,6 +61,8 @@
 #define FILE_NO_SPACE "SPACE INSUFFICIENT on drive %c:\n\nFree = %d MB    Need = %d MB\n\nTRY ELSEWHERE ? "
 #define FILE_TOO_BIG "Cannot write file >4GB onto %s drive %c:  %s\n\nTRY ELSEWHERE ? "
 #define FILE_ADD_QRY "ADD to current file list ? "
+#define FILE_DELETED_N "Deleted %d files"
+#define FILE_RECYCLING "Recycling..."
 
 #define ILLEGAL_CHR_TXT "ILLEGAL CHARACTER %c"
 
@@ -68,7 +70,12 @@
 #define NOT_MPEG2_BRIEF "NOT MPEG2 PS"
 #define NO_MPEG_PACK_SEQ_AT_START "NO MPEG PACK/SEQ header at start.\n\n%s"
 
-#define PARM_UNKNOWN_KW     "Unknown Parameter Keyword \"%s\" "
+#define PARM_UNKNOWN_KW         "Unknown Parameter Keyword \"%s\" "
+#define PARM_TOO_MANY_FILES     "TOO MANY INPUT FILES !"
+#define PARM_TOO_MANY_TIMECODES "MORE THAN 32 TIME CODES !"
+#define PARM_FROM_TOO_EARLY  "SELECTED TIME preceeds first SCR on file.\n\nSEL=%u\nORG=%u"
+#define PARM_TO_TOO_BIG "SELECTED TIME exceeds last SCR on file.\n\nSEL=%u\nEOF=%u"
+
 #define UNDO_SORRY "Sorry, I don't know what to UNDO"
 
 
@@ -83,6 +90,22 @@
 
 #define AUDIO_NO_OTHER_TRK  "NO OTHER AUDIO TRK"
 
-#define EXE_PGM "EXECUTABLE PROGRAM"
+#define EXE_PGM      "EXECUTABLE PROGRAM"
 
+#define DISK_PROBLEM  "DISK PROBLEM"
+#define DISK_SLOW     "DISK SLOW"
+#define DISK_SLOW_IN  "DISK SLOW - INPUT"
+#define DISK_SLOW_OUT "DISK SLOW - OUTPUT"
 
+#define SAVING_N_CLIPS "Saving %d clips - %s"
+#define SAVING         "Saving..."
+
+#define SEARCHING    "Searching..."
+#define TROJAN_AVI_FILE  "** TROJAN AVI file ***"
+#define WAITING      "Waiting..."
+
+#define NORMAL_SPEED "Normal Speed"
+#define FAST_N       "FAST-%d"
+#define SLOW_N       "SLOW-%d"
+
+#define REG_EXPLAIN  "This will register Mpg2Cut2 with Windows Explorer\nas the EDIT function for MPEG file types\n\n%s"

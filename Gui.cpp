@@ -707,7 +707,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
                 DSP3_Main_TIME_INFO();
                 break;
            case ID_FMT_SCR:
-                iView_TC_Format = 5;
+                iView_TC_Format = 6;  
                 DSP3_Main_TIME_INFO();
                 break;
            case ID_FMT_TOD_REL:
@@ -1852,6 +1852,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            Mpeg_Stop_Rqst();
            if (iEDL_ctr)
            {
+               DSP2_Main_SEL_INFO(1);
                MessageBox(hWnd_MAIN, SAVE_CLIPS_BEFORE_DELETE, szAppName, MB_OK);
            }
            else
@@ -1893,7 +1894,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break; 
 
       case IDM_SEL_ALL:
-           Mpeg_Stop_Rqst();
+           //Mpeg_Stop_Rqst();
            C100_Clip_DEFAULT('o');
            break;
 
@@ -2151,7 +2152,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
              Sleep(250);
              if (MParse.Stop_Flag >= 3)
              {
-                 strcpy(szMsgTxt,"Waiting...");
+                 strcpy(szMsgTxt,WAITING);
                  DSP1_Main_MSG(1,1); 
              }
           }
@@ -3245,7 +3246,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
                VOL340_Up();
            else
                B380_Volume_Window(); 
-           break;
+           break; 
 
       case IDM_VOLUME_UP:
            if (!iCtl_KB_V_Popup)
@@ -4969,7 +4970,8 @@ void B501_Play_Button(int P_Toggler)
                Mpeg_Stop_Rqst();
            else
            {
-               B555_Normal_Speed(0);
+               if (iOverride_FrameRate_Code == 0)
+                   B555_Normal_Speed(0);
 
                iRender_TimePrev  = 0;
                if (MParse.Tulebox_SingleStep_flag)
@@ -5128,7 +5130,7 @@ void  B555_Normal_Speed(int P_Tell)
 
   if (P_Tell)
   {
-      strcpy(szMsgTxt, "Normal Speed");
+      strcpy(szMsgTxt, NORMAL_SPEED);
       DSP1_Main_MSG(0,0);
   }
 
@@ -5492,7 +5494,7 @@ void B150_PLAY_FASTER(DWORD wmId)
 
 void B153_Fast_Msg()
 {
-      sprintf(szMsgTxt,"FAST-%d", MParse.FastPlay_Flag);
+      sprintf(szMsgTxt, FAST_N, MParse.FastPlay_Flag);
       if (MParse.ShowStats_Flag)
       {
           SetDlgItemText(hStats, IDC_MPAdec_NAME, szMsgTxt);
@@ -5978,20 +5980,76 @@ void  Set_Frame_Rate(int P_NewSetting)
        iView_FrameRate_Code = MPEG_Seq_frame_rate_code;
    FrameRate2FramePeriod();
 
-   if (! P_NewSetting)
+   MParse.SlowPlay_Flag = 0;
+   MParse.FastPlay_Flag = 0;
+   if (iOverride_FrameRate_Code == 0)
+       iAudio_Lock = 1;
+   else
+       iAudio_Lock = 0;
+
+   // Change sound to roughly match new speed
+   if (iFrame_Rate_int < Mpeg_FrameRate_INT
+   && (!iCtl_PALTelecide
+       || iOverride_FrameRate_Code != 2   // Want 24FPS
+       || MPEG_Seq_frame_rate_code != 3   //  was 25FPS
+       || iAudio_Force44K)
+      )
    {
-     if ((MPEG_Seq_frame_rate_code == 5 && iView_FrameRate_Code == 1)
-     ||  (MPEG_Seq_frame_rate_code == 3 && iView_FrameRate_Code == 11))
+    if ((iFrame_Rate_int * 4) < (Mpeg_FrameRate_INT * 3))
+    {
+     if ((iFrame_Rate_int * 2) < Mpeg_FrameRate_INT)
      {
-          MParse.SlowPlay_Flag = 1;
+       if ((iFrame_Rate_int * 3) < Mpeg_FrameRate_INT)
+       {
+         if ((iFrame_Rate_int * 4) < Mpeg_FrameRate_INT)
+         {
+           MParse.SlowPlay_Flag = 4;
+         }
+         else
+           MParse.SlowPlay_Flag = 3;
+       }
+       else
+           MParse.SlowPlay_Flag = 2;
      }
      else
-     {
-         MParse.SlowPlay_Flag = 0;
-         iAudio_Lock = 0;
-     }
+           MParse.SlowPlay_Flag = 1;
+    }
+
+   }
+   else
+   if (fFrame_rate > fFrame_rate_MPEG)
+   {
+      if (iFrame_Rate_int >= (Mpeg_FrameRate_INT * 2))
+      {
+       if (iFrame_Rate_int >= (Mpeg_FrameRate_INT * 3))
+       {
+         if (iFrame_Rate_int >= (Mpeg_FrameRate_INT * 4))
+         {
+             MParse.FastPlay_Flag = 4;
+         }
+         else
+          MParse.FastPlay_Flag = 3;
+       }
+       else
+          MParse.FastPlay_Flag = 2;
+      }
+      else
+          MParse.FastPlay_Flag = 1;
    }
 
+
+
+   //if (MPEG_iFrame_rate_extension_n == 0 &&
+   //    MPEG_iFrame_rate_extension_d == 0)
+   //{
+   //if ((MPEG_Seq_frame_rate_code == 5 && iView_FrameRate_Code == 1)
+   //||  (MPEG_Seq_frame_rate_code == 3 && iView_FrameRate_Code == 11))
+   //{
+   //       MParse.SlowPlay_Flag = 1;
+   //}
+   //
+
+ 
    CheckMenuItem(hMenu, MenuFld[0],      MF_UNCHECKED);
    CheckMenuItem(hMenu, MenuFld[1],      MF_UNCHECKED);
    CheckMenuItem(hMenu, MenuFld[2],      MF_UNCHECKED);
@@ -6918,7 +6976,7 @@ int X110_TK_Number()
 
 // Convert a series of integers into a Time Stamp
 
-void X120_TK_HHMMSSFF(TC_HMSFR *lpTC)
+void X120_TK_HHMMSSFF(TC_HMSF *lpTC)
 {
   int iHH, iMM, iSS, iFF, iTmp1;
 
@@ -7057,7 +7115,8 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
 
   cPassed1 = 0 ;
 
-  FromTC.hour = -1;  ToTC.hour = -1; iFromTC_Style = 1;
+  FromTC[0].hour = -1;  ToTC[0].hour = -1; iParmTC_Style = 1;
+  iParmTC_ctr = 0;
   szOutParm[0] = 0;  File_PreLoad = 0;
   process.length[0] = 0;
 
@@ -7119,7 +7178,7 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
                   File_PreLoad++;
                }
                else
-                  strcpy(szMsgTxt, "TOO MANY INPUT FILES !");
+                  strcpy(szMsgTxt, PARM_TOO_MANY_FILES);
 
            }
            else
@@ -7133,12 +7192,19 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
 
              if (!stricmp(szTmp1,"FROM"))
              {
-                 X120_TK_HHMMSSFF(&FromTC);
+                 X120_TK_HHMMSSFF(&FromTC[iParmTC_ctr]);
+                 ToTC[iParmTC_ctr].hour = -1;
              }
              else
              if (!stricmp(szTmp1,"TO"))
              {
-                 X120_TK_HHMMSSFF(&ToTC);
+                 X120_TK_HHMMSSFF(&ToTC[iParmTC_ctr]);
+                 if (iParmTC_ctr < 32)
+                     iParmTC_ctr++;
+                 else
+                     strcpy(szMsgTxt, PARM_TOO_MANY_TIMECODES);
+                 ToTC[iParmTC_ctr].hour   = -1;
+                 FromTC[iParmTC_ctr].hour = -1;
              }
              else
              if (!stricmp(szTmp1,"O")
@@ -7154,12 +7220,12 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
              else
              if (!stricmp(szTmp1,"ABS"))
              {
-                iFromTC_Style = 0;
+                iParmTC_Style = 0;
              }
              else
              if (!stricmp(szTmp1,"REL"))
              {
-                iFromTC_Style = 1;
+                iParmTC_Style = 1;
              }
              else
              if (!stricmp(szTmp1,"MAX")) // Maximize screen
@@ -7204,8 +7270,10 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
          {
            sprintf(szBuffer, "File=%s\n\nFrom=%02dh %02dm %02ds %02df\n     To=%02dh %02dm %02ds %02df\n",
                    szInput, 
-                   FromTC.hour, FromTC.minute, FromTC.sec, FromTC.frameNum,
-                     ToTC.hour,   ToTC.minute,   ToTC.sec,   ToTC.frameNum);
+                   FromTC[iParmTC_ctr].hour, FromTC[iParmTC_ctr].minute  ,
+                   FromTC[iParmTC_ctr].sec , FromTC[iParmTC_ctr].frameNum,
+                     ToTC[iParmTC_ctr].hour,   ToTC[iParmTC_ctr].minute  ,
+                     ToTC[iParmTC_ctr].sec ,   ToTC[iParmTC_ctr].frameNum);
            DBGout(szBuffer);
            MessageBox(hWnd_MAIN, szBuffer, szAppName, MB_OK);
          }

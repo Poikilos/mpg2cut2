@@ -3,6 +3,7 @@
 #include "global.h"
 #include <commctrl.h>
 #include "out.h"
+#include "TXT.h"
 
 #define true 1
 #define false 0
@@ -29,10 +30,10 @@ void Progress_Kill(HWND hProgress_Link)
 
 void Out_Progress_Title(HWND hProgress_Link)
 {
-     sprintf(szBuffer, "Saving %d clips - %s", iEDL_OutClips,
+     sprintf(szBuffer, SAVING_N_CLIPS, iEDL_OutClips,
                                                     szOutput);
      SetWindowText(hProgress_Link, szBuffer);
-     strcpy(szMsgTxt, "Saving...");
+     strcpy(szMsgTxt, SAVING);
      Out_Status_Msg();
 }
 

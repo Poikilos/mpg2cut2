@@ -7,6 +7,7 @@
 #include "getbit.h"
 #include "GetBit_Fast.h"
 #include "Mpg2Cut2_API.h"
+#include "TXT.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -135,9 +136,9 @@ Remaining_Calc:
      if (iTimeDiff > iTimeHurdle)
      {
         if (iTimeDiff > (iTimeHurdle<<2))
-            strcpy(szMsgTxt,"DISK PROBLEM"); // Could be failing Hard Drive OR drive had powered down since last use OR Fragmentation OR Competing Task
+            strcpy(szMsgTxt,DISK_PROBLEM); // Could be failing Hard Drive OR drive had powered down since last use OR Fragmentation OR Competing Task
          else
-            strcpy(szMsgTxt,"DISK SLOW"); // Could be failing Hard Drive OR drive had powered down since last use OR Fragmentation OR Competing Task
+            strcpy(szMsgTxt,DISK_SLOW); // Could be failing Hard Drive OR drive had powered down since last use OR Fragmentation OR Competing Task
 
         DSP1_Main_MSG(0,0);
      }
@@ -145,7 +146,7 @@ Remaining_Calc:
      process.BlksSinceLastEffect++;
      if (process.BlksSinceLastEffect > 100)
      {
-        strcpy(szMsgTxt,"Searching..."); // Twinhan - Megabytes of nulls
+        strcpy(szMsgTxt,SEARCHING); // Twinhan - Megabytes of nulls
         process.BlksSinceLastEffect = 0;
         DSP1_Main_MSG(0,0);
         GetChkPoint();
@@ -362,7 +363,7 @@ void Mpeg_READ()
   && (*(DWORD*)(RdBFR)) == 0x46464952 // 'RIFF')
   && !iPES_Mpeg_Any  && !process.iOut_DropCrud)
   {
-      strcpy(szMsgTxt,"** TROJAN AVI file ***");
+      strcpy(szMsgTxt,TROJAN_AVI_FILE);
       MParse.Fault_Flag = 88;
       Mpeg_KILL(1001);
   }

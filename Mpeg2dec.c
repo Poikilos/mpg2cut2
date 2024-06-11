@@ -597,6 +597,7 @@ DWORD  WINAPI  MPEG2Dec(LPVOID  nDUMMY)
   }
 
   FrameRate2FramePeriod();
+  
 
   if (process.Action == ACTION_RIP
   &&  !MParse.Tulebox_SingleStep_flag)

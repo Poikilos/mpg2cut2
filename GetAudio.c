@@ -916,6 +916,7 @@ void Got_PrivateStream()
      
 
       uChannel_ix      = (iLPCM_Attr & 0x03) + 1;
+      uChannels        = uChannel_ix;
       SubStream_CTL[FORMAT_LPCM][getbit_AC3_Track].uChannel_ix = uChannel_ix;
 
       iTmp1 = Get_Byte(); // Dynamic Range control (0x80 if off)
@@ -947,7 +948,7 @@ void Got_PrivateStream()
 
   // Is it a playable format ?
   if (getbit_AC3_Track < CHANNELS_MAX
-  &&  iGot_Trk_FMT  < FORMAT_SUBTIT)
+  &&  iGot_Trk_FMT     < FORMAT_SUBTIT)
   {
       // Auto detect Audio track
       if (iAudio_SEL_Track == TRACK_AUTO
@@ -1023,11 +1024,29 @@ void Got_PrivateStream()
           if (MParse.SystemStream_Flag > 0
           &&  getbit_StreamID == PRIVATE_STREAM_1)  // PS1
           {
-              RdPTR += 3;  getbit_iPkt_Len_Remain -= 3; // Skip syncword count and first offset pointer
 
-              // TODO: Theoretically we could use the offset pointer to avoid scanning later
-              //       BUT - Sometime the offset pointer is WRONG !
-              MPEG_PTR_BUFF_CHK                  // skip forward, reading more if needed
+              
+              if (byAC3_Init)
+                  iTmp1 = 3;
+              else
+                  iTmp1 = 1;
+              RdPTR += iTmp1;  getbit_iPkt_Len_Remain -= iTmp1; // Skip syncword count and first offset pointer
+              MPEG_PTR_BUFF_CHK   // skip forward, reading more if needed
+              if (!byAC3_Init)
+              {
+                  // Use the offset pointer to avoid bulk scanning later
+                  //       BUT - Sometime the offset pointer is WRONG !
+                  iPS_Frame_Offset = Get_Short() - 1; // Offset to start of 1st frame for this PTS = first access unit pointer
+                  getbit_iPkt_Len_Remain -= 2;
+                  if (iPS_Frame_Offset > 0
+                  &&  getbit_iPkt_Len_Remain > iPS_Frame_Offset)
+                  {
+                      RdPTR += iPS_Frame_Offset;
+                      getbit_iPkt_Len_Remain -= iPS_Frame_Offset; // Skip syncword count and first offset pointer
+                      MPEG_PTR_BUFF_CHK   // skip forward, reading more if needed
+                  }
+
+              }
           }
       }
 
@@ -1481,11 +1500,6 @@ void Chk_MPA_Hdr()
   uMPA_kBitRate_Ix =    (cMPA_Hdr[2]>>4)&15;
   uMPA_Channel_ix  =    (cMPA_Hdr[3]>>6)&3;
 
-  uMPA_Channels  = uMPA_Channel_ix==3?1:2;  // #3=Mono, others=Stereo
-  uMPA_Layer     = uMPA_Layer_Ix + 1;
-
-  uMPA_Sample_Hz = MPA_SAMPLE_HZ[uMPA_25_LSF][uMPA_SampFreq_Ix];
-  uMPA_kBitRate  = MPA_KBIT_RATE[uMPA_LSF][uMPA_Layer_Ix][uMPA_kBitRate_Ix];
 
   // not allowed to change number of channels within the one stream
   //if (process.uMPA_Sample_Hz[getbit_MPA_Track] == uMPA_Sample_Hz
@@ -1493,13 +1507,27 @@ void Chk_MPA_Hdr()
 
   // if previously found mpeg2 or earlier in same stream
   // then Dis-Allow mpeg2.5/LSF 
-  if (process.uMPA_Mpeg_Ver[getbit_MPA_Track] >= uMPA_Mpeg_Ver
-  ||  process.uMPA_Mpeg_Ver[getbit_MPA_Track] == 0)
+  if ((process.uMPA_Mpeg_Ver[getbit_MPA_Track] >= uMPA_Mpeg_Ver
+  ||   process.uMPA_Mpeg_Ver[getbit_MPA_Track] == 0)
+  && uMPA_kBitRate_Ix  < 0x0F  // Is the bitrate setting valid ?
+  && uMPA_kBitRate_Ix  > 0x00  // Free Format is too hard
+  && uMPA_Layer_Ix     < 3     // Is the mpeg layer valid ?
+  && uMPA_SampFreq_Ix  < 3)    // Valid sampling freq ?
   {
-      MPA_FrameLen();
+      uMPA_Sample_Hz = MPA_SAMPLE_HZ[uMPA_25_LSF][uMPA_SampFreq_Ix];
+      uMPA_kBitRate  = MPA_KBIT_RATE[uMPA_LSF][uMPA_Layer_Ix][uMPA_kBitRate_Ix];
+      // Check if rate combo is sensible
+      if (uMPA_Sample_Hz > 32000  
+      ||  uMPA_kBitRate  <   192)  
+      {
+          uMPA_Channels  = uMPA_Channel_ix==3?1:2;  // #3=Mono, others=Stereo
+          uMPA_Layer     = uMPA_Layer_Ix + 1;
 
-      if (iMPA_FrameLen > 0)
-          Got_MPA_Hdr();
+          MPA_FrameLen();
+
+          if (iMPA_FrameLen > 0)
+              Got_MPA_Hdr();
+      }
   }
 
 }

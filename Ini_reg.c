@@ -2,7 +2,7 @@
 // System Register 
 
 #include "global.h" 
-
+#include "TXT.h"
 
 // File Asociation code supplied by WeWantWidescreen
 
@@ -66,8 +66,7 @@ void Ini_Associate()
   iLen = sprintf(szBuffer, "%s    \"%%1\" ",  szEXE);
   iLen++;
 
-  sprintf(szMsgTxt, "This will register Mpg2Cut2 with Windows Explorer\nas the EDIT function for MPEG file types\n\n%s",
-                    szBuffer);
+  sprintf(szMsgTxt, REG_EXPLAIN, szBuffer);
 
   iRC = MessageBox(hWnd_MAIN, szMsgTxt,  szAppName, MB_OKCANCEL);
   if (iRC != IDOK)

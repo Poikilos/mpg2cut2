@@ -1,6 +1,6 @@
 #include "global.h"
 #include "getbit.h"
-
+#include "TXT.h"
 
   __int64 i64OrgSCR, i64EndSCR, i64EndLoc;
   __int64 i64LowSCR, i64HighSCR;
@@ -8,6 +8,7 @@
 
 
  int iReadLen;
+ int iTC_ctr;
 
 
 void C990_Read_8k()
@@ -42,26 +43,26 @@ int C920_Get_SCR(__int64 *lpP_SCR)
 Part_0_Entry: // Optimization target for skip non-zero
   if (RdPTR < RdEOB)
   {
-      if (*RdPTR++)
+      if (*RdPTR++)          // Non-Zero ?
           goto Part_0_Entry; // Optimize compilation
       else
       {
          if (RdPTR < RdEOB)
          {
-            if (*RdPTR++)
+            if (*RdPTR++)          // Non-Zero ?
                goto Part_0_Entry;
             else
             {
 Part_2_Entry:
                if (RdPTR < RdEOB)
                {
-                  if (*RdPTR > 1)
+                  if (*RdPTR > 1)   
                   {
                      RdPTR++;
                      goto Part_0_Entry;
                   }
                   else
-                  if (*RdPTR == 0)
+                  if (*RdPTR == 0)  // Allow for blocks of nulls
                   {
                      RdPTR++;
                      goto Part_2_Entry;
@@ -104,7 +105,7 @@ Part_2_Entry:
 
 // Translate Time Co-ordinate into RBA
 
-void C980_TC2RBA(TC_HMSFR *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
+void C980_TC2RBA(TC_HMSF *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
 {
 
   __int64 i64CurrSCR, i64PrevLoc, i64DiffSCR, i64DiffLoc;
@@ -119,11 +120,11 @@ void C980_TC2RBA(TC_HMSFR *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
   if (P_End)
   {
      i64LowTol  = 0;
-     i64HighTol = 3600; //  45000;
+     i64HighTol = 90000; // 3600; //  45000;
   }
   else
   {
-     i64LowTol  = -3600; // -45000;
+     i64LowTol  = -90000; // -3600; // -45000;
      i64HighTol = 0;
   }
 
@@ -137,30 +138,30 @@ void C980_TC2RBA(TC_HMSFR *lpTC, int *lpFile, __int64 *lpLoc, int P_End)
 
   // Adust Relative SCR to Absolute
 
-  if (iFromTC_Style)
+  if (iParmTC_Style)
       i64_Want_SCR += i64OrgSCR;
 
   if (DBGflag)
-      DBGln4("REL=%d   ABS=%d ORG=%d  END=%d",
+      DBGln4("REL=%u   ABS=%u ORG=%u  END=%u",
              i64TMP, i64_Want_SCR, i64OrgSCR, i64EndSCR);
 
   if (i64_Want_SCR < i64OrgSCR)
   {
-      sprintf(szBuffer, "SELECTED TIME preceeds first SCR on file.\n\nSEL=%d\nORG=%d",
+      sprintf(szBuffer, PARM_FROM_TOO_EARLY,
                 (int)i64_Want_SCR, (int)i64OrgSCR);
       MessageBox(hWnd_MAIN, szBuffer, szAppName,  MB_OK);
       i64_Want_SCR = i64OrgSCR;
   }
   if (i64_Want_SCR > (i64EndSCR + 45000))
   {
-      sprintf(szBuffer,"SELECTED TIME exceeds last SCR on file.\n\nSEL=%d\nEof=%d",
+      sprintf(szBuffer, PARM_TO_TOO_BIG,
                 (int)i64_Want_SCR, (int)i64EndSCR);
       MessageBox(hWnd_MAIN,  szBuffer, szAppName,  MB_OK);
       if (P_End)
           i64_Want_SCR = i64EndSCR;
       else
       {
-        iFromTC_Style = 0;  // Try Absolute style instead
+        iParmTC_Style = 0;  // Try Absolute style instead
         i64_Want_SCR -= i64OrgSCR;
       }
   }
@@ -225,6 +226,7 @@ Probe:
 
 void C905_Parm2Clip()
 {
+  iView_TC_Format = 6;  // Show SCR when displaying time codea
 
   i64OrgSCR = 0;
   i64EndSCR = 0x01FFFFFFFF;
@@ -255,7 +257,7 @@ void C905_Parm2Clip()
   C920_Get_SCR(&i64EndSCR);
 
   if (DBGflag)
-      DBGln2("\nORG=%d\nEND=%d\n", i64OrgSCR, i64EndSCR);
+      DBGln2("\nORG=%u\nEND=%u\n", i64OrgSCR, i64EndSCR);
 
 
   // Check that SCR is at least a littl bit sensible
@@ -269,23 +271,23 @@ void C905_Parm2Clip()
 
   // Translate FROM time into RBA
 
-  if (FromTC.hour < 0)
+  if (FromTC[iTC_ctr].hour < 0)
   {
       process.FromFile = 0;
       process.FromLoc  = 0;
   }
   else
-      C980_TC2RBA(&FromTC, &process.FromFile, &process.FromLoc, 0);
+      C980_TC2RBA(&FromTC[iTC_ctr], &process.FromFile, &process.FromLoc, 0);
 
 
   // Translate TO   time into RBA
 
-  if (ToTC.hour < 0)
+  if (ToTC[iTC_ctr].hour < 0)
   {
      C140_Clip_EOF();
   }
   else
-     C980_TC2RBA(&ToTC, &process.ToViewFile, &process.ToViewLoc, 1);
+     C980_TC2RBA(&ToTC[iTC_ctr], &process.ToViewFile, &process.ToViewLoc, 1);
 
   process.ToPadFile = process.ToViewFile;
   process.ToPadLoc  = process.ToViewLoc;
@@ -321,7 +323,6 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n)
 
   // Process Selection Info extracted from Parm area, if present
 
-  //if (FromTC.hour >= 0   &&  File_Limit)  // PRE-9a30
   if (File_Limit)  // 9a30
   {
      // Check that there is no decode in progress
@@ -338,9 +339,13 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n)
      }
      else
      {
-         if (FromTC.hour >= 0
-            || ToTC.hour >= 0)
-             C905_Parm2Clip();
+         for(iTC_ctr = 0;iTC_ctr <= iParmTC_ctr; iTC_ctr++)
+         {
+            if (FromTC[iTC_ctr].hour >= 0
+             ||   ToTC[iTC_ctr].hour >= 0)
+                C905_Parm2Clip();
+         }
+         
           
          if (szOutParm[0] > ' ')
              strcpy(szOutput, szOutParm);
@@ -375,8 +380,8 @@ DWORD WINAPI  C900_Parm2Clip(LPVOID n)
      }
   }
 
-  FromTC.hour = -1;  ToTC.hour = -1; File_PreLoad = 0;
-
+  FromTC[0].hour = -1;  ToTC[0].hour = -1; File_PreLoad = 0;
+  iParmTC_ctr    = 0;
   if (DBGflag)
       DBGctl();
 

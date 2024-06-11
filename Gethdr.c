@@ -428,6 +428,8 @@ void gothdr_SEQ()
 
   extension_and_user_data();
   FrameRate2FramePeriod();
+  if (iOverride_FrameRate_Code == 0)
+      Mpeg_FrameRate_INT = iFrame_Rate_int;
 
   Auto_Deint_Calc();
 
@@ -1443,20 +1445,29 @@ void RelativeTC_SET()
 
 void FrameRate2FramePeriod()
 {
+  fFrame_rate_MPEG = frame_rate_Table[MPEG_Seq_frame_rate_code];
+  if (MPEG_iFrame_rate_extension_n &&
+      MPEG_iFrame_rate_extension_d)
+  {
+      fFrame_rate_MPEG = (fFrame_rate_MPEG 
+                       * (fFrame_rate_extension_n))
+                       / (fFrame_rate_extension_d);
+  }
 
-  fFrame_rate = frame_rate_Table[iView_FrameRate_Code];
+  Mpeg_FrameRate_INT = ( ((int)(fFrame_rate_MPEG*1000.0))
+                        +500)/1000;
 
-  if (!iOverride_FrameRate_Code
-  && (!MPEG_iFrame_rate_extension_n ||
-      !MPEG_iFrame_rate_extension_d))
-      fFrame_rate = (fFrame_rate 
-                    * (fFrame_rate_extension_n))
-                    / (fFrame_rate_extension_d);
+  if (iOverride_FrameRate_Code == 0)
+  {
+     fFrame_rate = fFrame_rate_MPEG;
+  }
+  else
+     fFrame_rate = frame_rate_Table[iView_FrameRate_Code];
 
   if (iAudio_Force44K)
       fFrame_rate = fFrame_rate * 44.1 / 48.0;
 
-  if  (  !  fFrame_rate)
+  if  (fFrame_rate == 0)
   {
     //fFrame_rate  =  .001f;
      if (Coded_Pic_Height == 576 || Coded_Pic_Height == 288)
@@ -1472,7 +1483,7 @@ void FrameRate2FramePeriod()
   }
 
   // Copy floating point info into integers for later
-  iFrame_Rate_ms   = (int)(fFrame_rate * 1000);
+  iFrame_Rate_ms  = (int)(fFrame_rate * 1000);
   iFrame_Rate_int      = (iFrame_Rate_ms+500) / 1000;
   iFrame_Rate_dsp      =  iFrame_Rate_ms      / 1000;
   iFrame_Rate_mantissa = (iFrame_Rate_ms - (iFrame_Rate_dsp*1000)) / 10 ;
@@ -1507,7 +1518,7 @@ void PTS_2Field(unsigned P_PTS, int P_Field)
   // Set default frame timings if not set yet
   if (! iFrame_Period_ps)
   {
-     FrameRate2FramePeriod();
+        FrameRate2FramePeriod();
   }
 
   ptsTC.RunFrameNum = P_PTS / 45 * 1000000 / iFrame_Period_ps;

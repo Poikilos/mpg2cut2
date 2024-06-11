@@ -352,7 +352,7 @@ int Out_Dup_Name_TST(char *lpOutName)
 void OUT_SAVE_GO(char P_Act)
 {
 
-  const int K_FrameCode[7] 
+  const int K_FrameRateCode[7] 
     = { 2,  2,  2,  3,   2,   2,  2};
   const int K_FrameRatio[7] 
     = {0x37,  0x65,  0x43,   0x64, 0x4b,   0x6b,  0x17};
@@ -629,7 +629,8 @@ void OUT_SAVE_GO(char P_Act)
         strcpy(szTmp160, lpPARSE_QRY);
 
       sprintf(szBuffer, "FORCE Frame Rate to %02f FPS ?%s",
-                               frame_rate_Table[iOverride_FrameRate_Code]);
+                               frame_rate_Table[iOverride_FrameRate_Code], 
+                               szTmp160);
       iRC2 = MessageBox(hWnd_MAIN, szBuffer,  "Mpg2Cut2 - CONFIRM", MB_YESNO);
       switch (iRC2)
       {
@@ -643,8 +644,8 @@ void OUT_SAVE_GO(char P_Act)
               else
               {  // Non-Standard rates implemented as Ratio of a Std rate
                  iTmp1 = iOverride_FrameRate_Code - 9;
-                 iOutFrameRateCode = K_FrameCode [iTmp1]; // for SEQ hdr
-                 iOutFRatioCode    = K_FrameRatio[iTmp1]; // for seq EXTN hdr
+                 iOutFrameRateCode = K_FrameRateCode [iTmp1]; // for SEQ hdr
+                 iOutFRatioCode    = K_FrameRatio    [iTmp1]; // for seq EXTN hdr
               }
               uOrgFrameRate       = iOutFrameRateCode;
 

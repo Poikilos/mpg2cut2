@@ -48,13 +48,14 @@
 
 char szAppTitle[50]; // "Mpg2Cut2 - Development Version 2.8.6" // You don't expect this to work do you ?"
 
+
 // When changing version,
 // remember to change version strings in Resources as well.
 #define APP_VER 20806
 #define API_VER 20802
 char szAppVer[8]
 #ifdef GLOBAL
- = "2.8.5e"
+ = "2.8.6d"
 #endif
 ;
 
@@ -740,17 +741,6 @@ typedef struct TC_HMSFR
 
  TC_HMSFR OrgTC;
 
-/*
-struct
-{
-  int hour;
-  int minute;
-  int sec;
-  int frameNum;
-  int RunFrameNum;
-  unsigned VideoPTS, VideoDTS, AudioPTS;
-}  gopTC ;*/
-
  TC_HMSFR  gopTC ;
 
   int gop_drop_flag;
@@ -765,10 +755,19 @@ TC_HMSFR RelativeTC;
 
 TC_HMSFR  ptsTC ;
 
-TC_HMSFR  FromTC;
-TC_HMSFR  ToTC;
+typedef struct TC_HMSF
+{
+  short int hour;
+  short int minute;
+  short int sec;
+  short int frameNum;
+}  TC_HMSF;
 
-int iFromTC_Style;
+TC_HMSF  FromTC[33];
+TC_HMSF  ToTC[33];
+
+int iParmTC_ctr;
+int iParmTC_Style;
 
 int Coded_Pic_Width,  Coded_Pic_Height, Coded_Pic_Size ;
 int Chroma_Width, Chroma_Height, Chroma_Size, RGB24_size;
@@ -1017,6 +1016,8 @@ int File_ReadLen;
 
 int Mpeg_PES_Version, Mpeg_SEQ_Version;
 int getbit_PES_HdrFld_Flags;
+
+
 unsigned int getbit_input_code;
 
 
@@ -1197,7 +1198,8 @@ int  iEDL_ClipFrom, iEDL_ClipTo, iEDL_OutClips;
      // Need some info about current selection
 int iSelMB, iClipMB, iInputTotMB; //, wCmdShow ;
 
-char szSelTxt[80] ;
+char szSelTxt[80];
+char cSelStatus;
         /* struc SelStat
           {
           char chMB[12]
@@ -1592,6 +1594,8 @@ int iSync_Diff_ms;
 
 void Timing_DropMore();
 
+int Mpeg_FrameRate_INT;
+double fFrame_rate_MPEG;
 
 double frame_rate_Table[18]
 #ifdef GLOBAL
@@ -1602,7 +1606,7 @@ double frame_rate_Table[18]
   ((30.0*1000.0)/1001.0),    30.0,  50.0,  ((60.0*1000.0)/1001.0),
   60.0,
   // rest are "reserved",
-  // but turn up in non-std files.  Guessing values.  see also K_FrameCode
+  // but turn up in non-std files.  Arbitrary values.  see also K_FrameRateCode
   12.0,    16.0,  18.0,  20.0,
    6.0,     2.0,   1.0,
   ((25.0*44.1)/48.0), ((30.0*1000.0*44.1)/1001.0/48.0) // For 48k=>44.1k adjust
@@ -1610,8 +1614,3 @@ double frame_rate_Table[18]
 #endif
 ;
 
-
-
-
-
-

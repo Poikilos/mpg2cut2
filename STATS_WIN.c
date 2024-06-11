@@ -10,6 +10,7 @@
 #include "mpalib.h"
 #include "mpalib_more.h"
 #include "AC3Dec\A53_interface.h"
+#include "TXT.h"
 
 #define true 1
 #define false 0
@@ -1069,7 +1070,7 @@ void Stats_Show(int refresh, int P_Visibility)
 
       if (MParse.SlowPlay_Flag > 0)
       {
-          sprintf(szMsgTxt, "SLOW-%d", MParse.SlowPlay_Flag);
+          sprintf(szMsgTxt, SLOW_N, MParse.SlowPlay_Flag);
           SetDlgItemText(hStats, IDC_MPAdec_NAME, szMsgTxt); // "SLOW-MO");
       }
       else
