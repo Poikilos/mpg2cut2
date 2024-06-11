@@ -221,7 +221,7 @@ Probe:
 
 
 
-// Convert Parm seletion times to a clip
+// Convert Parm selection times to a clip
 
 void C905_Parm2Clip()
 {

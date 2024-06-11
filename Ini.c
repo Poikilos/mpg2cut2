@@ -214,7 +214,8 @@ TEST_END:
   iCtl_Time_Fmt = 1;       iCtl_Date_Internationale = 0;
 
   iView_Centre_Crop = 0;
-  iView_SwapUV = 0;        iView_Negative = 0;  iView_Invert = 0;
+  iView_SwapUV = 0;        iView_Neg_Lum = 0;  iView_Neg_Sat = 0;  
+  iView_Invert = 0;
   iCtl_View_Fast_YUV  = 0; iView_Fast_YUV  = 0; 
   iCtl_View_Fast_RGB = 0;  iView_Fast_RGB = 0; 
   iCtl_View_Centre_Crop = 1;  

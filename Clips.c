@@ -137,8 +137,8 @@ void C100_Clip_DEFAULT(char P_Act)
      if (iCtl_Lum_Deselector && iLum_Deselected)
      {
          iLum_Deselected = 0; // Option to remove boosting when outside selection
-         Lum_Filter_Init(0);
-         Lum_Filter_Init(1);
+         //Lum_Filter_Init(0);
+         Lum_Filter_Init(-1);
          RefreshVideoFrame();
      }
 
@@ -856,8 +856,8 @@ void C510_Sel_FROM_MARK(int P_External)
   if (iCtl_Lum_Deselector && iLum_Deselected)
   {
       iLum_Deselected = 0; // Option to remove boosting when outside selection
-      Lum_Filter_Init(0);
-      Lum_Filter_Init(1);
+      //Lum_Filter_Init(0);
+      Lum_Filter_Init(-1);
       RefreshVideoFrame();
   }
 
@@ -1024,8 +1024,8 @@ void C520_Sel_TO_MARK()
        if (iCtl_Lum_Deselector && !iLum_Deselected)
        {
            iLum_Deselected = 1; // Option to remove boosting when outside selection
-           Lum_Filter_Init(0);
-           Lum_Filter_Init(1);
+           //Lum_Filter_Init(0);
+           Lum_Filter_Init(-1);
            RefreshVideoFrame();
        }
 

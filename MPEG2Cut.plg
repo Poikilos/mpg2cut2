@@ -3,85 +3,92 @@
 <pre>
 <h1>Build Log</h1>
 <h3>
---------------------Configuration: MPEG2Cut - Win32 Release--------------------
+--------------------Configuration: MPEG2Cut - Win32 Debug--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating temporary file "F:\TEMP\RSPB01.tmp" with contents
+Creating temporary file "F:\TEMP\RSP507.tmp" with contents
 [
-/nologo /G6 /MT /W3 /Zd /Ox /Ot /Oa /Og /Oi /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
-"G:\SP\MPG2CUT2\MPA_DA.c"
+/nologo /MLd /W4 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Debug/" /Fp"Debug/MPEG2Cut.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"G:\SP\MPG2CUT2\gui.cpp"
 ]
-Creating command line "cl.exe @F:\TEMP\RSPB01.tmp" 
-Creating temporary file "F:\TEMP\RSPB02.tmp" with contents
+Creating command line "cl.exe @F:\TEMP\RSP507.tmp" 
+Creating temporary file "F:\TEMP\RSP508.tmp" with contents
 [
-ddraw.lib dxguid.lib vfw32.lib winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib idctmmx.obj /nologo /subsystem:windows /pdb:none /machine:I386 /out:"Release\Mpg2Cut2-RELEASE.exe" /mapinfo:exports /mapinfo:lines 
-.\Release\Aspect.obj
-.\Release\Buttons.obj
-.\Release\ClipFile.obj
-.\Release\CLIPS.obj
-.\Release\DBG.obj
-.\Release\Disp_Names.obj
-.\Release\Disp_win.obj
-.\Release\Get_INIT.obj
-.\Release\GetAudio.obj
-.\Release\getbit.obj
-.\Release\GetBlk.obj
-.\Release\gethdr.obj
-.\Release\getpic.obj
-.\Release\GopBack.obj
-.\Release\gui.obj
-.\Release\idctfpu.obj
-.\Release\idctref.obj
-.\Release\IN_FILES.obj
-.\Release\INI.obj
-.\Release\INI_REG.obj
-.\Release\LUM_WIN.obj
-.\Release\motion.obj
-.\Release\MPA_DA.obj
-.\Release\mpeg2dec.obj
-.\Release\Nav_JUMP.obj
-.\Release\NO_OPT.obj
-.\Release\OUT.obj
-.\Release\Out_FAST.obj
-.\Release\Out_PART.obj
-.\Release\Out_Progress.obj
-.\Release\Out_SPLIT.obj
-.\Release\Parm2Clip.obj
-.\Release\Plug.obj
-.\Release\Pref.obj
-.\Release\Render.obj
-.\Release\SNAPS.obj
-.\Release\STATS_WIN.obj
-.\Release\store.obj
-.\Release\Timing.obj
-.\Release\TRACKBAR.obj
-.\Release\TxtFunc.obj
-.\Release\Volume.obj
-.\Release\WAV_NOOPT.obj
-.\Release\wave_out.obj
-.\Release\bit_allocate.obj
-.\Release\bitstream.obj
-.\Release\coeff.obj
-.\Release\crc.obj
-.\Release\decode.obj
-.\Release\downmix.obj
-.\Release\exponent.obj
-.\Release\imdct.obj
-.\Release\parse.obj
-.\Release\rematrix.obj
-.\Release\sanity_check.obj
-.\Release\gui.res
+ddraw.lib dxguid.lib vfw32.lib winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib idctmmx.obj /nologo /subsystem:windows /incremental:no /pdb:"Debug/MPG2Cut2-DBG.pdb" /map:"Debug/MPG2Cut2-DBG.map" /debug /machine:I386 /out:"Debug/MPG2Cut2-DBG.exe" /pdbtype:sept /mapinfo:exports /mapinfo:lines 
+.\Debug\Aspect.obj
+.\Debug\Buttons.obj
+.\Debug\ClipFile.obj
+.\Debug\CLIPS.obj
+.\Debug\DBG.obj
+.\Debug\Disp_Names.obj
+.\Debug\Disp_win.obj
+.\Debug\Get_INIT.obj
+.\Debug\GetAudio.obj
+.\Debug\getbit.obj
+.\Debug\GetBlk.obj
+.\Debug\gethdr.obj
+.\Debug\getpic.obj
+.\Debug\GopBack.obj
+.\Debug\gui.obj
+.\Debug\idctfpu.obj
+.\Debug\idctref.obj
+.\Debug\IN_FILES.obj
+.\Debug\INI.obj
+.\Debug\INI_REG.obj
+.\Debug\LUM_WIN.obj
+.\Debug\motion.obj
+.\Debug\MPA_DA.obj
+.\Debug\mpeg2dec.obj
+.\Debug\Nav_JUMP.obj
+.\Debug\NO_OPT.obj
+.\Debug\OUT.obj
+.\Debug\Out_FAST.obj
+.\Debug\Out_PART.obj
+.\Debug\Out_Progress.obj
+.\Debug\Out_SPLIT.obj
+.\Debug\Parm2Clip.obj
+.\Debug\Plug.obj
+.\Debug\Pref.obj
+.\Debug\Render.obj
+.\Debug\SNAPS.obj
+.\Debug\STATS_WIN.obj
+.\Debug\store.obj
+.\Debug\Timing.obj
+.\Debug\TRACKBAR.obj
+.\Debug\TxtFunc.obj
+.\Debug\Volume.obj
+.\Debug\WAV_NOOPT.obj
+.\Debug\wave_out.obj
+.\Debug\bit_allocate.obj
+.\Debug\bitstream.obj
+.\Debug\coeff.obj
+.\Debug\crc.obj
+.\Debug\decode.obj
+.\Debug\downmix.obj
+.\Debug\exponent.obj
+.\Debug\imdct.obj
+.\Debug\parse.obj
+.\Debug\rematrix.obj
+.\Debug\sanity_check.obj
+.\Debug\gui.res
 ]
-Creating command line "link.exe @F:\TEMP\RSPB02.tmp"
+Creating command line "link.exe @F:\TEMP\RSP508.tmp"
 <h3>Output Window</h3>
 Compiling...
-MPA_DA.c
+gui.cpp
+g:\sp\mpg2cut2\gui.cpp(302) : warning C4100: 'hPrevInstance' : unreferenced formal parameter
+g:\sp\mpg2cut2\gui.cpp(1623) : warning C4100: 'message' : unreferenced formal parameter
+g:\sp\mpg2cut2\gui.cpp(5556) : warning C4100: 'lParam' : unreferenced formal parameter
+g:\sp\mpg2cut2\gui.cpp(6375) : warning C4100: 'lParam' : unreferenced formal parameter
+g:\sp\mpg2cut2\gui.cpp(6374) : warning C4100: 'wParam' : unreferenced formal parameter
+g:\sp\mpg2cut2\ddraw_ctl.cpp(233) : warning C4701: local variable 'hRC' may be used without having been initialized
 Linking...
+LINK : warning LNK4075: ignoring /EDITANDCONTINUE due to /INCREMENTAL:NO specification
 
 
 
 <h3>Results</h3>
-Mpg2Cut2-RELEASE.exe - 0 error(s), 0 warning(s)
+MPG2Cut2-DBG.exe - 0 error(s), 7 warning(s)
 </pre>
 </body>
 </html>

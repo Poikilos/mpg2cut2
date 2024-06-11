@@ -2115,16 +2115,18 @@ If you do NOT have that plug-in, then do the following :-
 
 ------------------------------------------------------------------
 
-IGCUTTER
+COMMAND LINE INTERFACE 
 
-At this stage the parameter interface for IGCutter
-is very basic and limited.
+This was primarily developed for use with IGCUTTER.
+
+The parameter interface is very basic and limited.
 
 Because the new parameter format is not 100% backwards compatible,
 the new mode must first be enabled via the Mpg2Cut2 menu.
 MENU - MISC - EXPERIMENTAL - Parm With Time Codes.
 
-File names with imbeeded spaces MUST now b enclosed in quotes.
+Quotes around file names are then REQUIRED,
+to allow for imbedded spaces.
 EG  "C:\My Documents\FRED.MPG"
 
 At this stage, proper functioning is limited to Mpeg2 files that
@@ -2146,7 +2148,7 @@ as the interface is still very experimental.
 
 Parameter format :-
 
-"input-file" [...] FROM-hh:mm:ss.ff TO=hh:mm:ss.ff  O="output-file" xxx
+"input-file" [...] FROM=hh:mm:ss.ff TO=hh:mm:ss.ff  O="output-file" xxx
 
 All parameters are optional, except for the input-file-name,
 which MUST be the FIRST parameter.
@@ -2155,7 +2157,7 @@ FROM= defaults to start of file
 TO=   defaults to end of file
 
 The user will be presented with a File-SaveAs dialog,
-which allows the output name to be overriden.
+which allows the output name to be overridden.
 
 xxx = Time Code Style
       ABS = Absolute
@@ -2168,7 +2170,7 @@ EG  FROM=30 is the same as FROM=00:00:30.00  (30 seconds)
 
 Please note the the frame number portion is preceeded
 with a DOT, not a Colon, as it specifies a fraction of a second.
-BUT is it NOT a decimal fraction - it is a frame number.
+BUT it is NOT a decimal fraction - it is a frame number.
 
 EG:   30.5 = 30.05 = 30 seconds plus 5 frames.
  
@@ -2182,7 +2184,6 @@ If you want to eliminate the conversion to relative time,
 specify the keyword parameter ABS (Absoloute).
 Time codes must then match the actual SCR time stamps.
 
-/DEFER = Do not automatically begin saving output
 
 ------------------------------------------------------------------
 

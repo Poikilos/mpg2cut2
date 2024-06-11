@@ -3785,8 +3785,8 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
           else
               iLum_Deselected = 1;
                
-          Lum_Filter_Init(0);
-          Lum_Filter_Init(1);
+          //Lum_Filter_Init(0);
+          Lum_Filter_Init(-1);
           RefreshVideoFrame();
           break;
    
@@ -3804,8 +3804,8 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
           ToggleMenu('T', &iSat_Sine, IDM_SINE);
           if (iSat_Sine) 
               iSatAdj_Flag  = 1;    //    [iColorSpaceTab]
-          Lum_Filter_Init(0);
-          Lum_Filter_Init(1);
+          //Lum_Filter_Init(0);
+          Lum_Filter_Init(-1);
           RefreshVideoFrame();
           break;
 
@@ -5275,13 +5275,20 @@ void Set_AudioTrack(int P_Track)
   if (iAudio_SEL_Track == TRACK_AUTO)
   {
       CheckMenuItem(hMenu, IDM_TRACK_AUTO, MF_CHECKED);
-      uCtl_Aud_PID = STREAM_AUTO;
+      //if (uAud_PID_All)
+      //{
+      //    uCtl_Aud_PID = STREAM_AUTO;
+      //    MenuTick(IDM_AUDPID_AUTO);
+      //    MenuUnTick(IDM_AUDPID_NONE);
+      //}
   }
   else
   if (iAudio_SEL_Track == TRACK_NONE)
   {
       CheckMenuItem(hMenu, IDM_TRACK_NONE, MF_CHECKED);
       uCtl_Aud_PID = STREAM_NONE;
+      MenuUnTick(IDM_AUDPID_AUTO);
+      MenuTick(IDM_AUDPID_NONE);
   }
   else
   {
@@ -5289,7 +5296,7 @@ void Set_AudioTrack(int P_Track)
          iAudio_SEL_Track = 0;
 
      uCtl_Aud_PID = uAudio_Track_PID[iAudio_SEL_Track];
-     CheckMenuItem(hMenu, MENU_TRACK[iAudio_SEL_Track], MF_CHECKED);
+     MenuTick(MENU_TRACK[iAudio_SEL_Track]);
   }
 
 

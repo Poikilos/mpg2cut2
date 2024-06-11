@@ -146,6 +146,7 @@
 #define MSG_VID_TC                      1055
 #define IDC_FPS_DROPPED                 1055
 #define IDP_PROGRESS_ETA                1055
+#define IDL_SAT_NEG_CHK                 1055
 #define IDC_WIDTH                       1056
 #define MSG_AUD_TC                      1056
 #define STATS_AUDIO_CHANNELS            1056

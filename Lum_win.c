@@ -326,11 +326,25 @@ void Lum_Show_All()
   uSet_ButtonId = IDL_LUMLOCK_CHK;
   Lum_Set_Button_Chk();
 
+  if (iView_Neg_Lum)
+      uSetting = BST_CHECKED;
+  else
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = IDL_LUM_NEG_CHK;
+  Lum_Set_Button_Chk();
+
   if (iSatAdj_Flag)
       uSetting = BST_CHECKED;
   else
       uSetting = BST_UNCHECKED;
   uSet_ButtonId = IDL_SAT_CHK;
+  Lum_Set_Button_Chk();
+
+  if (iView_Neg_Sat)
+      uSetting = BST_CHECKED;
+  else
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = IDL_SAT_NEG_CHK;
   Lum_Set_Button_Chk();
 
   if (iSat_VHS)
@@ -427,15 +441,16 @@ void Lum_Swap_UV(const int P_Reshow)
 
 }
 
+
 void Lum_Negative(const int P_Reshow)
 {
-          ToggleMenu('T', &iView_Negative, IDM_VIEW_NEGATIVE);
-          if (iView_Negative)
-              iLumEnable_Flag[iColorSpaceTab] = 1;
-          Lum_Filter_Init(0);
-          Lum_Filter_Init(1);
-          if (P_Reshow)
-              RefreshVideoFrame();
+    ToggleMenu('T', &iView_Neg_Lum, IDM_VIEW_NEGATIVE);
+    if (iView_Neg_Lum)
+        iLumEnable_Flag[iColorSpaceTab] = 1;
+    //Lum_Filter_Init(0);
+    Lum_Filter_Init(-1);
+    if (P_Reshow)
+        RefreshVideoFrame();
 }
 
 
@@ -481,8 +496,8 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
          if (iCtl_Lum_Deselector && iLum_Deselected)
          {
             iLum_Deselected = 0; // Option to remove boosting when outside selection
-            Lum_Filter_Init(0);
-            Lum_Filter_Init(1);
+            //Lum_Filter_Init(0);
+            Lum_Filter_Init(-1);
             RefreshVideoFrame();
          }
 
@@ -634,7 +649,6 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                SendDlgItemMessage(hLumDlg0, IDL_MODE_RGB, BM_SETCHECK,
                                                             BST_UNCHECKED, 0);
                Lum_Show_All();
-               //Lum_Filter_Init(0);
 
                Chg2YUV2(1, hLumDlg);
 
@@ -816,7 +830,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
 
 
           case IDL_LUM_NEG_CHK:
-               if (!iView_Negative)
+               if (!iView_Neg_Lum)
                {
                   //ToggleMenu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
                   iView_Fast_YUV = 1;
@@ -826,6 +840,27 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                Lum_Show_All();  // Lum_SetPos_Sliders();
                RefreshVideoFrame();
                break;
+
+
+
+          case IDL_SAT_NEG_CHK:
+               if (!iView_Neg_Sat)
+               {
+                  //ToggleMenu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  iView_Fast_YUV = 1;
+                  iSatAdj_Flag   = 1;
+                  iView_Neg_Sat  = 1;
+               }
+               else
+                  iView_Neg_Sat = 0;
+
+               //Lum_Filter_Init(0);
+               Lum_Filter_Init(-1);               
+
+               Lum_Show_All();  // Lum_SetPos_Sliders();
+               RefreshVideoFrame();
+               break;
+
 
 
 

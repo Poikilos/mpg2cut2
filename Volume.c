@@ -723,7 +723,7 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
          Vol_SetRange(VOL_BOOST_SLIDER, 0, BOOST_LOG_ARRAYSIZE-1, 1);
          Vol_SetRange(VOL_LIMIT_SLIDER, 0, LIMIT_LOG_ARRAYSIZE-1, 1);
          SendDlgItemMessage(hVolDlg0, VOL_BOOST_SLIDER, TBM_SETTIC, 
-                                                    (WPARAM) 0, 16);
+                                                    (WPARAM) 0, 32);
 
          GetWindowRect(hVolDlg0, &Volrect);
          iWidth  = Volrect.right  - Volrect.left;

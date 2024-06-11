@@ -556,17 +556,19 @@ void Audio_Fallback_Chk()
   // Fallback to auto selection if current selection not working
   if ( iAudio_SEL_Track != TRACK_AUTO
   &&  !PlayCtl.iAudio_SelStatus
-  &&   PlayCtl.iGOP_Ctr > 9)
+  &&   PlayCtl.iGOP_Ctr > 9
+  &&   MParse.FastPlay_Flag <= 0)
   {
       strcpy(szMsgTxt, "Auto Track Reset");
       DSP1_Main_MSG(0,1);
-      iAudio_SEL_Track = TRACK_AUTO;
-      PlayCtl.iAudio_SelStatus = 1;
       for  (i=0;  i<CHANNELS_MAX;  i++)
       {
          mpa_Ctl[i].rip = 0;
          SubStream_CTL[iGot_Trk_FMT][i].rip = 0;
       }
+      //iAudio_SEL_Track = TRACK_AUTO;
+      Set_AudioTrack(TRACK_AUTO);
+      PlayCtl.iAudio_SelStatus = 1;
   }
 }
 

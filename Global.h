@@ -838,7 +838,7 @@ int iView_FrameRate_Code, iOverride_FrameRate_Code;
 int iView_Centre_Crop;
 int iField_Drop, iField_Experiment;
 int iCtl_View_Aspect_Mpeg1_Force, iCtl_View_Aspect_Adjust;
-int iView_SwapUV, iView_Negative, iView_Invert;
+int iView_SwapUV, iView_Neg_Lum, iView_Neg_Sat, iView_Invert;
 int iCtl_VHS_Threshold, iCtl_SinThreshold;
 int iCtl_View_Fast_YUV, iView_Fast_YUV;
 int iView_Limit2k, iCtl_View_Limit2k;

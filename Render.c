@@ -1288,7 +1288,8 @@ void RenderF420(int P_Mode)  // Fast420
                 {
                   if (iSatAdj_Flag)
                   {
-                    if (iSatGain[0] == 100 && !iSat_VHS && !iSat_Sine)
+                    if (iSatGain[0] == 100 
+                        && !iSat_VHS && !iSat_Sine && !iView_Neg_Sat)
                     {
                      for (src2Y = srcY    ;
                           src2Y < srcY_eol ;)  // THERE BE DRAGONS HERE
@@ -2029,7 +2030,7 @@ void Lum_Filter_CSpace(unsigned char *P_Lum_Tbl, int P_ColorSpace)
     else
        iResult = i;
     
-    if (iView_Negative)
+    if (iView_Neg_Lum)
         iResult = 255 - iResult;
 
     // Clamp to one-byte value range
@@ -2047,6 +2048,8 @@ void Lum_Filter_CSpace(unsigned char *P_Lum_Tbl, int P_ColorSpace)
 
     // Convert for byte-signed format
     iSigned = i - 128;
+    if (iView_Neg_Sat)
+        iSigned = -iSigned;
 
     // Blue Diff
     if (iSatAdj_Flag)
@@ -2094,6 +2097,7 @@ void Lum_Filter_CSpace(unsigned char *P_Lum_Tbl, int P_ColorSpace)
     else
        iResult = i;
 
+
     if (iResult  < 0)
         iResult  = 0;
     else
@@ -2106,7 +2110,7 @@ void Lum_Filter_CSpace(unsigned char *P_Lum_Tbl, int P_ColorSpace)
 }
 
 
-
+// Do either or both color spaces    0=OVL  1=RGB  -1=Both
 void Lum_Filter_Init(int P_ColorSpace)
 {
   if (P_ColorSpace != 0)
