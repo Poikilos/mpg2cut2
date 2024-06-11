@@ -2,7 +2,7 @@
    
 // MPEGCUT2 Ver 2 based on Dark Avengers's Ver 1.15
 
-// Ver 2.x mods by RJ (RocketJet) :-    
+// Ver 2.x mods by RJ (RocketJet) :-     
   
 // HISTORY 
 // Location method changed from Block Address to Byte Address

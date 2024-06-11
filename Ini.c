@@ -951,6 +951,7 @@ void INI_GET()
 
     if (iTmp1 == 0)
         iTmp1  = 0xFFFFFE; // Default to boosting everything except MPA_TRAD
+    
     if (iCtl_Vol_Prev_Denom != K_BOOST_DENOM) // Settings based on previous scale are no good
     {
         iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] =  0;
@@ -958,6 +959,24 @@ void INI_GET()
         iCtl_Vol_BoostCat_Init[FORMAT_AC3]  =  0;
         iCtl_Vol_BoostCat_Init[FORMAT_LPCM] =  0;
         iCtl_Vol_BoostCat_Init[FORMAT_DTS]  =  0;
+    }
+    else
+    if (iCtl_Volume_Retain)
+    {
+        //memcpy(&iCtl_Vol_BoostCat_Done, &iVol_BoostCat_Init,
+        //                        sizeof(iCtl_Vol_BoostCat_Done));
+      
+        iVol_BoostCat_Done[FORMAT_MPA] = 
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA];
+        iVol_BoostCat_Done[FORMAT_MPA_TRENDY] = 
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY];
+        iVol_BoostCat_Done[FORMAT_AC3] =  
+            iCtl_Vol_BoostCat_Init[FORMAT_AC3]; 
+        iVol_BoostCat_Done[FORMAT_LPCM] = 
+            iCtl_Vol_BoostCat_Init[FORMAT_LPCM];
+        iVol_BoostCat_Done[FORMAT_DTS] =   
+            iCtl_Vol_BoostCat_Init[FORMAT_DTS];  
+      
     }
 
     if (iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] <= 0)
