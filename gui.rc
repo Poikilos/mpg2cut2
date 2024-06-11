@@ -1572,6 +1572,8 @@ BEGIN
                 MENUITEM "Scroll JUMP More",            IDM_WHEEL_JUMP2
                 MENUITEM "Scroll JUMP Even More",       IDM_WHEEL_JUMP4
             END
+            MENUITEM "Fast Back",                   IDM_NAV_INDEX
+            MENUITEM "Recalibrate",                 IDM_RECALIBRATE
         END
         POPUP "Pop Up Msg"
         BEGIN
@@ -1631,7 +1633,6 @@ BEGIN
         MENUITEM "Delete To Recycle Bin",       IDM_DEL2RECYCLE
         MENUITEM "Parm with Time Codes",        IDM_PARM_CLIP
         MENUITEM SEPARATOR
-        MENUITEM "Fast Back",                   IDM_NAV_INDEX
         POPUP "Buffer Size"
         BEGIN
             MENUITEM "Very Large",                  IDM_BUF_VERYLARGE
@@ -1845,6 +1846,7 @@ BEGIN
     VK_SPACE,       IDM_PAUSE,              VIRTKEY, NOINVERT
     VK_SUBTRACT,    IDM_VOLUME_DOWN,        VIRTKEY, CONTROL, NOINVERT
     VK_UP,          ID_UP_ARROW,            VIRTKEY, NOINVERT
+    VK_UP,          IDM_RECALIBRATE,        VIRTKEY, CONTROL, NOINVERT
     VK_UP,          ID_UP_SHIFT,            VIRTKEY, SHIFT, NOINVERT
     VK_ZOOM,        IDM_ZOOM,               VIRTKEY, NOINVERT
     "Z",            IDM_ZOOM_IN,            ASCII,  NOINVERT

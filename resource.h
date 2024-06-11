@@ -849,6 +849,7 @@
 #define IDM_BOOST_DTS                   33315
 #define IDM_BOOST_LPCM                  33317
 #define IDM_VOL_RETAIN                  33318
+#define IDM_RECALIBRATE                 33319
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -856,7 +857,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        172
-#define _APS_NEXT_COMMAND_VALUE         33319
+#define _APS_NEXT_COMMAND_VALUE         33320
 #define _APS_NEXT_CONTROL_VALUE         1225
 #define _APS_NEXT_SYMED_VALUE           107
 #endif

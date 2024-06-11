@@ -4456,10 +4456,12 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
               B510_PLAY_HERE();
            }
-
-
         break;
 
+
+      case IDM_RECALIBRATE:
+           process.ByteRateAvg[File_Ctr] = BYTERATE_DEF;
+        break;
 
       // The old code for single frame stepping 
       // should the frames in physical file order,
