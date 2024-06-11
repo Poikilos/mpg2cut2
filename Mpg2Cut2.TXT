@@ -256,7 +256,7 @@ but there is no recompression.  The output is still essentially the same underly
 
 Ditto for CDXA RIFF wrapped Mpeg files.  
 The RIFF container is stripped away,
-but there is no change to the nderlying Mpeg data.
+but there is no change to the underlying Mpeg data.
 
 This is NOT a converter.  It cannot output to AVI or other formats.
 
@@ -407,6 +407,7 @@ Windows 98 SE or later
 
 	Win98SE is what I am running on. 
       Win2K - seems to run OK (maybe faster ?).
+      Windows 7 - seems to run OK.
 
 	I expect it would work on other modern versions of Windows...
 
@@ -591,7 +592,6 @@ where it will remind you if you forget to manually add a clip.
 However, the Automated function assumes that successive clips are always
 progressing forward.  If you change your mind about the previous clip,
 or want clips out of chronological order, turn OFF the automation.
-
 
 
 At the end - REMEMBER TO *SAVE* THE CLIPS:
@@ -1711,23 +1711,6 @@ and this will change the Snapshot default at the same time.
 By default, the program uses BiCubic resampling to stretch
 the image to the correct Aspect Ratio.
 
-If you prefer to use your own imaging program 
-like irFanView or Paint Shop Pro to do resampling
-of the snapshot to correct the aspect ratio,
-then set the Output BMP format to NO Aspect Ratio Correction,
-
-Any good imaging program can be used to resample the image
-to give the correct Aspect ratio:
-
-PAL EXAMPLES:
-    720x576 16:9 
-             Full FRAME Grab - Resample WIDTH  from 720 to 1024
-             FIELD Separated - Resample HEIGHT from 288 to  405. (Alive !)
-
-    720x576 4:3 
-             Full FRAME Grab - Resample WIDTH  from 720 to 768
-             FIELD Separated - Resample HEIGHT from 288 to 540.
-
 
 ========================================================================
 
@@ -1804,6 +1787,7 @@ FROM VHS TAPES RECORDED IN STERO FROM A MONO SOURCE.
 
 
 MISC AUDIO OPTIONS
+------------------
 
 Slow Attack - Slow down the AVC reboosting effect.
 
@@ -2055,11 +2039,14 @@ WINDOWS EXPLORER CONTEXT MENU
 You can add Mpg2Cut2 as a context command for Windows Explorer.
 Menu - Misc - Associate.
 
+Under Windows Vista or Windows 7,
+you will need to be running as an Admisnitrator.
+
 ------------------------------------------------------------------
 
 HOME PAGE: 
 
-     http://www.geocities.com/rocketjet4/
+     http://rocketjet4.tripod.com/
 
 
 ------------------------------------------------------------------
@@ -2458,7 +2445,7 @@ OTHER KNOWN BUGS & LIMITATIONS
 
 0) Files larger than 2GB may *NOT* be accepted by the host file system.
    Although Mpg2Cut2 can create large files,
-   the File System may not accept it.
+   the FAT32 File System may not accept it.
    ISO DVD-ROM files must NOT exceed 2GB,
    but you won't find out UNTIL you try to burn it.
 
@@ -2474,6 +2461,9 @@ OTHER KNOWN BUGS & LIMITATIONS
 
    Since the macro-block decoder is a mystery to me,
    there are still problems that I haven't allowed for.
+
+   The Mpeg audio decoder may crash on bad data.
+   I cannot fix this, because I cannot compile the DLLs.
 
 4) Always puts an MPEG header at the front,
    even if  you don't really want it to.
@@ -2493,12 +2483,9 @@ OTHER KNOWN BUGS & LIMITATIONS
 7) Luminance control might benefit from being rewritten in MMX.
 
 8) Some Mpeg audio tracks don't play properly.
-   EG low-bit-rate mono.
+   EG Mono audio.
 
-9) Navigation - Slow response.
-   Side-effect of the way audio is buffered during PLAY mode.
-
-10) Black screen during luminance adjust.
+9) Black screen during luminance adjust.
     Not sure why this happens sometimes.
     Just use the arrow keys to refresh the screen.
 

@@ -302,6 +302,15 @@ void Lum_Set_Button_Chk()
                                uSetting, 0);
 }
 
+void Lum_Chk_Tst()
+{
+  if (iLumEnable_Flag[iColorSpaceTab])
+      uSetting = BST_CHECKED;
+  else
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = IDL_LUM_CHK;
+  Lum_Set_Button_Chk();
+}
 
 
 void Lum_Show_All()
@@ -312,12 +321,7 @@ void Lum_Show_All()
 
   Lum_SetPos_Sliders();
 
-  if (iLumEnable_Flag[iColorSpaceTab])
-      uSetting = BST_CHECKED;
-  else
-      uSetting = BST_UNCHECKED;
-  uSet_ButtonId = IDL_LUM_CHK;
-  Lum_Set_Button_Chk();
+  Lum_Chk_Tst();
 
   if (iLumLock_Flag)
       uSetting = BST_CHECKED;

@@ -1469,7 +1469,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
              }
              */
 
-             
+
              if (DBGflag)
              {
                  sprintf(szDBGln, "\nMSG=%s (%d = x%04X)  MAX=%d SQ=%d  Asp=%d.%d  Phys=%d.%d",
@@ -1485,7 +1485,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
              //DSP2_Main_SEL_INFO(1);
              //DSP3_Main_TIME_INFO();
 
-         }
+         } // END-IF (Maximize or Restore)
+
+         
+
 
  /*
          if (wmId == SC_MAXIMIZE
@@ -1518,6 +1521,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
       case SW_SHOW:
            if (!iMainWin_State || iViewToolBar >= 256)
               DSP2_Main_SEL_INFO(1);
+
+           if (iMainWin_State >= 0)
+           {
+             if (iCtl_Mask_Colour != iColor_Window_BG) // Overlay key Changed ?
+                 DD_OverlayMask(2);     // Redraw overlay mask
+           }
 
          MsgReturn = DefWindowProc(hWnd, message, wParam, lParam);
 
@@ -2297,7 +2306,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            else
            {
                Chg2YUV2(1, 0);
-           }
+           } 
 
            break;
 
@@ -2408,25 +2417,29 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
       case IDM_OVL_MASK_LEADTEK_BLK:
            DeleteObject(hBrush_MASK);  
            DeleteObject(hBrush_MSG_BG); 
-           if (iCtl_Mask_Colour == 0) // Overlay key was Black ?
+           /*
+           if (iCtl_Mask_Colour == 0) // Overlay key already Black ?
            {
                iCtl_Mask_Colour = iColor_Menu_BG;  // Overlay key = Leadtek Grey
                iTmp3 = iCtl_Text_Colour;
                iTmp2 = iCtl_Back_Colour;
                uTmp1 = MF_UNCHECKED;
+               uTmp2 = MF_CHECKED;
                strcpy(szMsgTxt,"Next Session");
            }
-           else 
+           else
+           */
            {
                iCtl_Mask_Colour   = 0; // Overlay key Black
                iCtl_Mask_Fallback = 1; // Temporary - this session only.
-               iTmp2 = 0x010101;
-               iTmp3 = 0xFFEEEE;
+               iTmp2 = 0x010101;  // MSG_BG
+               iTmp3 = 0xFFEEEE;  // TextColor
                uTmp1 = MF_CHECKED;
+               uTmp2 = MF_UNCHECKED;
            }
 
-           CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK, MF_UNCHECKED);
            CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK_BLK, uTmp1);
+           CheckMenuItem(hMenu, IDM_OVL_MASK_LEADTEK,     uTmp2);
 
            hBrush_MASK = CreateSolidBrush(iCtl_Mask_Colour);
            hBrush_MSG_BG = CreateSolidBrush(iTmp2);
@@ -3723,8 +3736,13 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            else
              ToggleMenu('T', &iLumEnable_Flag[iColorSpaceTab], IDM_LUMINANCE);
 
+           if (hLumDlg)
+              Lum_Chk_Tst();
+           
+
            Lum_Filter_Init(iColorSpaceTab);
            RefreshVideoFrame();
+
            break;
 /*
       case IDL_LUM_BC_UP:
@@ -5614,6 +5632,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
    wcex.hInstance     = hInstance; 
    wcex.hIcon         = LoadIcon(hInstance, (LPCTSTR)IDI_MOVIE);
    wcex.hCursor       = LoadCursor(NULL, IDC_ARROW);
+   iColor_Window_BG   = iCtl_Mask_Colour;
    wcex.hbrBackground = CreateSolidBrush(iCtl_Mask_Colour);
    wcex.lpszMenuName  = (LPCSTR)IDC_GUI;
    wcex.lpszClassName = szWindowClass;

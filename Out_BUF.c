@@ -175,8 +175,8 @@ resume:
                          "Mpg2Cut2 - FILE ERROR",
                                         MB_ICONSTOP      | MB_OKCANCEL
                                       | MB_SETFOREGROUND | MB_TOPMOST);
-       if (iAnswer  == IDOK)
-           iIn_AutoResume = 30;
+        if (iAnswer  == IDOK)
+            iIn_AutoResume = 30;
      }
 
 

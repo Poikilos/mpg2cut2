@@ -856,7 +856,7 @@ int iCtl_Play_Info;
 //#define MASKCOLOR       RGB(0, 6, 0)
 //#define MASK_TWINHAN RGB(212, 208, 200)
 
-int iColor_Menu_BG, iColor_Msg_BG;
+int iColor_Menu_BG, iColor_Msg_BG, iColor_Window_BG;
 int iCtl_Text_Colour, iCtl_Back_Colour, iCtl_Mask_Colour, iCtl_Mask_Fallback;
 int iCtl_BMP_Aspect, iCtl_BMP_Preview, iBMP_Preview;
 
@@ -1328,6 +1328,7 @@ void Lum_Negative(const int P_Reshow);
 void Lum_Bold();
 void Lum_C();
 void Lum_Default();
+void Lum_Chk_Tst();
 //void Lum_BC_Adj(int P_Adj);
 
 //unsigned char GammaMask[256];
