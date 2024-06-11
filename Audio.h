@@ -24,7 +24,7 @@
 #define Audio_Dunno 0xABCD;
 //int rj_Audio_Code; // = Audio_Dunno;
 
-#define K_BOOST_DENOM  16        // Granularity of volume settings
+#define K_BOOST_DENOM  32        // Granularity of volume settings
 #define K_VOL_CEILING_DEF  8191  // Default Volume Ceiling when activated. // 8191 = quarter of max (max=32767)
 #define K_BOOST_SILLY (K_BOOST_DENOM*256)
 #define K_BOOST_TOO_SILLY (K_BOOST_SILLY*6/5)

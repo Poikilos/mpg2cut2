@@ -153,7 +153,8 @@ void SPKR_Play_Buffer(void* P_Wav_Data, size_t P_Len)
   int iRC, iTmp1; //, iTmp2;
   int iBoost_Factor, iKaraoke, iAnti_Phase, iPALTelecide_flag;
   unsigned uOverCtr;
-  int iOverflow, iUnderflow, iNearEnough;
+  int iOverflow, iNearEnough; 
+  // int iUnderflow
 
   register int iLeft, iRight;
   int iLimit, iLimit_Neg;
@@ -168,21 +169,21 @@ void SPKR_Play_Buffer(void* P_Wav_Data, size_t P_Len)
   else
       iPALTelecide_flag = 0;
 
-  if (iVolume_Boost)
+  if (iCtl_Volume_Boost && iVolume_Boost > 0)
       iBoost_Factor = iVolume_Boost; // + 7;
   else
       iBoost_Factor = K_BOOST_DENOM;
 
   if (MParse.SlowPlay_Flag)              // Slow play sound is too annoying for full volume 
-      iBoost_Factor = iBoost_Factor / K_BOOST_DENOM; // so spare the ears.
+      iBoost_Factor = iBoost_Factor / 2; // K_BOOST_DENOM; // so spare the ears.
 
   if (iBoost_Factor <= 0)
       iBoost_Factor  = 1;
 
-  if (iCtl_Volume_Limiting)
-      iUnderflow = 2;
-  else
-      iUnderflow = K_BOOST_DENOM;
+  //if (iCtl_Volume_Limiting)
+  //    iUnderflow = 2;
+  //else
+  //    iUnderflow = K_BOOST_DENOM;
 
   
   iSPKR_Buf_Len = P_Len;
@@ -261,10 +262,13 @@ void SPKR_Play_Buffer(void* P_Wav_Data, size_t P_Len)
   iKaraoke    = MParse.Karaoke_Flag;
   iAnti_Phase = MParse.Anti_Phase;
 
+
+
+
+
   // Here we can call any modification output functions we want....
 
-Scan_Samples:
-
+SCAN_SAMPLES_Start:
 
   iPeak   = -32766; // begin nowhere near peak
   iTrough =  32767; // begin nowhere near trough
@@ -279,6 +283,7 @@ Scan_Samples:
   if (iBoost_Factor != K_BOOST_DENOM 
         || (iCtl_Volume_AUTO && iCtl_Volume_Boost)
         ||  iCtl_Volume_Limiting
+        ||  PlayCtl.iAudioFloatingOvfl > 0
      )
   {
        iLimit = iVolume_Ceiling * K_BOOST_DENOM / iBoost_Factor; // Scale ceiling to allow testing BEFORE boosting
@@ -291,12 +296,6 @@ Scan_Samples:
        iLimit_Neg  = (1- iLimit);  // 16bit MIN
   }
   else
-  //if (iBoost_Factor > K_BOOST_DENOM)
-  //{
-  //   iLimit =  (OVFL_TRIG_DEFAULT   * K_BOOST_DENOM / iBoost_Factor);
-  //   iLimit_Neg  =  (- iLimit);
-  //}
-  //else
   {
      iLimit      =     OVFL_TRIG_DEFAULT;
      iLimit_Neg  = 1 - OVFL_TRIG_DEFAULT;
@@ -308,10 +307,12 @@ Scan_Samples:
 
   uOverCtr = 0; iOverflow = 1;
 
+  
   if ((iBoost_Factor == 0 && !iCtl_Volume_Limiting)
   &&  ! iKaraoke
   &&  ! iAnti_Phase
-  &&  ! iPALTelecide_flag)
+  &&  ! iPALTelecide_flag
+  &&    PlayCtl.iAudioFloatingOvfl <= 0)
   {
       CopyMemory ( allocptr, P_Wav_Data, iSPKR_Buf_Len );
   }
@@ -358,45 +359,45 @@ Scan_Samples:
       // Optional increase/decrease in volume
       //     to combat the trend of quiet sound tracks - Grrr... Argh..
 
+      
+      // Check for overflow   (postive and negative, left and right)
+      if ( iLeft >  iLimit )
       {
-        // Check for overflow   (postive and negative, left and right)
-        if ( iLeft >  iLimit )
-        {
             uOverCtr++;
             // Calculate overshoot factor
             iTmp1 = iLeft / iLimit;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
-        }
-        else
-        if ( iLeft <  iLimit_Neg )
-        {
+      }
+      else
+      if ( iLeft <  iLimit_Neg )
+      {
             uOverCtr++;
             // Calculate overshoot factor
             iTmp1 = iLeft / iLimit_Neg;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
-        }
-        else
-        if ( iRight >  iLimit )
-        {
+      }
+      else
+      if ( iRight >  iLimit )
+      {
             uOverCtr++;
             // Calculate overshoot factor
             iTmp1 = iRight / iLimit;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
-        }
-        else
-        if ( iRight <  iLimit_Neg )
-        {
+      }
+      else
+      if ( iRight <  iLimit_Neg )
+      {
             uOverCtr++;
             // Calculate overshoot factor
             iTmp1 = iRight / iLimit_Neg;
             if (iOverflow < iTmp1)
                 iOverflow = iTmp1;
-        }
-        else
-        {
+      }
+      else
+      {
           iLeft  = iLeft  * iBoost_Factor / K_BOOST_DENOM;
           iRight = iRight * iBoost_Factor / K_BOOST_DENOM;
 
@@ -430,10 +431,10 @@ Scan_Samples:
           *((short*)alloc_Wav_Pair)   = iLeft;
           *((short*)alloc_Wav_Pair+1) = iRight;
 
-        }
-      }
+      } // end (in range)
+      
 
-      alloc_Wav_Pair = (char*)(alloc_Wav_Pair) + 4;
+      alloc_Wav_Pair = (char*)(alloc_Wav_Pair) + 4; // increment pointers
       W_Wav_Pair     = (char*)(W_Wav_Pair)     + 4;
 
     } // ENDFOR (each stereo pair in block)
@@ -444,34 +445,39 @@ Scan_Samples:
     if (uOverCtr)
     {
       iVolume_UnBoost_Recent = iCtl_Volume_SlowAttack;  // Postpone boldness
-      if(PlayCtl.iPlayed_Frames > 15        // Allow for bad audio frame at start
-              || ! process.Mpeg2_Flag            // DTV would probably not be Mpeg-1
-              || MPEG_Seq_aspect_ratio_code < 3  // DTV should not use VGA format
-              || iIn_VOB                         // DTV would probably not be called VOB
-              || process.NAV_Loc >= 0            // DTV rarely uses NAV packs
-        )
+
+      //if(PlayCtl.iPlayed_Frames > 15        // Allow for bad audio frame at start
+      //        || ! process.Mpeg2_Flag            // DTV would probably not be Mpeg-1
+      //        || MPEG_Seq_aspect_ratio_code < 3  // DTV should not use VGA format
+      //        || iIn_VOB                         // DTV would probably not be called VOB
+      //        || process.NAV_Loc >= 0            // DTV rarely uses NAV packs
+      //  )
       {
-        if (iVolume_Boost > 0)
+        //if (iBoost_Factor > 0) 
         {
+            iOverflow++;
             iVolume_Boost -= iOverflow;
             if (iVolume_Boost <=0)
                 iVolume_Boost  =1;
             iBoost_Factor -= iOverflow;
+            if (iBoost_Factor < 0)
+                iBoost_Factor = 0;
             if (iVolume_AUTO > K_BOOST_TOO_SILLY) 
                 iVolume_AUTO = iVolume_AUTO * 97 / 100;
 
             if (MParse.ShowStats_Flag || hVolDlg0)
                Stats_Volume_Boost();
 
-            if (iBoost_Factor >= iUnderflow)
-              if (iVolume_Boost > 1)
-                  goto Scan_Samples;
+            if (iBoost_Factor > 0) //  >= iUnderflow)
+              //if (iVolume_Boost > 1)
+                  goto SCAN_SAMPLES_Start;
         }
         //else
         //{
         //    PlayCtl.iAudioFloatingOvfl = 1;
         //}
       }
+      /*
       else
       if (uOverCtr > (iSPKR_Buf_Len/22))
       {
@@ -480,30 +486,38 @@ Scan_Samples:
         //&& (PlayCtl.uAud_Packets / PlayCtl.uAudioOvflPkts) < 10 // More than 10% of packets overflowing ?
            )
         {
-          if (iVolume_Boost > 0)
+          //if (iVolume_Boost > 0)
           {
-              iVolume_Boost -= iOverflow;
-              if (iVolume_Boost <=0)
-                  iVolume_Boost  =1;
-              iBoost_Factor -= iOverflow;
-              if (iVolume_AUTO > K_BOOST_TOO_SILLY)  // 400)
-                  iVolume_AUTO = iVolume_AUTO * 97 / 100;
+            iOverflow++;
+            iVolume_Boost -= iOverflow;
+            if (iVolume_Boost <=0)
+                iVolume_Boost  =1;
+            iBoost_Factor -= iOverflow;
+            if (iBoost_Factor <=0)
+                iBoost_Factor  =1;
+            if (iVolume_AUTO > K_BOOST_TOO_SILLY)  // 400)
+                iVolume_AUTO = iVolume_AUTO * 97 / 100;
 
-              if (MParse.ShowStats_Flag || hVolDlg0)
-                 Stats_Volume_Boost();
+            if (MParse.ShowStats_Flag || hVolDlg0)
+               Stats_Volume_Boost();
 
               // Maybe try a temporary reduction to zero
               //if (iBoost_Factor > K_BOOST_DENOM)
               //    iBoost_Factor = 0;
 
-              if (iVolume_Boost > 1)
-                  goto Scan_Samples;
+              if (iBoost_Factor > 0)  iVolume_Boost > 1)
+                  goto SCAN_SAMPLES_Start;
 
           }
         }
       }
+      */
 
     } // ENDIF OVERFLOW
+
+    // If we reach here, 
+    // then we have been unable to fix up the output packet,
+    // so just copy the original
 
     if (uOverCtr && ! MParse.Karaoke_Flag)
     {
@@ -516,26 +530,44 @@ Scan_Samples:
   // Optional, very rough normalization of audio preview level
 
   if (iVolume_AUTO > 0  
-  &&  iCtl_Volume_Boost
+  &&  iCtl_Volume_Boost > 0
   &&  iVolume_Boost   < iVolume_AUTO
   &&  iVolume_Ceiling > 1344)
   {
+           
+           if (iAudioDBG && hVolDlg0)
+           {
+               sprintf(szTmp32, "%d:%d", iVolume_UnBoost_Recent,
+                                         iCtl_Volume_SlowAttack);
+               SetDlgItemText(hVolDlg0, VOL_DBG, szTmp32);
+           }
+           
+
     if (iVolume_UnBoost_Recent > 0)  
+    {
         iVolume_UnBoost_Recent--;
+    }
     else
     // if there is a significant discrepancy, then reboost.
     if ( iPeak < iNearEnough
-    ||  (iNearEnough + iTrough < 0)) // NOTE: iTrough is negative
+    && (iNearEnough + iTrough > 0)) // NOTE: iTrough is negative
     {
-      iTmp1 = ((iVolume_AUTO - iVolume_Boost) / K_BOOST_DENOM);  // Wobbly, since pkts/sec varies between files
-      if (!iTmp1)
-           iTmp1 = 1;
-      else
-      if (iTmp1 > 3)
-          iTmp1 = 3;
+        if (iVolume_Boost < K_BOOST_DENOM) // gradual changes when shushing
+        {
+              iTmp1 = 1;
+              iVolume_UnBoost_Recent = 1;
+        }
+        else
+        {
+           iTmp1 = ((iVolume_AUTO - iVolume_Boost) / K_BOOST_DENOM);  // Wobbly, since pkts/sec varies between files
+           if (!iTmp1)
+                iTmp1 = 1;
+           else
+           if (iTmp1 > 3)
+               iTmp1 = 3;
+        }
 
-      iVolume_Boost += iTmp1;
-      //iVolume_Boost += ((36 - iVolume_Boost) / K_BOOST_DENOM);  // Wobbly, since pkts/sec varies between files
+        iVolume_Boost += iTmp1;
     }
   }
 

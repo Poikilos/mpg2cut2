@@ -95,9 +95,22 @@ void float2int(float *fPCMData,  BYTE *pByte,  DWORD dwSamples/*, double dNormGa
   float *pfInput, fCurrent;
   short *psSample;
   long  *plSample;
-  int iOverflowed_CurrPkt;
+  int iOverflowed_CurrPkt, iSquelching;
+  //int iAttack;
   
   iOverflowed_CurrPkt = 0;
+
+  if (iVolume_Boost == 1 || iVolume_Ceiling < 3276)
+      iSquelching = 1;
+  else
+      iSquelching = 0;
+
+
+  //if (iCtl_Volume_SlowAttack <= 0) 
+  //    iAttack = 2;  // Postpone boldness
+  //else
+  //    iAttack = iCtl_Volume_SlowAttack;  // Postpone boldness
+scan_begin:
 
   switch (byTByPerSample)
   {
@@ -110,25 +123,46 @@ void float2int(float *fPCMData,  BYTE *pByte,  DWORD dwSamples/*, double dNormGa
        //psSample=(short*)(pByte+(k<<1));
       fCurrent = *pfInput++;
       // Check for out-of-range data returned by MPAlib 
-      if (fCurrent > +32766.0f || fCurrent < -32766.0f)
+      if (fCurrent > +32766.0f || fCurrent < -32765.0f)
       {
-          PlayCtl.iAudioFloatingOvfl = 64;
 
-          if (iVolume_Boost >= K_BOOST_DENOM  
-          && (PlayCtl.iPlayed_Frames > 15
-              || ! process.Mpeg2_Flag            // DTV would not be Mpeg-1
-              || MPEG_Seq_aspect_ratio_code < 3  // DTV would not use VGA format
-              || iIn_VOB                         // DTV should not be called VOB
-              || process.NAV_Loc >= 0            // DTV should not have NAV packs
-          ))
+          //if (iVolume_Boost >= K_BOOST_DENOM  
+          //&& (PlayCtl.iPlayed_Frames > 15
+          //    || ! process.Mpeg2_Flag            // DTV would not be Mpeg-1
+          //    || MPEG_Seq_aspect_ratio_code < 3  // DTV would not use VGA format
+          //    || iIn_VOB                         // DTV should not be called VOB
+          //    || process.NAV_Loc >= 0            // DTV should not have NAV packs
+          //))
           {
-              iVolume_Boost = 0;
+              //iVolume_Boost = 0;
               iOverflowed_CurrPkt = 1;
+              // iVolume_UnBoost_Recent = iAttack;  // Postpone boldness
           }
+          if (PlayCtl.iAudioFloatingOvfl <= 0)
+          {
+              PlayCtl.iAudioFloatingOvfl = 32;
+              goto scan_begin;
+          }
+          else
+              PlayCtl.iAudioFloatingOvfl = 32;
       }
       
+      if (iSquelching)
+         fCurrent = fCurrent * 0.5f;
+      else
       if (PlayCtl.iAudioFloatingOvfl > 0)
       {
+        /*
+          if (PlayCtl.iAudioFloatingOvfl > 40)
+              fCurrent = fCurrent * 0.3f;
+          else
+          if (PlayCtl.iAudioFloatingOvfl > 28)
+              fCurrent = fCurrent * 0.4f;
+          else
+          if (PlayCtl.iAudioFloatingOvfl > 20)
+              fCurrent = fCurrent * 0.5f;
+          else
+        */
           if (PlayCtl.iAudioFloatingOvfl > 16)
               fCurrent = fCurrent * 0.6f;
           else
@@ -165,11 +199,17 @@ void float2int(float *fPCMData,  BYTE *pByte,  DWORD dwSamples/*, double dNormGa
   // auto-recover from corrupted data that causes temporary overflow
   if (PlayCtl.iAudioFloatingOvfl > 0)
   {
-        if (process.iAudio_Ovfl_Ctr < 3)  // is it temporary ?
+        if (process.iAudio_Ovfl_Ctr < 9)  // is it temporary ?
         {
            if (iOverflowed_CurrPkt)
                process.iAudio_Ovfl_Ctr++; // may become consistent
+
            PlayCtl.iAudioFloatingOvfl--;
+           if (PlayCtl.iAudioFloatingOvfl <=0)
+               process.iAudio_Ovfl_Ctr = 0;
         }
+
+        if (MParse.ShowStats_Flag || hVolDlg0)
+           Stats_Volume_Boost();
   }
 }

@@ -954,13 +954,42 @@ void INI_GET()
     
     if (iCtl_Vol_Prev_Denom != K_BOOST_DENOM) // Settings based on previous scale are no good
     {
-        iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] =  0;
-        iCtl_Vol_BoostCat_Init[FORMAT_MPA]  =  0;
-        iCtl_Vol_BoostCat_Init[FORMAT_AC3]  =  0;
-        iCtl_Vol_BoostCat_Init[FORMAT_LPCM] =  0;
-        iCtl_Vol_BoostCat_Init[FORMAT_DTS]  =  0;
+        if (iCtl_Vol_Prev_Denom <= 0)
+        {
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] =  0;
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA]  =  0;
+            iCtl_Vol_BoostCat_Init[FORMAT_AC3]  =  0;
+            iCtl_Vol_BoostCat_Init[FORMAT_LPCM] =  0;
+            iCtl_Vol_BoostCat_Init[FORMAT_DTS]  =  0;
+        }
+        else
+        {
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] = 
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] * K_BOOST_DENOM / iCtl_Vol_Prev_Denom;
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA]  = 
+            iCtl_Vol_BoostCat_Init[FORMAT_MPA]  * K_BOOST_DENOM / iCtl_Vol_Prev_Denom;
+            iCtl_Vol_BoostCat_Init[FORMAT_AC3]  =
+            iCtl_Vol_BoostCat_Init[FORMAT_AC3]  * K_BOOST_DENOM / iCtl_Vol_Prev_Denom;
+            iCtl_Vol_BoostCat_Init[FORMAT_LPCM] =
+            iCtl_Vol_BoostCat_Init[FORMAT_LPCM] * K_BOOST_DENOM / iCtl_Vol_Prev_Denom;
+            iCtl_Vol_BoostCat_Init[FORMAT_DTS]  =
+            iCtl_Vol_BoostCat_Init[FORMAT_DTS]  * K_BOOST_DENOM / iCtl_Vol_Prev_Denom;
+        }
+
     }
-    else
+
+
+    if (iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] <= 0)
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY]  = (K_BOOST_DENOM*3); // 46; // 16;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_MPA]  <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA]   = (K_BOOST_DENOM*2); // 30; //  8;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_AC3]  <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_AC3]   = (K_BOOST_DENOM*4); // 62; // 24;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_LPCM] <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_LPCM]  = (K_BOOST_DENOM*2); // 30; //  8;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_DTS]  <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_DTS]   = (K_BOOST_DENOM*16);
+
     if (iCtl_Volume_Retain)
     {
         //memcpy(&iCtl_Vol_BoostCat_Done, &iVol_BoostCat_Init,
@@ -978,17 +1007,6 @@ void INI_GET()
             iCtl_Vol_BoostCat_Init[FORMAT_DTS];  
       
     }
-
-    if (iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] <= 0)
-        iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY]  = (K_BOOST_DENOM*3); // 46; // 16;
-    if (iCtl_Vol_BoostCat_Init[FORMAT_MPA]  <=  0)
-        iCtl_Vol_BoostCat_Init[FORMAT_MPA]   = (K_BOOST_DENOM*2); // 30; //  8;
-    if (iCtl_Vol_BoostCat_Init[FORMAT_AC3]  <=  0)
-        iCtl_Vol_BoostCat_Init[FORMAT_AC3]   = (K_BOOST_DENOM*4); // 62; // 24;
-    if (iCtl_Vol_BoostCat_Init[FORMAT_LPCM] <=  0)
-        iCtl_Vol_BoostCat_Init[FORMAT_LPCM]  = (K_BOOST_DENOM*2); // 30; //  8;
-    if (iCtl_Vol_BoostCat_Init[FORMAT_DTS]  <=  0)
-        iCtl_Vol_BoostCat_Init[FORMAT_DTS]   = (K_BOOST_DENOM*16);
 
     // Debitulate the Boost Flags by category
     iCtl_Vol_BoostCat_Flag[0] = (iTmp1 & 1);

@@ -353,6 +353,7 @@
 #define VOL_BOOST_ZERO                  1223
 #define VOL_BOOST_SNAP                  1224
 #define VOL_MUTE_CHK                    1225
+#define VOL_DBG                         1226
 #define IDC_FPS_SHOWN                   1441
 #define IDC_GOP_CTR                     1442
 #define IDC_PSD                         1443

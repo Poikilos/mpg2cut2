@@ -3293,7 +3293,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
              VolBoostChg();
          }
          break;
-      case IDM_BOOST_DTS:
+      case IDM_BOOST_DTS: 
          ToggleMenu('T', &iCtl_Vol_BoostCat_Flag[FORMAT_DTS], IDM_BOOST_DTS);
          if (iVol_Boost_Cat == FORMAT_DTS)
          {
@@ -3355,7 +3355,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
       case IDM_VOLUME_GENTLE:
          if (iCtl_Volume_SlowAttack == 0)
-             iCtl_Volume_SlowAttack  = 64;
+             iCtl_Volume_SlowAttack  = 66;
          else
              iCtl_Volume_SlowAttack = -iCtl_Volume_SlowAttack;
 
@@ -3365,6 +3365,10 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
              uTmp1 = MF_UNCHECKED;
          
          CheckMenuItem(hMenu, IDM_VOLUME_GENTLE,  uTmp1);
+
+           sprintf(szMsgTxt, "Attack=%d", iCtl_Volume_SlowAttack);
+           DSP1_Main_MSG(0,1);
+
          break;
   
       case IDM_AUDIO_KARAOKE:

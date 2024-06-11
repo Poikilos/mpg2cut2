@@ -780,6 +780,7 @@ BEGIN
     LTEXT           "",VOL_BOOST_SNAP,199,19,26,9,SS_SUNKEN
     CONTROL         "Mute",VOL_MUTE_CHK,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,39,20,25,8
+    LTEXT           "",VOL_DBG,200,37,26,9
 END
 
 
@@ -1287,9 +1288,9 @@ BEGIN
                 MENUITEM "other - 48kHz or higher ",    IDM_BOOST_MPA_TRENDY
                 MENUITEM "other - 44kHz or lower (Trad)", IDM_BOOST_MPA_TRAD
                 MENUITEM SEPARATOR
-                MENUITEM "Slow Attack",                 IDM_VOLUME_GENTLE
             END
             MENUITEM "Remember Volume settings",    IDM_VOL_RETAIN
+            MENUITEM "Slow Attack",                 IDM_VOLUME_GENTLE
             MENUITEM SEPARATOR
             MENUITEM "V key pops up Volume Window", IDM_KB_V_POPUP
             MENUITEM "StarKey  Volume Keys",        IDM_VOL_STARKEY

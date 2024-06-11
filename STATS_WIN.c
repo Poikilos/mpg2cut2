@@ -1102,13 +1102,13 @@ void Stats_Volume_Boost()
   if (  ( ( !strcmp(szAudio_Status, "Loaded") 
                  || szAudio_Status[0] <= ' ')
          && iVolume_Boost)
-  ||  ! MParse.ShowStats_Flag)
+  ||  ! MParse.ShowStats_Flag  || hVolDlg0)
   {
-        if (iVolume_Boost  <= 0)
-        {
-            sprintf(szBuffer, "NO boost");  //szAudio_Status);
-        }
-        else
+        //if (iVolume_Boost  <= 0)
+        //{
+        //    sprintf(szBuffer, "NO boost");  //szAudio_Status);
+        //}
+        //else
         {
            if (PlayCtl.iAudioFloatingOvfl)
                cOvfl = '<';
@@ -1125,7 +1125,7 @@ void Stats_Volume_Boost()
            else
                iAuto_External = 0;
 
-           sprintf(szBuffer, "Boost%c%03d:%03d", cOvfl, 
+           sprintf(szBuffer, "Vol%c%03d:%03d", cOvfl, 
                              iBoost_External, iAuto_External);
            if (hVolDlg0)
            {
