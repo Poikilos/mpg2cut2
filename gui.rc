@@ -760,24 +760,26 @@ STYLE DS_MODALFRAME | WS_POPUP
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Slider1",VOL_BOOST_SLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    WS_TABSTOP,73,3,107,17
+                    WS_TABSTOP,74,3,107,17
     CONTROL         "Slider1",VOL_LIMIT_SLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    TBS_NOTICKS | WS_TABSTOP,72,28,108,16
+                    TBS_NOTICKS | WS_TABSTOP,73,28,108,16
     CONTROL         "On",VOL_BOOST_CHK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     4,7,21,8
     CONTROL         "Auto",VOL_AUTO_CHK,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,4,19,25,8
-    LTEXT           "Boost",IDC_STATIC,51,8,19,8
+    LTEXT           "Boost",IDC_STATIC,52,8,19,8
     CONTROL         "Limit",VOL_LIMIT_CHK,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,38,31,26,8
+                    WS_TABSTOP,39,31,26,8
     RTEXT           "",VOL_LIMIT_NUM,181,28,18,10,SS_SUNKEN | NOT WS_GROUP
     RTEXT           "",VOL_BOOST_NUM,180,9,19,10,SS_SUNKEN | NOT WS_GROUP
-    CONTROL         "Mute",VOL_MUTE_CHK,"Button",BS_AUTOCHECKBOX | 
-                    WS_TABSTOP,4,31,25,8
+    CONTROL         "Keep",VOL_KEEP_CHK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,31,29,8
     GROUPBOX        "",IDC_STATIC,1,0,33,46
     PUSHBUTTON      "X",VOL_EXIT,213,1,12,12
-    PUSHBUTTON      "0",VOL_BOOST_ZERO,37,7,11,10
+    PUSHBUTTON      "0",VOL_BOOST_ZERO,38,7,11,10
     LTEXT           "",VOL_BOOST_SNAP,199,19,26,9,SS_SUNKEN
+    CONTROL         "Mute",VOL_MUTE_CHK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,39,20,25,8
 END
 
 

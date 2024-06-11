@@ -447,6 +447,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
 
             case IDM_EXIT:
                  MParse.SeqHdr_Found_Flag = 0;
+                 MParse.Stop_Flag = 1;
                  if (!iFin_Done)
                     iRC = Y100_FIN();
                  else
@@ -3340,6 +3341,8 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
       case IDM_VOL_RETAIN:
          ToggleMenu('T', &iCtl_Volume_Retain, IDM_VOL_RETAIN);
+         if (hVolDlg0)
+              Vol_Show_Chks();
          break;
 
       case IDM_VOLUME_MUTE: 

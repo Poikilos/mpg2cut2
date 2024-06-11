@@ -337,7 +337,7 @@ void VOL305_Volume_Lesser()
 
   iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
 
-  if (iVolume_Boost <= K_BOOST_DENOM)
+  if (iVolume_Boost <= 0)
       BoostUnTick();
 
   //if (MParse.ShowStats_Flag)
@@ -672,6 +672,15 @@ void Vol_Show_Chks()
   uSet_ButtonId = VOL_LIMIT_CHK;
   Vol_Set_Button_Chk();
 
+  if (iCtl_Volume_Retain)
+      uSetting = BST_CHECKED;
+  else
+      uSetting = BST_UNCHECKED;
+  uSet_ButtonId = VOL_KEEP_CHK;
+  Vol_Set_Button_Chk();
+
+
+
   //Vol_SetNum_Boost();
 
   ShowWindow(hVolDlg0, SW_SHOW);
@@ -906,6 +915,24 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
                else
                {
                     VOL206_Volume_UN_Mute();
+               }
+ 
+               break;
+
+
+          case VOL_KEEP_CHK:
+               uStatus = SendDlgItemMessage(hVolDlg0,
+                       VOL_KEEP_CHK, BM_GETCHECK, 1, 0);
+
+               if (uStatus == BST_CHECKED)
+               {
+                    iCtl_Volume_Retain = 1;
+                    MenuTick(IDM_VOL_RETAIN);
+               }
+               else
+               {
+                    iCtl_Volume_Retain = 0;
+                    MenuUnTick(IDM_VOL_RETAIN);
                }
  
                break;

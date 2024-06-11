@@ -1009,7 +1009,7 @@ void INI_GET()
         iVolume_Boost = 0;
 
     if (iCtl_Volume_AUTO && iCtl_Volume_Boost)
-        iVolume_AUTO  = iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY];
+        iVolume_AUTO  = iCtl_Vol_BoostCat_Init[FORMAT_MPA];
     else
         iVolume_AUTO = 0;
 

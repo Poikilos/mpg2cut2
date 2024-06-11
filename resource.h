@@ -347,11 +347,12 @@
 #define TRK_TXT_6                       1219
 #define VOL_LIMIT_NUM                   1219
 #define TRK_TXT_7                       1220
-#define VOL_MUTE_CHK                    1220
+#define VOL_KEEP_CHK                    1220
 #define VOL_EXIT                        1221
 #define VOL_BOOST_NUM                   1222
 #define VOL_BOOST_ZERO                  1223
 #define VOL_BOOST_SNAP                  1224
+#define VOL_MUTE_CHK                    1225
 #define IDC_FPS_SHOWN                   1441
 #define IDC_GOP_CTR                     1442
 #define IDC_PSD                         1443
