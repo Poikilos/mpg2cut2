@@ -134,10 +134,11 @@ void DSP2_Main_SEL_INFO(int P_Force)
        cTimeUnit = 's';
   }
 
-  iLen = sprintf(szSelTxt, " %d clips %d%c   %dmb/%02d   %c%s%dmb       ",
+  iLen = sprintf(szSelTxt, " %d clips %d%c   %dmb/%02d   +%s%dmb       ",
                    iEDL_ctr, uTot_Time, cTimeUnit,
                                             iEDL_TotMB, iInputTotMB,
-                                            cSelStatus, szTmp32, iSelMB);
+                                            // cSelStatus, 
+                                            szTmp32, iSelMB);
 
   if (MParse.SeqHdr_Found_Flag 
   &&  (iMsgLife <= 0 || P_Force)   // process.Preamble_Known)

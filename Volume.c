@@ -381,14 +381,25 @@ void VOL306_Volume_LessBold()
 
 void VOL320_Down()
 {
+
   if (!iWantAudio)
       MessageBeep(MB_OK);
   else
-  if (iVolume_AUTO > 1
-  &&  iVolume_Boost)
-       VOL306_Volume_LessBold();
-  else
-       VOL305_Volume_Lesser();
+  {
+    if (!iCtl_Volume_Boost)
+    {
+        iCtl_Volume_Boost = 1;
+        BoostTick();
+        iVolume_Boost = K_BOOST_DENOM;
+        if (iCtl_Volume_AUTO)
+                iVolume_AUTO = K_BOOST_DENOM;
+    }
+
+    if (iVolume_AUTO > 1) //    &&  iVolume_Boost)
+         VOL306_Volume_LessBold();
+    else
+         VOL305_Volume_Lesser();
+  }
 }
 
 

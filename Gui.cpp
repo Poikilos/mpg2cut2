@@ -1848,7 +1848,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
             DSP5_Main_FILE_INFO();
             break;
 
-      case IDM_FILE_DELETE:
+      case IDM_FILE_DELETE:  
            Mpeg_Stop_Rqst();
            if (iEDL_ctr)
            {

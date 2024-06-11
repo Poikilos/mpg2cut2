@@ -132,7 +132,7 @@ void C000_Clip_TOTAL_MB(char P_Act)
 //
 void C100_Clip_DEFAULT(char P_Act)
 {
-  cSelStatus = '+';
+  // cSelStatus = '+';
   if (File_Limit)
   {
      if (iCtl_Lum_Deselector && iLum_Deselected)
@@ -187,7 +187,7 @@ void C100_Clip_DEFAULT(char P_Act)
 
 void C140_Clip_EOF()
 {
-    cSelStatus = '+';
+    // cSelStatus = '+';
 
          process.ToPadFile = File_Final ;
          //process.ToPadBlk  = (process.length[process.ToPadFile] / MPEG_SEARCH_BUFSZ);
@@ -382,7 +382,7 @@ void C322_ToSel2Clip()
 
 void C320_Sel2Clip()
 {
-  cSelStatus = '_';
+  // cSelStatus = '_';
 
   C321_FromSel2Clip();
   C322_ToSel2Clip();
@@ -430,7 +430,7 @@ void C323_Clip2Clip(int P_From, int P_To)
 
 void C333_Clip_Clear()
 {
-  cSelStatus = '_';
+  // cSelStatus = '_';
   Ed_Prev_Act2 = Ed_Prev_Act; Ed_Prev_Act      = 'C';
   Ed_Prev_EDL_Ctr  = iEDL_ctr ;
   iEDL_ctr = 0;
@@ -478,7 +478,7 @@ void C352_Clip_ADD(char P_DescAbbr, int P_SizeChk)
 
   iBeep = 0;
   iEDL_Chg_Flag = 1;
-  cSelStatus = '_';
+  // cSelStatus = '_';
 
   switch (P_DescAbbr)
   {
@@ -594,8 +594,9 @@ void C352_Clip_ADD(char P_DescAbbr, int P_SizeChk)
            {
                iRC = C800_Clip_FILE(SAVE_EDL, 1, 'o');
            }
+           else
+               Sleep(150);
 
-           Sleep(150);
            // ShowWindow(hWnd, wCmdShow);
            if (iViewToolBar >= 256)
            {
@@ -691,7 +692,7 @@ int iRC;
 
   if (iRC == 1)
   {
-    cSelStatus = '+';
+    // cSelStatus = '+';
     iEDL_ctr--;  iEDL_Chg_Flag = 1;
     //Tick_Ctl(TBM_CLEARTIC, EDList.ToViewFile[iEDL_ctr], 
     //                            EDList.ToViewLoc [iEDL_ctr]);
@@ -709,7 +710,7 @@ void C450_Clip_DEL_ALL()
 {
 int iRC;
   
-  cSelStatus = '+';
+  // cSelStatus = '+';
   if (iEDL_ctr < 1)
     return;
 
@@ -764,7 +765,7 @@ void C500_Clip_UNDO()
 {
 
   strcpy(szBuffer, UNDO_SORRY); // "Sorry, I don't know what to UNDO");
-  cSelStatus = '~';
+  // cSelStatus = '~';
 
   switch (Ed_Prev_Act)
   {
@@ -969,7 +970,7 @@ void C510_Sel_FROM_MARK(int P_External)
             //SendMessage(hTrack, TBM_SETPOS, (WPARAM) true,  process.trackleft);
 
             Ed_Prev_Act2 = Ed_Prev_Act; Ed_Prev_Act = '[';
-            cSelStatus = '+';
+            // cSelStatus = '+';
             DSP2_Main_SEL_INFO(0);
 
             if (! iEDL_ctr)              // First Clip ?
@@ -1062,8 +1063,8 @@ void C520_Sel_TO_MARK()
             {
                C350_Clip_ADD('+', 1);  // ADD the details into the list
             }
-            else
-               cSelStatus = '+';
+            // else
+            //   cSelStatus = '+';
 
             //process.run = 0;
             //for (i=0; i<process.ToPadFile; i++)
@@ -1215,7 +1216,7 @@ void  C600_Clip_Split()
 
             iEDL_ctr++;
             Ed_Prev_Act = '|';
-            cSelStatus = '+';
+            // cSelStatus = '+';
  
             DSP2_Main_SEL_INFO(1);
        }

@@ -1199,7 +1199,7 @@ int  iEDL_ClipFrom, iEDL_ClipTo, iEDL_OutClips;
 int iSelMB, iClipMB, iInputTotMB; //, wCmdShow ;
 
 char szSelTxt[80];
-char cSelStatus;
+//char cSelStatus;
         /* struc SelStat
           {
           char chMB[12]
