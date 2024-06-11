@@ -227,14 +227,14 @@ void PlayTools_Create() // Extra buttons for special playback
 
   if (iCtl_ToolTips)
   {
-     CreateToolTip(hSingle, " SINGLE Frame Advance ");
-     CreateToolTip(hSlower,  " Play SLOWER");
-     CreateToolTip(hFaster,  " Play FASTER");
-     CreateToolTip(hSlow1,  " Play SLOW -33%");
-     CreateToolTip(hSlow2,  " Play SLOW -50%");
-     CreateToolTip(hFast1,  " Play FAST +50%");
-     CreateToolTip(hFast2,  " Play FAST +100%");
-     CreateToolTip(hFastX,  " PLAY EXTRA FAST");
+     CreateToolTip(hSingle, " SINGLE Frame Advance    (/) ");
+     CreateToolTip(hSlower,  " Play SLOWER     (F9) ");
+     CreateToolTip(hFaster,  " Play FASTER     ( Shift-F9 ) ");
+     CreateToolTip(hSlow1,  " Play SLOW -33% ");
+     CreateToolTip(hSlow2,  " Play SLOW -50% ");
+     CreateToolTip(hFast1,  " Play FAST +50% ");
+     CreateToolTip(hFast2,  " Play FAST +100% ");
+     CreateToolTip(hFastX,  " PLAY EXTRA FAST  (NumPad-*) ");
   }
 }
 
@@ -745,10 +745,12 @@ void ToolBar_Metrics()
 
 void  CreateToolTips_ALL()
 {
+  char *lpDesc;
+
    CreateToolTip(hBmpButton, " BMP Snapshot ");
    CreateToolTip(hAddButton, " ADD Selection to Clip List ");
 
-   CreateToolTip(hStop,   " STOP ");
+   CreateToolTip(hStop,   " STOP     (esc)");
    CreateToolTip(hPlayP,   " PLAY ");
 
    CreateToolTip(hMarkLeft,  " MARK START of Clip ");
@@ -758,21 +760,25 @@ void  CreateToolTips_ALL()
    CreateToolTip(hLumButton, " LUMINANCE Display Adjustment (Gamma) ");
    CreateToolTip(hZoomButton, " ZOOM ");
 
-   CreateToolTip(hVolButton, " Volume Control");
+   if (iCtl_KB_V_Popup)
+     lpDesc = &"VOLUME Control (v)";
+   else
+     lpDesc = &"VOLUME Control (Ctrl-V)";
+   CreateToolTip(hVolButton, lpDesc);
 
    //if (iCtl_KB_NavOpt)
    {
-      CreateToolTip(hBack1,  " STEP BACK 1 GOP  (Previous I-Frame) ");
-      CreateToolTip(hFwd1, " STEP Forward 1 GOP  (Next I-Frame) ");
+      CreateToolTip(hBack1,  " STEP BACK 1 GOP  (Prev Key-Frame)   (<) ");
+      CreateToolTip(hFwd1,   " STEP Forward 1 GOP  (Next Key-Frame) (>) ");
 
-      CreateToolTip(hBack2,  " JUMP BACK ");
-      CreateToolTip(hFwd2, " JUMP Forward");
+      CreateToolTip(hBack2,  " JUMP BACK  about 1 sec  ( Shift-< ) ");
+      CreateToolTip(hFwd2,   " JUMP Forward  about 1 sec   ( Shift-> ) ");
 
-      CreateToolTip(hBack3,  " JUMP Back MORE");
-      CreateToolTip(hFwd3, " JUMP Forward MORE");
+      CreateToolTip(hBack3,  " JUMP Back MORE  about 20 sec  (^) ");
+      CreateToolTip(hFwd3, " JUMP Forward MORE  about 20 sec  (DownArrow) ");
 
-      CreateToolTip(hBack4,  " JUMP Back LOTS");
-      CreateToolTip(hFwd4, " JUMP Forward LOTS");
+      CreateToolTip(hBack4,  " JUMP Back LOTS  about 40 sec  ( Shift-^ ) ");
+      CreateToolTip(hFwd4, " JUMP Forward LOTS  about 40 sec  ( Shift-DownArrow ) ");
    }
    //else
    //{
@@ -943,7 +949,8 @@ void MarkRightButton_Create()
 
 void ToolBar_Create()
 {
-  
+  HMENU hTemp;
+
   if (iViewToolBar >= 256)
   {
      BmpButton_Create();
@@ -957,8 +964,13 @@ void ToolBar_Create()
                    iZoom_PosX, 0, 
                    (HMENU) IDM_ZOOM);
 
+     if (iCtl_KB_V_Popup)
+         hTemp = (HMENU) IDM_VOLUME_UP;
+     else
+         hTemp = (HMENU) IDM_VOL_SLIDERS;
+
      hVolButton = TB_Create(&"V",  // 0, 
-                  iVol_PosX, iSkipBar_PosY, (HMENU) IDM_VOL_SLIDERS);
+                  iVol_PosX, iSkipBar_PosY, hTemp);
   
      //iTemp[0] = OBM_ZOOM;
      //SendMessage(hBmpButton, BM_SETIMAGE,

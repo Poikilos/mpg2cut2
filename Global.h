@@ -46,11 +46,11 @@
 #include <time.h>
 #include <SYS\stat.h>
 
-char szAppTitle[50]; // "Mpg2Cut2 - Development Version 2.8.5c" // You don't expect this to work do you ?"
+char szAppTitle[50]; // "Mpg2Cut2 - Development Version 2.8.6" // You don't expect this to work do you ?"
 
 // When changing version,
 // remember to change version strings in Resources as well.
-#define APP_VER 20805
+#define APP_VER 20806
 #define API_VER 20802
 char szAppVer[8]
 #ifdef GLOBAL
@@ -651,6 +651,7 @@ int  iCtl_To_Pad;
 
 // Keyboard options
 int iCtl_KB_NavOpt, iCtl_KB_MarkOpt, iCtl_KB_NavStopPlay;
+int iCtl_KB_V_Popup;
 int iKB_MARK_FROM, iKB_MARK_TO;
 int iCtl_F3_Names, iCtl_F5_Toggler;
 
@@ -1445,7 +1446,7 @@ void Set_XTN_PS(char [8]), Set_XTN_AUD(char [8]);
 void Set_ADD(int);
 //void Set_ALIGN_VERT(int, int), Set_ALIGN_HORIZ(int, int);
 void Set_Preamble_Mode(int P_Mode);
-void Set_Toggle_Menu(char, void*, int);
+void ToggleMenu(char, void*, int);
 void Set_Parse_Ticks();
 void Set_Wheel_Scroll(int);
 

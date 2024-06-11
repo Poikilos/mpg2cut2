@@ -31,8 +31,10 @@ void Ini_Associate()
                              ".M1P",  ".M1V",
                              ".TS",   ".M2T",
                              "MPEGfile",    "Mpeg_Auto_File", 
-                             "VOBFILE",     "VOB_Auto_File",
-                             "PDVDmpgfile",
+                             "VOBFILE",      "VOB_Auto_File",
+                             "PDVDmpgfile",   "QuickTime.vob",
+                             "QuickTime.mpeg", "QuickTime.mpg",
+                             "VLC.mpeg", "VLC.mpg", "VLC.vob",
                              "-",
                        // Other things
                              ".EDL",

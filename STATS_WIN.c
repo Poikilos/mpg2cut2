@@ -1125,8 +1125,15 @@ void Stats_Volume_Boost()
            else
                iAuto_External = 0;
 
-           sprintf(szBuffer, "Boost%c%d:%d", cOvfl, 
+           sprintf(szBuffer, "Boost%c%03d:%03d", cOvfl, 
                              iBoost_External, iAuto_External);
+           if (hVolDlg0)
+           {
+               sprintf(szTmp32, "%c%02d:%02d", cOvfl, 
+                             iBoost_External, iAuto_External);
+               SetDlgItemText(hVolDlg0, VOL_BOOST_SNAP, szTmp32);
+                 
+           }
         }
   }
   else
@@ -1143,6 +1150,7 @@ void Stats_Volume_Boost()
       if (MParse.ShowStats_Flag)
           SetDlgItemText(hStats, STATS_MPAdec_STATUS, szBuffer);
       else
+      if (!hVolDlg0)
       {
           strcpy(szMsgTxt, szBuffer);
           DSP1_Main_MSG(0,0);

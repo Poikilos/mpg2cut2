@@ -32,7 +32,6 @@ int INI_Version;
 #define PGM_INI  1
 
 int iTmp2, iValCtr;
-int iCtl_Vol_Prev_Denom;
 int iCtl_Warn_Fmts;
 
 void   Reg_ExternalActions();
@@ -288,7 +287,13 @@ TEST_END:
   //iCtl_Out_Keep_Ac3Hdr = 1;
 
   iCtl_Audio_PS2  = 0;       
-  iCtl_Volume_Boost = 0; iCtl_Volume_Boost_Cat = 0;
+  iCtl_Volume_Boost = 0;       
+  iVol_Boost_Cat = 0;       iVol_PREV_Cat = 0;
+  iVol_BoostCat_Done[0] = 0;   iVol_BoostCat_Done[1] = 0; 
+  iVol_BoostCat_Done[2] = 0;   iVol_BoostCat_Done[3] = 0; 
+  iVol_BoostCat_Done[4] = 0;   iVol_BoostCat_Done[5] = 0; 
+  iVol_BoostCat_Done[6] = 0;   iVol_BoostCat_Done[7] = 0; 
+
   iCtl_Volume_AUTO = 0; 
   iAudio_Force44K = 0;   iCtl_PALTelecide = 0;
   //iCtl_RecycleBin = 0;
@@ -895,8 +900,8 @@ void INI_GET()
                               &iCtl_Lum_Deselector, 
                               &iCtl_OutPartAuto, &iCtl_OVL_ATI_Bug, 
                               &iCtl_NotSoFast, 
-                              &uAud_PID_All,
-                              &iDUMMY, &iDUMMY,
+                              &uAud_PID_All, &iCtl_KB_V_Popup,
+                              &iDUMMY,
                               &iDUMMY, &iDUMMY,
                               &iCtl_ViewToolbar[0], &iCtl_ViewToolbar[1]);    
     }
@@ -921,48 +926,90 @@ void INI_GET()
     iCtl_ViewToolbar[1] = 257 - iCtl_ViewToolbar[1];
     iViewToolBar = iCtl_ViewToolbar[0];
 
+    iTmp1 = 0;
     if (! INIFile) iValCtr = 0;
     else
     {
       // Volume Control parameters
       iValCtr = fscanf(INIFile, K_VOLUME, 
-                              &iCtl_Volume_Boost_MPA_other, 
-                              &iCtl_Volume_Boost_MPA_48k,
-                              &iCtl_Volume_Boost_AC3,
+                              &iCtl_Vol_BoostCat_Init[FORMAT_MPA], // Legacy style mpeg (44kHz or less)
+                              &iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY],       // Modern style mpeg (48kHz or higher)
+                              &iCtl_Vol_BoostCat_Init[FORMAT_AC3],             // Basic AC3 (stereo or mono)
                               &iCtl_Volume_Limiting, &iCtl_Volume_Ceiling,
                               &iCtl_Volume_SlowAttack,
                               &iCtl_Vol_StarKey, 
-                              &iCtl_Volume_Boost_LPCM,
-                              &iDUMMY, &iDUMMY,
-                              &iDUMMY, &iDUMMY,
+                              &iCtl_Vol_BoostCat_Init[FORMAT_LPCM],        // LPCM
+                              &iCtl_Vol_BoostCat_Init[FORMAT_DTS],         // DD+ or AC3 with more than 2 channels
+                              &iTmp1, 
+                              &iCtl_Volume_Retain, 
+                              &iDUMMY,
                               &iDUMMY, &iDUMMY,
                               &iCtl_Vol_Prev_Denom, &iCtl_Audio_InitBreathe);    
     }
 
+    iCtl_Volume_Retain = 1- iCtl_Volume_Retain;
+
+    if (iTmp1 == 0)
+        iTmp1  = 0xFFFFFE; // Default to boosting everything except MPA_TRAD
     if (iCtl_Vol_Prev_Denom != K_BOOST_DENOM) // Settings based on previous scale are no good
     {
-        iCtl_Volume_Boost_MPA_48k   =  0;
-        iCtl_Volume_Boost_MPA_other =  0;
-        iCtl_Volume_Boost_AC3       =  0;
-        iCtl_Volume_Boost_LPCM      =  0;
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] =  0;
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA]  =  0;
+        iCtl_Vol_BoostCat_Init[FORMAT_AC3]  =  0;
+        iCtl_Vol_BoostCat_Init[FORMAT_LPCM] =  0;
+        iCtl_Vol_BoostCat_Init[FORMAT_DTS]  =  0;
     }
 
-    if (iCtl_Volume_Boost_MPA_48k   ==  0)
-        iCtl_Volume_Boost_MPA_48k    = (K_BOOST_DENOM*3); // 46; // 16;
-    if (iCtl_Volume_Boost_MPA_other ==  0)
-        iCtl_Volume_Boost_MPA_other  = (K_BOOST_DENOM*2); // 30; //  8;
-    if (iCtl_Volume_Boost_AC3       ==  0)
-        iCtl_Volume_Boost_AC3        = (K_BOOST_DENOM*4); // 62; // 24;
-    if (iCtl_Volume_Boost_LPCM      ==  0)
-        iCtl_Volume_Boost_LPCM       = (K_BOOST_DENOM*2); // 30; //  8;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] <= 0)
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY]  = (K_BOOST_DENOM*3); // 46; // 16;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_MPA]  <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA]   = (K_BOOST_DENOM*2); // 30; //  8;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_AC3]  <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_AC3]   = (K_BOOST_DENOM*4); // 62; // 24;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_LPCM] <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_LPCM]  = (K_BOOST_DENOM*2); // 30; //  8;
+    if (iCtl_Vol_BoostCat_Init[FORMAT_DTS]  <=  0)
+        iCtl_Vol_BoostCat_Init[FORMAT_DTS]   = (K_BOOST_DENOM*16);
+
+    // Debitulate the Boost Flags by category
+    iCtl_Vol_BoostCat_Flag[0] = (iTmp1 & 1);
+    if (iTmp1 & 2)
+        iCtl_Vol_BoostCat_Flag[1] = 1;
+    else
+        iCtl_Vol_BoostCat_Flag[1] = 0;
+    if (iTmp1 & 4)
+        iCtl_Vol_BoostCat_Flag[2] = 1;
+    else
+        iCtl_Vol_BoostCat_Flag[2] = 0;
+    if (iTmp1 & 8)
+        iCtl_Vol_BoostCat_Flag[3] = 1;
+    else
+        iCtl_Vol_BoostCat_Flag[3] = 0;
+    if (iTmp1 & 16)
+        iCtl_Vol_BoostCat_Flag[4] = 1;
+    else
+        iCtl_Vol_BoostCat_Flag[4] = 0;
+    if (iTmp1 & 32)
+        iCtl_Vol_BoostCat_Flag[5] = 1;
+    else
+        iCtl_Vol_BoostCat_Flag[5] = 0;
+    if (iTmp1 & 64)
+        iCtl_Vol_BoostCat_Flag[6] = 1;
+    else
+        iCtl_Vol_BoostCat_Flag[6] = 0;
+    if (iTmp1 & 128)
+        iCtl_Vol_BoostCat_Flag[7] = 1;
+    else
+        iCtl_Vol_BoostCat_Flag[7] = 0;
+
 
     if (iCtl_Volume_Boost)
-        iVolume_Boost = iCtl_Volume_Boost_MPA_other;
+        iVolume_Boost = iCtl_Vol_BoostCat_Init[FORMAT_MPA];
     else
         iVolume_Boost = 0;
 
     if (iCtl_Volume_AUTO && iCtl_Volume_Boost)
-        iVolume_AUTO  = iCtl_Volume_Boost_MPA_48k;
+        iVolume_AUTO  = iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY];
     else
         iVolume_AUTO = 0;
 
@@ -1110,6 +1157,8 @@ void INI_MERGE()
       MenuTick(IDM_KBMARK_VDUB);
   if (iCtl_KB_NavStopPlay)
       MenuTick(IDM_KB_STOPPLAY);
+  if (iCtl_KB_V_Popup)
+      MenuTick(IDM_KB_V_POPUP);
 
   if (iCtl_F3_Names)
       MenuTick(IDM_F3_NAMES);
@@ -1292,14 +1341,28 @@ void INI_MERGE()
 
   if (iCtl_Audio_PS2)
       MenuTick(IDM_AUDIO_PS2);
+
   if (iCtl_Volume_Boost)
       MenuTick(IDM_VOLUME_BOOST);
+  if (iCtl_Vol_BoostCat_Flag[FORMAT_MPA])
+      MenuTick(IDM_BOOST_MPA_TRAD);
+  if (iCtl_Vol_BoostCat_Flag[FORMAT_MPA_TRENDY])
+      MenuTick(IDM_BOOST_MPA_TRENDY);
+  if (iCtl_Vol_BoostCat_Flag[FORMAT_AC3])
+      MenuTick(IDM_BOOST_AC3);
+  if (iCtl_Vol_BoostCat_Flag[FORMAT_DTS])
+      MenuTick(IDM_BOOST_DTS);
+  if (iCtl_Vol_BoostCat_Flag[FORMAT_LPCM])
+      MenuTick(IDM_BOOST_LPCM);
+
   if (iCtl_Volume_AUTO)
       MenuTick(IDM_VOLUME_AUTO);
   if (iCtl_Volume_Limiting > 0)
       MenuTick(IDM_VOLUME_LIMITING);
   if (iCtl_Volume_SlowAttack > 0)
-      MenuTick(IDM_VOLUME_GENTLE); 
+      MenuTick(IDM_VOLUME_GENTLE);
+  if (iCtl_Volume_Retain)
+     MenuTick(IDM_VOL_RETAIN);
   if (iCtl_Vol_StarKey)
       MenuTick(IDM_VOL_STARKEY);
   if (iCtl_Track_Memo)
@@ -1524,6 +1587,7 @@ void INI_SAVE()
 {
   const int iDummy_TRUE  = 1;
   const int iDummy_FALSE = 0;
+  int iTmp1;
 
   // iCtl_View_Fast_YUV = 0;
   GetWindowRect(hWnd_MAIN, &wrect);
@@ -1750,22 +1814,53 @@ void INI_SAVE()
                             iCtl_Lum_Deselector,
                             iCtl_OutPartAuto,  iCtl_OVL_ATI_Bug,
                            (iCtl_NotSoFast+1), 
-                            uAud_PID_All, 
-                            iDummy_FALSE, iDummy_FALSE,
+                            uAud_PID_All, iCtl_KB_V_Popup,
+                            iDummy_FALSE, 
                             iDummy_FALSE, iDummy_FALSE,
                            (257 - iCtl_ViewToolbar[0]), 
                            (257 - iCtl_ViewToolbar[1]));
 
+    // Rebitulate the Boost Flags
+    if (iCtl_Vol_BoostCat_Flag[0]) iTmp1 =   1;
+    else                           iTmp1 =   0;
+    if (iCtl_Vol_BoostCat_Flag[1]) iTmp1 +=  2;
+    if (iCtl_Vol_BoostCat_Flag[2]) iTmp1 +=  4;
+    if (iCtl_Vol_BoostCat_Flag[3]) iTmp1 +=  8;
+    if (iCtl_Vol_BoostCat_Flag[4]) iTmp1 += 16;
+    if (iCtl_Vol_BoostCat_Flag[5]) iTmp1 += 32;
+    if (iCtl_Vol_BoostCat_Flag[6]) iTmp1 += 64;
+    if (iCtl_Vol_BoostCat_Flag[7]) iTmp1 +=128;
+
+    if (iCtl_Volume_Retain)
+    {
+      //memcpy(&iCtl_Vol_BoostCat_Init, &iVol_BoostCat_Done,
+      //                                    sizeof(iCtl_Vol_BoostCat_Init));
+      
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA] = 
+            iVol_BoostCat_Done[FORMAT_MPA];
+        iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY] = 
+            iVol_BoostCat_Done[FORMAT_MPA_TRENDY];
+        iCtl_Vol_BoostCat_Init[FORMAT_AC3] =  
+            iVol_BoostCat_Done[FORMAT_AC3]; 
+        iCtl_Vol_BoostCat_Init[FORMAT_LPCM] = 
+            iVol_BoostCat_Done[FORMAT_LPCM];
+        iCtl_Vol_BoostCat_Init[FORMAT_DTS] =   
+            iVol_BoostCat_Done[FORMAT_DTS];  
+      
+    }
+
     fprintf(INIFile, K_VOLUME, 
-                            iCtl_Volume_Boost_MPA_other,
-                            iCtl_Volume_Boost_MPA_48k,
-                            iCtl_Volume_Boost_AC3, 
+                            iCtl_Vol_BoostCat_Init[FORMAT_MPA],
+                            iCtl_Vol_BoostCat_Init[FORMAT_MPA_TRENDY],
+                            iCtl_Vol_BoostCat_Init[FORMAT_AC3], 
                             iCtl_Volume_Limiting, iCtl_Volume_Ceiling,                            
                             iCtl_Volume_SlowAttack, 
                             iCtl_Vol_StarKey,
-                            iCtl_Volume_Boost_LPCM,
-                            iDummy_FALSE,  iDummy_FALSE,
-                            iDummy_FALSE,  iDummy_FALSE,
+                            iCtl_Vol_BoostCat_Init[FORMAT_LPCM],
+                            iCtl_Vol_BoostCat_Init[FORMAT_DTS],  
+                            iTmp1,
+                            (1-iCtl_Volume_Retain), 
+                            iDummy_FALSE,
                             iDummy_FALSE,  iDummy_FALSE,
                             K_BOOST_DENOM, iCtl_Audio_InitBreathe);
 

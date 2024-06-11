@@ -579,7 +579,7 @@ void C352_Clip_ADD(char P_DescAbbr, int P_SizeChk)
       if (P_DescAbbr != '0')
       {
            // Flash the ADD button to acknowledge request
-           MoveWindow(hAddButton, (iToolbarWidth/2), 150,
+           MoveWindow(hAddButton, iTool_Wd, 80,
                               iTool_Wd, iTool_Ht, true);
            if (iBeep) MessageBeep(MB_OK);
 

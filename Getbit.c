@@ -676,12 +676,14 @@ void Get_Next_Packet()
   int iTmp1, iLen;
   unsigned uTmp1;
   MENUITEMINFO PIDmenu;
+  /*
   const unsigned int uPID_MenuId[16] =
   { 
     IDM_PID_1, IDM_PID_2, IDM_PID_3, IDM_PID_4, IDM_PID_5, IDM_PID_6,
     IDM_PID_7, IDM_PID_8, IDM_PID_9, IDM_PID_10, IDM_PID_11, IDM_PID_12,
     IDM_PID_13, IDM_PID_14, IDM_PID_15, IDM_PID_16
   };
+  */
   //iBlkCtr = 0;
 
 #ifdef DBG_RJ

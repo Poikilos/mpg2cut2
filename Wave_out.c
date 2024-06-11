@@ -460,7 +460,7 @@ Scan_Samples:
             if (iVolume_AUTO > K_BOOST_TOO_SILLY) 
                 iVolume_AUTO = iVolume_AUTO * 97 / 100;
 
-            if (MParse.ShowStats_Flag)
+            if (MParse.ShowStats_Flag || hVolDlg0)
                Stats_Volume_Boost();
 
             if (iBoost_Factor >= iUnderflow)
@@ -489,7 +489,7 @@ Scan_Samples:
               if (iVolume_AUTO > K_BOOST_TOO_SILLY)  // 400)
                   iVolume_AUTO = iVolume_AUTO * 97 / 100;
 
-              if (MParse.ShowStats_Flag)
+              if (MParse.ShowStats_Flag || hVolDlg0)
                  Stats_Volume_Boost();
 
               // Maybe try a temporary reduction to zero

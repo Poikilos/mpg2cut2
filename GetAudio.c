@@ -640,9 +640,11 @@ void PS1_Convert()
 
                }
                else
-               {
+               { 
                  if (!byAC3_Init)
+                 {
                       InitialAC3();
+                 }
                  iDecodeOK_Flag = byAC3_Init;
 
                  if (byAC3_Init)
@@ -680,6 +682,7 @@ void PS1_Convert()
                         WAVEOUT_SampleFreq    = PCM_SamplingRate;
                         WAVEOUT_BitsPerSample = uBitsPerSample;
                         WAVEOUT_Channels      = uChannels;
+                        iPlay_SrcChannels     = uChannels;
 
                         WAV_Set_Open();
                    }
@@ -1150,12 +1153,40 @@ void Got_PrivateStream()
          } // end-if AC3
 
 
-         if (iPlayAudio // MParse.Rip_Flag
-         &&  (getbit_AC3_Track == iAudio_SEL_Track)  // is it the one to play?
-         // &&  (iWant_Aud_Format == iGot_Trk_FMT ||  ! iWant_Aud_Format)  // DONE ABOVE
-               /* && (AVI_Flag || D2V_Flag  || Decision_Flag)*/
-            )
+         if  (getbit_AC3_Track == iAudio_SEL_Track)  // is it the one to play?
          {
+             // Categorize track for optional volume boosting         
+             iVol_PREV_Cat = iVol_Boost_Cat;
+             if (iGot_Trk_FMT == FORMAT_AC3
+             ||  iGot_Trk_FMT == FORMAT_DTS     // DD-DTS  is only experimental
+             ||  iGot_Trk_FMT == FORMAT_DDPLUS  // DD-PLUS cannot really be decoded
+                )
+             {
+                iVol_PREV_Cat = iVol_Boost_Cat;
+                if (uChannel_ix > 2 // Better than stereo ?
+                ||  iGot_Trk_FMT > FORMAT_AC3) // DTS or DD+
+                {
+                    iVol_Boost_Cat = FORMAT_DTS;
+                }
+                else
+                {
+                    iVol_Boost_Cat = FORMAT_AC3;
+                } // end primitive AC3
+             } // endif A52 types
+             else
+             if (iGot_Trk_FMT == FORMAT_LPCM)
+             {
+                 if (uSampleRate >= 48000)
+                     iVol_Boost_Cat = FORMAT_LPCM;
+                 else
+                     iVol_Boost_Cat = FORMAT_MPA;
+             } // endif LPCM
+
+             if (iVol_PREV_Cat != iVol_Boost_Cat)
+                 VOL309_Boost_Cat_Begin();
+
+             if (iPlayAudio)
+             {
                  /* CONVERSION TO WAV PCM NO LONGER SUPPORTED
                  sprintf(szBuffer, "%s AC3 T%02d %sch %dKbps %s.wav", szOutput, iAudio_SEL_Track+1,
 
@@ -1193,39 +1224,10 @@ void Got_PrivateStream()
                   }
 
                   //-------------------------------------------
-                  if (iPlayAudio)
-                  {
-                    if (   iGot_Trk_FMT == FORMAT_AC3
-                        || iGot_Trk_FMT == FORMAT_DTS     // DD-DTS  is only experimental
-                        || iGot_Trk_FMT == FORMAT_DDPLUS  // DD-PLUS cannot really be decoded
-                       )
-                    {
-                       if (iCtl_Volume_Boost && !process.iAC3_used)
-                       {
-                          process.iAC3_used = 1;
-                          //if (iGot_Trk_FMT == FORMAT_LPCM)
-                          //    iTmp1 = iCtl_Volume_Boost_MPA; // PCM volume expected to be similar to mpeg 
-                          //else
-                          {
-                              iTmp1 = iCtl_Volume_Boost_AC3;
-                              if (uChannel_ix > 2 // Better than stereo ?
-                              ||  iGot_Trk_FMT > FORMAT_AC3) // DTS or DD+
-                                  iTmp1 = iTmp1 * 4;  // probably need more boosting.
-                          }
-
-                          if (iVolume_Boost < iTmp1)
-                              iVolume_Boost = iTmp1;
-                          if (iCtl_Volume_AUTO && iCtl_Volume_Boost)
-                              iVolume_AUTO = iVolume_Boost;
-                          else
-                              iVolume_AUTO = 0;
-                       } // ENDIF - Need Boosting
-                    }
-
-                  }
+                  
                   //else
                   //  SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].rip = 1;
-
+             } // endif iPlayAudio
          } // END-IF Selected format for playing ?
          //else
           SubStream_CTL[iGot_Trk_FMT][getbit_AC3_Track].rip = 1;
@@ -1362,6 +1364,19 @@ void Got_MPA_Hdr()
      {
         process.PES_Audio_CRC_Flag = Mpeg_PES_Byte1 & 0x02;
 
+        // Categorize the select audio track for optional boosting
+        iPlay_SrcChannels     = uMPA_Channels; 
+
+        // We may ned to reset the boost
+        iVol_PREV_Cat = iVol_Boost_Cat;
+        if (uMPA_Sample_Hz >= 48000)
+            iVol_Boost_Cat = 7;
+        else
+            iVol_Boost_Cat = FORMAT_MPA;
+
+        if (iVol_PREV_Cat != iVol_Boost_Cat)
+            VOL309_Boost_Cat_Begin();
+               
         if (MParse.Rip_Flag  &&  iPlayAudio)
         {
            mpa_Ctl[getbit_MPA_Track].rip = 1;
@@ -1413,12 +1428,12 @@ void Got_MPA_Hdr()
                                              / 500 ;
                      if (uMPA_Channel_ix != 3)
                          PktStats.iAudDelayBytes *= 2;
-                  }
-                }
-              }
-             }
-           }
-        }
+                  } // endif adjust for delay
+                } // endif opened OK
+              } // endif iPlayAudio (REMOVED)
+             } // endif Need to open WAV output
+           } // endif MPAlib OK
+        } // endif need sound
      } // ENDIF  Selected Track ?
      else
        mpa_Ctl[getbit_MPA_Track].rip = 1;
@@ -1462,7 +1477,7 @@ void Chk_MPA_Hdr()
   uMPA_SampFreq_Ix =    (cMPA_Hdr[2]>>2)&3;
   uMPA_Padding     =    (cMPA_Hdr[2]>>1)&1;
   uMPA_kBitRate_Ix =    (cMPA_Hdr[2]>>4)&15;
-  uMPA_Channel_ix   =   (cMPA_Hdr[3]>>6)&3;
+  uMPA_Channel_ix  =    (cMPA_Hdr[3]>>6)&3;
 
   uMPA_Channels  = uMPA_Channel_ix==3?1:2;  // #3=Mono, others=Stereo
   uMPA_Layer     = uMPA_Layer_Ix + 1;

@@ -12,6 +12,17 @@
 
 unsigned uStatus;
 
+void BoostTick()
+{
+  MenuTick( IDM_VOLUME_BOOST);
+  MenuTick(uBOOST_CAT_MENU[iVol_Boost_Cat]);
+}
+void BoostUnTick()
+{
+  MenuUnTick( IDM_VOLUME_BOOST);
+  MenuUnTick(uBOOST_CAT_MENU[iVol_Boost_Cat]);
+}
+
 void VOL202_Volume_Limit_Higher()
 {
   char *lsMSG;
@@ -23,7 +34,7 @@ void VOL202_Volume_Limit_Higher()
       if (iVolume_Ceiling >= 32767) // Reached Max ?
       {
           iVolume_Ceiling = 32767;
-          Set_Toggle_Menu('C', &iCtl_Volume_Limiting, IDM_VOLUME_LIMITING);
+          ToggleMenu('C', &iCtl_Volume_Limiting, IDM_VOLUME_LIMITING);
           lsMSG = &VOLUME_LIMIT_OFF;
       }
       else
@@ -59,7 +70,8 @@ void VOL203_Ceiling_On()
   {
       iCtl_Volume_Boost = 1;
       iVolume_Boost = K_BOOST_DENOM;
-      MenuTick(IDM_VOLUME_BOOST);
+      //iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+      BoostTick();
   }
 
   iCtl_Volume_Limiting = 1;
@@ -81,7 +93,7 @@ void VOL203_Ceiling_Off()
 
 void VOL203_Volume_Target()
 {
-  Set_Toggle_Menu('T', &iCtl_Volume_Limiting, IDM_VOLUME_LIMITING);
+  ToggleMenu('T', &iCtl_Volume_Limiting, IDM_VOLUME_LIMITING);
 
   if (iCtl_Volume_Limiting)
   {
@@ -163,6 +175,7 @@ void VOL250_Volume_More()
   else
       iVolume_Boost++;                             // tiny adjust
 
+  iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
   //if (hVolDlg0)
   //    Vol_Show_All();
 }
@@ -170,14 +183,14 @@ void VOL250_Volume_More()
 
 
 
-void VOL300_Volume_Boost()
+void VOL300_Volume_Boost(int P_Mode)
 {
 
   if(! iPlayAudio || !iWantAudio)
      VOL206_Volume_UN_Mute();
 
 
-  if (!iCtl_Volume_Boost)
+  if (!iCtl_Volume_Boost || P_Mode)
   {
       VOL301_Volume_Boost_Start();
   }
@@ -190,61 +203,69 @@ void VOL300_Volume_Boost()
 
 
 
-void VOL301_Volume_Boost_Start()
+void VOL307_Boost_Started()
 {
-  iCtl_Volume_Boost = 1;
-
-//  if (iCtl_Volume_Boost <= 0
-//  ||  iCtl_Volume_AUTO  <= 0)
-//      iVolume_Boost = iCtl_Volume_Boost;
-//  else
-  {
-     if (iAudio_SEL_Format >= FORMAT_AC3)  // ac3 almost always needs extra boost  // SubStream_CTL[FORMAT_AC3][iAudio_SEL_Track].uChannel_ix == 7
-     {
-         iVolume_Boost = iCtl_Volume_Boost_AC3;
-         iCtl_Volume_Boost_Cat = FORMAT_AC3;
-     }
-     else
-     if (iAudio_SEL_Format == FORMAT_LPCM)  
-     {
-         iVolume_Boost = iCtl_Volume_Boost_LPCM;
-         iCtl_Volume_Boost_Cat = FORMAT_LPCM;
-     }
-     else
-     if (mpa_Ctl[iAudio_SEL_Track].uMPA_Sample_Hz == 48000)
-     {
-         iVolume_Boost = iCtl_Volume_Boost_MPA_48k;
-         iCtl_Volume_Boost_Cat = 7;
-     }
-     else
-     {
-         iVolume_Boost = iCtl_Volume_Boost_MPA_other;
-         if (iAudio_SEL_Format == FORMAT_MPA)  
-             iCtl_Volume_Boost_Cat = FORMAT_MPA;
-         else
-             iCtl_Volume_Boost_Cat = 0;
-
-     }
-  }
-
   if (iCtl_Volume_AUTO)
       iVolume_AUTO = iVolume_Boost;
   else
       iVolume_AUTO = 0;
 
-
   if (iVolume_Boost > K_BOOST_DENOM)
   {
       PlayCtl.iAudioFloatingOvfl = 0;
-      MenuTick(IDM_VOLUME_BOOST);
+      BoostTick();
   }
-  //if (hVolDlg0)
-  //    Vol_Show_All();
+
+  //if (iVolume_Boost)
+      iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+  //else
+  //    iVol_BoostCat_Done[iVol_Boost_Cat] = K_BOOST_DENOM;
+} 
+
+
+void VOL309_Boost_Cat_Begin()
+{
+  if (iCtl_Vol_BoostCat_Flag[iVol_Boost_Cat])
+  {
+      if (iVol_BoostCat_Done[iVol_Boost_Cat]) // Maybe going back to a track adjusted previously
+          iVolume_Boost = iVol_BoostCat_Done[iVol_Boost_Cat];
+      else
+          iVolume_Boost = iCtl_Vol_BoostCat_Init[iVol_Boost_Cat];
+      iCtl_Volume_Boost =  1;
+      VOL307_Boost_Started();
+      iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+  } // endif this type boosted
+  else
+  {
+      BoostUnTick();
+      iCtl_Volume_Boost = 0;  
+      iVolume_Boost = 0;
+  }
 
 }
 
 
+void VOL301_Volume_Boost_Start()
+{
+  // Have we played anything yet ?
+  if (iVol_Boost_Cat > 0)
+  {
+     VOL309_Boost_Cat_Begin();
+     iCtl_Vol_BoostCat_Flag[iVol_Boost_Cat] = 1;
+     iCtl_Volume_Boost = 1;
 
+     VOL307_Boost_Started();
+  }
+  else
+  {
+    // Not sure what to do if audio not yet detected
+    // so for now just beep
+    MessageBeep(MB_OK);
+  }
+}
+
+
+/*
 void  VOL302_Maybe_Reset()
 {
   iPlayAudio = 0;
@@ -261,23 +282,27 @@ void  VOL302_Maybe_Reset()
       //    iVolume_AUTO = 0;
   }
 }
+*/
+
 
 
 void VOL303_Vol_Boost_On()
 {
-            VOL301_Volume_Boost_Start();
-            VOL300_Volume_Boost();
+  iCtl_Vol_BoostCat_Flag[iVol_Boost_Cat] = 1;
+  VOL301_Volume_Boost_Start();
+  VOL300_Volume_Boost(1);
 }
 
 
 void VOL304_Vol_Boost_Off()
 {
-            iCtl_Volume_Boost = 0;
-            if (iCtl_Volume_Boost_Cat)
-                iCtl_Volume_Boost_Flags[iCtl_Volume_Boost_Cat] = 0;
-            iVolume_Boost = 0;
-            MenuUnTick(IDM_VOLUME_BOOST);
-            Stats_Volume_Boost();
+  iCtl_Volume_Boost = 0;
+  if (iVol_Boost_Cat)
+      iCtl_Vol_BoostCat_Flag[iVol_Boost_Cat] = 0;
+  iVolume_Boost = 0;
+  //iVol_BoostCat_Done[iVol_Boost_Cat] = 0;
+  BoostUnTick();
+  Stats_Volume_Boost();
 }
 
 
@@ -310,8 +335,10 @@ void VOL305_Volume_Lesser()
   &&  iVolume_AUTO)
       iVolume_AUTO = iVolume_Boost;
 
+  iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+
   if (iVolume_Boost <= K_BOOST_DENOM)
-      MenuUnTick(IDM_VOLUME_BOOST);
+      BoostUnTick();
 
   //if (MParse.ShowStats_Flag)
         Stats_Volume_Boost();
@@ -343,6 +370,7 @@ void VOL306_Volume_LessBold()
         iVolume_AUTO--;                             // tiny adjust
 
     iVolume_Boost = iVolume_AUTO;
+    iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
     Stats_Volume_Boost();
   }
 
@@ -397,9 +425,10 @@ void VOL337_Volume_Bolder()
   }
 
   if (iVolume_Boost > K_BOOST_DENOM)
-      MenuTick(IDM_VOLUME_BOOST);
+      BoostTick();
 
-  VOL300_Volume_Boost();
+  iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+  VOL300_Volume_Boost(0);
 }
 
 
@@ -410,7 +439,7 @@ void VOL340_Up()
 {
   iCtl_Volume_Boost = 1;
   if (iVolume_Boost > K_BOOST_DENOM)
-      MenuTick(IDM_VOLUME_BOOST);
+      BoostTick();
 
 
   if (iWantAudio == 0)  // Make sure not muted
@@ -432,6 +461,7 @@ void VOL340_Up()
   &&  iVolume_AUTO < iVolume_Boost)
       iVolume_AUTO = iVolume_Boost; 
 
+  iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
   Stats_Volume_Boost();
 
 }
@@ -454,13 +484,18 @@ void VOL340_Up()
 
 
 // Lookup table for rough log conversion
-#define BOOST_LOG_ARRAYSIZE 36
-int iBoost_Log[BOOST_LOG_ARRAYSIZE+2] = 
+// Deliberately linear at start,
+// for finer controls at low levels.
+#define BOOST_LOG_ARRAYSIZE 64
+int iBoost_Log[BOOST_LOG_ARRAYSIZE+1] = 
 {   0,    1,    2,    3,    4,    5,    6,    7,
-    8,    9,   10,   12,   14,   16,   20,   25,   
-   31,   39,   50,   64,   80,  100,  125,  156,
-  200,  256,  320,  400,  512,  640,  800, 1024,
- 1280, 1600, 2048, 2560, 3200, 0xFFFFFF};
+    8,    9,   10,   11,   12,   13,   14,   15,   
+   16,   17,   18,   19,   20,   21,   22,   23,   
+   24,   25,   26,   27,   28,   29,   30,   31,
+   32,   33,   35,   39,   44,   50,   56,   64,
+   71,   80,   88,  100,  116,  121,  140,  156,
+  200,  216,  256,  280,  316,  416,  516,  640,
+  816, 1016, 1280, 1616, 2016, 2560, 3216, 4096, 0xFFFFFF};
 
 int iBoost_Log_ix;
 
@@ -469,12 +504,12 @@ int iBOOST_Converter(int iP_Level)
   int ix, iLevel;
 
   iLevel = iP_Level;
-  if (iBoost_Log[BOOST_LOG_ARRAYSIZE/2] <= iLevel)
+  if (iLevel >= iBoost_Log[BOOST_LOG_ARRAYSIZE/2])
       ix = BOOST_LOG_ARRAYSIZE/2;
   else
       ix = 0;
 
-  while (iBoost_Log[ix] <= iLevel)
+  while (iBoost_Log[ix] < iLevel)
   {
     ix++;
   }
@@ -488,7 +523,7 @@ int iBOOST_Converter(int iP_Level)
 
 
 #define LIMIT_LOG_ARRAYSIZE 36
-int iLimit_Log[LIMIT_LOG_ARRAYSIZE+2] = 
+int iLimit_Log[LIMIT_LOG_ARRAYSIZE+1] = 
 {  //544,   604,   671,   746,
   829,    921,  1023,  1209,
   1344,  1493,  1659,  1844,
@@ -498,7 +533,7 @@ int iLimit_Log[LIMIT_LOG_ARRAYSIZE+2] =
   7371,  8191,  8707,  9674, 
  10749, 11943, 13271, 14745,
  16383, 17414, 19349, 21499, 
- 23887, 26542, 29491, 32767, 32767, 0xFFFFFF};
+ 23887, 26542, 29491, 32767, 0xFFFFFF};
 
 int iLimit_Log_ix;
 
@@ -517,12 +552,12 @@ int iLIMIT_Converter(int iP_Level)
       iLevel  = K_VOL_CEILING_DEF;
 
 
-  if (iLimit_Log[LIMIT_LOG_ARRAYSIZE/2] <= iLevel)
+  if (iLevel >= iLimit_Log[LIMIT_LOG_ARRAYSIZE/2])
       ix = LIMIT_LOG_ARRAYSIZE/2;
   else
       ix = 0;
 
-  while (iLimit_Log[ix] <= iLevel)
+  while (iLimit_Log[ix] < iLevel)
   {
     ix++;
   }
@@ -560,13 +595,13 @@ void Vol_SetPos_Sliders()
   else
       iBaseDsp = iBase - K_BOOST_DENOM;
 
-  sprintf(szTemp, "%+d", iBaseDsp); // iSliderPos);
+  sprintf(szTemp, "%+d", iBaseDsp); // iSliderPos); // 
   SetDlgItemText(hVolDlg0, VOL_BOOST_NUM, szTemp);
 
-  sprintf(szTemp, "%d%%", (iVolume_Ceiling*100/32767));
+  sprintf(szTemp, "%d%%", ((iVolume_Ceiling+50)*100/32767));
   SetDlgItemText(hVolDlg0, VOL_LIMIT_NUM, szTemp);
 
-  if (iSlider_Skip)
+  if (iSlider_Skip > 0)
     return;
 
   iPos = iBOOST_Converter(iBase);
@@ -676,10 +711,10 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
   case WM_INITDIALOG:
 
          iSlider_Skip = 0;
-         Vol_SetRange(VOL_BOOST_SLIDER, 0, BOOST_LOG_ARRAYSIZE, 1);
-         Vol_SetRange(VOL_LIMIT_SLIDER, 0, LIMIT_LOG_ARRAYSIZE, 1);
+         Vol_SetRange(VOL_BOOST_SLIDER, 0, BOOST_LOG_ARRAYSIZE-1, 1);
+         Vol_SetRange(VOL_LIMIT_SLIDER, 0, LIMIT_LOG_ARRAYSIZE-1, 1);
          SendDlgItemMessage(hVolDlg0, VOL_BOOST_SLIDER, TBM_SETTIC, 
-                                                    (WPARAM) 0, 14);
+                                                    (WPARAM) 0, 16);
 
          GetWindowRect(hVolDlg0, &Volrect);
          iWidth  = Volrect.right  - Volrect.left;
@@ -792,7 +827,9 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
 
          MoveWindow(hVolDlg0, Volrect.left,  Volrect.top,
                                              iWidth, iHeight, false);
+         Stats_Volume_Boost();
          Vol_Show_All();
+
 
          return true;
 
@@ -827,6 +864,7 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
 
                if (uStatus == BST_CHECKED)
                {
+                   iCtl_Volume_AUTO = 1;
                    VOL301_Volume_Boost_Start();
                }
                else
@@ -873,14 +911,26 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
                break;
 
 
+          case VOL_BOOST_ZERO:
+               if  (iCtl_Volume_AUTO)
+                    iVolume_AUTO = K_BOOST_DENOM;
+               iVolume_Boost = K_BOOST_DENOM;
+               iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+               iSlider_Skip = -1;
+               Stats_Volume_Boost();
+               iSlider_Skip = 0;
 
-               
+               break;
+
+
+                
 
           case VOL_EXIT:
           case IDCANCEL:
 
                DestroyWindow(hVolDlg0);
                hVolDlg = NULL;
+               hVolDlg0 = 0;
 
                if (!iMainWin_State || iViewToolBar > 1)
                    DSP2_Main_SEL_INFO(1);
@@ -897,6 +947,8 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
          switch (GetWindowLong((HWND)lParam, GWL_ID))
          {
             case VOL_BOOST_SLIDER:
+               if (iSlider_Skip)
+                   break;
                iSlider_Skip = 1;
                iSliderPos = SendDlgItemMessage(hVolDlg0, 
                                        VOL_BOOST_SLIDER, TBM_GETPOS, 0, 0);
@@ -918,6 +970,7 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
                         VOL206_Volume_UN_Mute();
                    iVolume_Boost = iBoost_Log[iBoost_Log_ix];
                }
+               iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
 
                if  (iCtl_Volume_AUTO)
                     iVolume_AUTO = iVolume_Boost;
@@ -925,12 +978,13 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
                     iVolume_AUTO = 0;
 
                if (iVolume_Boost > K_BOOST_DENOM)
-                   MenuTick(IDM_VOLUME_BOOST);
+                   BoostTick();
                else
                if (iVolume_Boost == K_BOOST_DENOM)
                {
                    iCtl_Volume_Boost = 0; iVolume_Boost = 0;
-                   MenuUnTick(IDM_VOLUME_BOOST);
+                   iVol_BoostCat_Done[iVol_Boost_Cat] = iVolume_Boost;
+                   BoostUnTick();
                }
 
                Stats_Volume_Boost();
@@ -938,6 +992,8 @@ LRESULT CALLBACK Volume_Dialog(HWND hDialog, UINT message,
                break;
 
             case VOL_LIMIT_SLIDER:
+               if (iSlider_Skip)
+                   break;
                iSlider_Skip = 1;
                iSliderPos = SendDlgItemMessage(hVolDlg0, 
                                        VOL_LIMIT_SLIDER, TBM_GETPOS, 0, 0);

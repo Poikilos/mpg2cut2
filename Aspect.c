@@ -201,7 +201,7 @@ void Mpeg_Aspect_Before()
       iView_Centre_Crop = iCtl_View_Centre_Crop;
     else
       iView_Centre_Crop = 0;
-    Set_Toggle_Menu('=', &iView_Centre_Crop, IDM_VIEW_CTR);
+    ToggleMenu('=', &iView_Centre_Crop, IDM_VIEW_CTR);
   }
 
 

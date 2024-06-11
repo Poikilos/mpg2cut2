@@ -755,27 +755,29 @@ BEGIN
     PUSHBUTTON      "NO",IDNO,87,92,27,14,NOT WS_VISIBLE | WS_DISABLED
 END
 
-IDD_VOLUME DIALOG DISCARDABLE  0, 0, 225, 48
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 227, 48
 STYLE DS_MODALFRAME | WS_POPUP
 FONT 8, "MS Sans Serif"
 BEGIN
     CONTROL         "Slider1",VOL_BOOST_SLIDER,"msctls_trackbar32",TBS_BOTH | 
-                    WS_TABSTOP,68,3,107,17
-    CONTROL         "Slider1",VOL_LIMIT_SLIDER,"msctls_trackbar32",
-                    TBS_AUTOTICKS | TBS_BOTH | WS_TABSTOP,67,25,108,16
+                    WS_TABSTOP,73,3,107,17
+    CONTROL         "Slider1",VOL_LIMIT_SLIDER,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,72,28,108,16
     CONTROL         "On",VOL_BOOST_CHK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
                     4,7,21,8
     CONTROL         "Auto",VOL_AUTO_CHK,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,4,19,25,8
-    LTEXT           "Boost",IDC_STATIC,45,8,19,8
+    LTEXT           "Boost",IDC_STATIC,51,8,19,8
     CONTROL         "Limit",VOL_LIMIT_CHK,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,38,31,26,8
-    RTEXT           "",VOL_LIMIT_NUM,178,28,19,10,SS_SUNKEN | NOT WS_GROUP
-    RTEXT           "",VOL_BOOST_NUM,179,9,18,10,SS_SUNKEN | NOT WS_GROUP
+    RTEXT           "",VOL_LIMIT_NUM,181,28,18,10,SS_SUNKEN | NOT WS_GROUP
+    RTEXT           "",VOL_BOOST_NUM,180,9,19,10,SS_SUNKEN | NOT WS_GROUP
     CONTROL         "Mute",VOL_MUTE_CHK,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,4,31,25,8
     GROUPBOX        "",IDC_STATIC,1,0,33,46
-    PUSHBUTTON      "X",VOL_EXIT,210,4,12,12
+    PUSHBUTTON      "X",VOL_EXIT,213,1,12,12
+    PUSHBUTTON      "0",VOL_BOOST_ZERO,37,7,11,10
+    LTEXT           "",VOL_BOOST_SNAP,199,19,26,9,SS_SUNKEN
 END
 
 
@@ -912,6 +914,7 @@ BEGIN
 
     IDD_VOLUME, DIALOG
     BEGIN
+        RIGHTMARGIN, 226
         BOTTOMMARGIN, 46
     END
 END
@@ -1268,14 +1271,30 @@ BEGIN
         MENUITEM "Vol DOWN\t[alt-v]",           IDM_VOLUME_DOWN
         MENUITEM "&Mute\t[M]",                  IDM_VOLUME_MUTE
         MENUITEM SEPARATOR
-        MENUITEM "Volume Sliders\t[Ctrl-V]",    IDM_VOL_SLIDERS
-        MENUITEM "&Automatic Volume Control \t[V]", IDM_VOLUME_AUTO
-        MENUITEM "Volume Boost ",               IDM_VOLUME_BOOST
+        MENUITEM "Volume Boost",                IDM_VOLUME_BOOST
+        MENUITEM "&Auto Volume Control \t[shift-V]", IDM_VOLUME_AUTO
         MENUITEM "Limit Loud Sounds",           IDM_VOLUME_LIMITING
+        MENUITEM "Volume Sliders\t[Ctrl-V]",    IDM_VOL_SLIDERS
+        POPUP "Volume Options"
+        BEGIN
+            POPUP "Boost Formats"
+            BEGIN
+                MENUITEM "AC3 - Basic (Stereo or Mono)", IDM_BOOST_AC3
+                MENUITEM "AC3 - Surround",              IDM_BOOST_DTS
+                MENUITEM "LPCM 48k or higher",          IDM_BOOST_LPCM
+                MENUITEM "other - 48kHz or higher ",    IDM_BOOST_MPA_TRENDY
+                MENUITEM "other - 44kHz or lower (Trad)", IDM_BOOST_MPA_TRAD
+                MENUITEM SEPARATOR
+                MENUITEM "Slow Attack",                 IDM_VOLUME_GENTLE
+            END
+            MENUITEM "Remember Volume settings",    IDM_VOL_RETAIN
+            MENUITEM SEPARATOR
+            MENUITEM "V key pops up Volume Window", IDM_KB_V_POPUP
+            MENUITEM "StarKey  Volume Keys",        IDM_VOL_STARKEY
+        END
         MENUITEM SEPARATOR
         MENUITEM "&Karaoke\t[K]",               IDM_AUDIO_KARAOKE
         MENUITEM "Anti-Phase",                  IDM_AUDIO_ANTIPHASE
-        MENUITEM "Slow Attack",                 IDM_VOLUME_GENTLE
         MENUITEM SEPARATOR
         POPUP "Track Number"
         BEGIN
@@ -1548,7 +1567,6 @@ BEGIN
                 MENUITEM "Scroll JUMP More",            IDM_WHEEL_JUMP2
                 MENUITEM "Scroll JUMP Even More",       IDM_WHEEL_JUMP4
             END
-            MENUITEM "StarKey  Volume Keys",        IDM_VOL_STARKEY
         END
         POPUP "Pop Up Msg"
         BEGIN
@@ -1846,8 +1864,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,8,5,5
- PRODUCTVERSION 2,8,5,5
+ FILEVERSION 2,8,6,0
+ PRODUCTVERSION 2,8,6,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -1865,14 +1883,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", " \0"
             VALUE "FileDescription", "Mpg2Cut2-RELEASE\0"
-            VALUE "FileVersion", "2, 8, 5, 5\0"
+            VALUE "FileVersion", "2, 8, 6, 0\0"
             VALUE "InternalName", "Mpg2Cut2-RELEASE\0"
             VALUE "LegalCopyright", "Copyright © 2003 onwards\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "Mpg2Cut2-RELEASE.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "  Mpg2Cut2-RELEASE\0"
-            VALUE "ProductVersion", "2, 8, 5, 5\0"
+            VALUE "ProductVersion", "2, 8, 6, 0\0"
             VALUE "SpecialBuild", "\0"
         END
         BLOCK "0c0904b0"
@@ -1880,14 +1898,14 @@ BEGIN
             VALUE "Comments", "GNU\0"
             VALUE "CompanyName", "RocketJet4\0"
             VALUE "FileDescription", "MPG2Cut2 - Free Mpeg Cutting Tool\0"
-            VALUE "FileVersion", "2.8.5\0"
+            VALUE "FileVersion", "2.8.6.0\0"
             VALUE "InternalName", "MPG2Cut2\0"
             VALUE "LegalCopyright", "Copyright © 2003 onwards\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "MPG2Cut2.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "RocketJet4 Mpg2Cut2 \0"
-            VALUE "ProductVersion", "2, 8, 5, 5\0"
+            VALUE "ProductVersion", "2, 8, 6, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END

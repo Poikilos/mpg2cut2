@@ -43,7 +43,7 @@ int F100_IN_OPEN(char P_Act, int P_Trunc)
       cW_Action = 'o';
   cW_Act1 = cW_Action;
 
-  VOL302_Maybe_Reset();
+  //iVolume_PREV_Cat = iVol_Boost_Cat;// VOL302_Maybe_Reset();
 
   switch (cW_Action)
   {
@@ -786,7 +786,7 @@ void F300_DropFilesProc( WPARAM wParam)
   DragFinish((HDROP)wParam);
   SetForegroundWindow(hWnd_MAIN);
 
-  VOL302_Maybe_Reset();
+  //iVolume_PREV_Cat = iVol_Boost_Cat;// VOL302_Maybe_Reset();
 
 
   if (W_Action != 'z')
@@ -1504,7 +1504,7 @@ int F595_NotMpeg2_Msg(int P_Stage)
 
   if (iRC == 1 && !P_Stage)
   {
-           Set_Toggle_Menu('S', &iPES_Mpeg_Any, IDM_MPEG_ANY);
+           ToggleMenu('S', &iPES_Mpeg_Any, IDM_MPEG_ANY);
            //Chg2RGB24(1,0);
   }
   

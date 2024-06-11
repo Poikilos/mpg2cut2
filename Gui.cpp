@@ -224,11 +224,17 @@ LRESULT  B201_Msg_USER    (UINT message, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK Preferences_Dialog(HWND hPrefDlg, UINT message, WPARAM wParam, LPARAM lParam);
 
 static void B910_Main_INIT(HWND, /* UINT, */ WPARAM, LPARAM) ;
-
+void B380_Volume_Window();
 
 RECT iPrevWinPos;
 
-
+void VolBoostChg()
+{
+  if (iCtl_Volume_Boost)
+      VOL303_Vol_Boost_On();
+  else
+      VOL304_Vol_Boost_Off();
+}
 
 
 static char MPA_NAME[5][13]
@@ -502,30 +508,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
                  break;
 
             case IDM_OUT_DEBLANK:
-                 Set_Toggle_Menu('T', &iCtl_Out_DeBlank, IDM_OUT_DEBLANK);
+                 ToggleMenu('T', &iCtl_Out_DeBlank, IDM_OUT_DEBLANK);
                  break;
             case IDM_OUT_MIXEDCASE:
-                 Set_Toggle_Menu('T', &iCtl_Out_MixedCase, IDM_OUT_MIXEDCASE);
+                 ToggleMenu('T', &iCtl_Out_MixedCase, IDM_OUT_MIXEDCASE);
                  break;
 
 
             case IDM_OUT_KEEPDATE:   // Retain FileDate
-                 Set_Toggle_Menu('T', &iCtl_Out_KeepFileDate, IDM_OUT_KEEPDATE);
+                 ToggleMenu('T', &iCtl_Out_KeepFileDate, IDM_OUT_KEEPDATE);
                  break;
 
 
 
             case IDM_WARN_SIZE_1:
-                 Set_Toggle_Menu('T', &iCtl_WarnSize_1, IDM_WARN_SIZE_1);
+                 ToggleMenu('T', &iCtl_WarnSize_1, IDM_WARN_SIZE_1);
                  break;
             case IDM_WARN_SIZE_2:
-                 Set_Toggle_Menu('T', &iCtl_WarnSize_2, IDM_WARN_SIZE_2);
+                 ToggleMenu('T', &iCtl_WarnSize_2, IDM_WARN_SIZE_2);
                  break;
             case IDM_WARN_SIZE_3:
-                 Set_Toggle_Menu('T', &iCtl_WarnSize_3, IDM_WARN_SIZE_3);
+                 ToggleMenu('T', &iCtl_WarnSize_3, IDM_WARN_SIZE_3);
                  break;
             case IDM_WARN_SIZE_4:
-                 Set_Toggle_Menu('T', &iCtl_WarnSize_4, IDM_WARN_SIZE_4);
+                 ToggleMenu('T', &iCtl_WarnSize_4, IDM_WARN_SIZE_4);
                  break;
 
 
@@ -599,17 +605,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
                  break;
 
             case IDM_OUT_PART_AUTO:
-                 Set_Toggle_Menu('T', &iCtl_OutPartAuto, IDM_OUT_PART_AUTO);
+                 ToggleMenu('T', &iCtl_OutPartAuto, IDM_OUT_PART_AUTO);
                  break;
 
 
             case IDM_DEL2RECYCLE:
-                 Set_Toggle_Menu('T', &iCtl_RecycleBin, IDM_DEL2RECYCLE);
+                 ToggleMenu('T', &iCtl_RecycleBin, IDM_DEL2RECYCLE);
                  break;
 
 
             case IDM_TRACKBAR_BIG:  // Full Width Trackbar
-                 Set_Toggle_Menu('T', &iCtl_Trackbar_Big, IDM_TRACKBAR_BIG); // Full Width Trackbar
+                 ToggleMenu('T', &iCtl_Trackbar_Big, IDM_TRACKBAR_BIG); // Full Width Trackbar
                  D500_ResizeMainWindow(Overlay_Width, Overlay_Height, 1);
                  break;
 
@@ -667,13 +673,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
                 break;
 
            case IDM_AUDIO_DBG:
-                Set_Toggle_Menu('T', &iAudioDBG, IDM_AUDIO_DBG);
+                ToggleMenu('T', &iAudioDBG, IDM_AUDIO_DBG);
                 if (iAudioDBG)
                     DSP_Msg_Clear();
                 break;
 
            case IDM_DBGSTR:
-                Set_Toggle_Menu('T', &bDBGStr, IDM_DBGSTR);
+                ToggleMenu('T', &bDBGStr, IDM_DBGSTR);
                 break;
 
            /*
@@ -775,7 +781,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
               //sprintf(szMsgTxt, "OUTPUT IN PROGESS.... %d",
               //                message) ;
               //DSP5_Main_FILE_INFO();
-              //MessageBeep(MB_OK);
+              //MessageBeep(MB_OK); 
               MsgReturn = DefWindowProc(hWnd, message, wParam, lParam);
            }
           else
@@ -1075,7 +1081,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
            else
               cTmp1 = 'C';
 
-           Set_Toggle_Menu(cTmp1, &iCtl_ShowVideo_Flag, IDM_DISPLAY);
+           ToggleMenu(cTmp1, &iCtl_ShowVideo_Flag, IDM_DISPLAY);
            iShowVideo_Flag = iCtl_ShowVideo_Flag;
 
            if (process.Action == ACTION_RIP
@@ -1440,7 +1446,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
          else
            iView_Centre_Crop = 0;
 
-        Set_Toggle_Menu('=', &iView_Centre_Crop, IDM_VIEW_CTR);
+        ToggleMenu('=', &iView_Centre_Crop, IDM_VIEW_CTR);
 
 
 
@@ -1883,7 +1889,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
       case IDM_UNDO:
            Mpeg_Stop_Rqst();
            C500_Clip_UNDO(); 
-           break;
+           break; 
 
       case IDM_SEL_ALL:
            Mpeg_Stop_Rqst();
@@ -2174,7 +2180,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break;
 
       case IDM_PREVIEW_SUMMARY:
-          Set_Toggle_Menu('T', &iCtl_Play_Summary, IDM_PREVIEW_SUMMARY);
+          ToggleMenu('T', &iCtl_Play_Summary, IDM_PREVIEW_SUMMARY);
           if (!MParse.Stop_Flag && iCtl_Play_Summary)
           {
              MParse.Summary_Section = 0;
@@ -2196,7 +2202,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
                 process.iOut_AutoSPLIT = 0;
                 iOut_Audio_All = 1;
                 OUT_SAVE('L');  // SAVE ALL CLIPS in EDL
-           }
+           } 
            else
                 MessageBeep(MB_OK); 
            break;
@@ -2280,7 +2286,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_RGB_ALWAYS:
-           Set_Toggle_Menu('T', &iCtl_View_RGB_Always, IDM_RGB_ALWAYS);
+           ToggleMenu('T', &iCtl_View_RGB_Always, IDM_RGB_ALWAYS);
 
            if (iCtl_View_RGB_Always)
            {
@@ -2311,12 +2317,12 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
           break;
 
       case IDM_YUV_FAST:
-          Set_Toggle_Menu('T', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+          ToggleMenu('T', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
           iView_Fast_YUV = 0;
           break;
 
       case IDM_RGB_FAST:
-          Set_Toggle_Menu('T', &iCtl_View_Fast_RGB, IDM_RGB_FAST);
+          ToggleMenu('T', &iCtl_View_Fast_RGB, IDM_RGB_FAST);
           iView_Fast_RGB = 0;
           if (MParse.SeqHdr_Found_Flag && MParse.iColorMode==STORE_RGB24)
              Store_RGB24(curr_frame, 0); 
@@ -2325,15 +2331,15 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_VIEW_HUGE:
-          Set_Toggle_Menu('T', &iCtl_View_Limit2k, IDM_VIEW_HUGE);
+          ToggleMenu('T', &iCtl_View_Limit2k, IDM_VIEW_HUGE);
           break;
 
       case IDM_OVL_RELEASE:
-          Set_Toggle_Menu('T', &iCtl_Ovl_Release, IDM_OVL_RELEASE);
+          ToggleMenu('T', &iCtl_Ovl_Release, IDM_OVL_RELEASE);
           break;
 
       case IDM_OVL_DWORD:
-           Set_Toggle_Menu('T', &iCtl_Ovl_DWord, IDM_OVL_DWORD);
+           ToggleMenu('T', &iCtl_Ovl_DWord, IDM_OVL_DWORD);
            break; 
 
            // VISTA CRAP
@@ -2351,7 +2357,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break;
 
       case IDM_OVL_SIGNAL_ATI:
-           Set_Toggle_Menu('T', &iCtl_OVL_ATI_Bug, IDM_OVL_SIGNAL_ATI);
+           ToggleMenu('T', &iCtl_OVL_ATI_Bug, IDM_OVL_SIGNAL_ATI);
            break;
 
            
@@ -2440,7 +2446,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            
 
       case IDM_OVL_FULLKEY:
-           Set_Toggle_Menu('T', &iCtl_OVL_FullKey, IDM_OVL_FULLKEY);
+           ToggleMenu('T', &iCtl_OVL_FullKey, IDM_OVL_FULLKEY);
            strcpy(szMsgTxt,"Next Session");
            DSP1_Main_MSG(1,1); 
 
@@ -2468,7 +2474,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break;
 
       case IDM_EDIT_AUTOSAVE:
-           Set_Toggle_Menu('T', &iCtl_EDL_AutoSave, IDM_EDIT_AUTOSAVE);
+           ToggleMenu('T', &iCtl_EDL_AutoSave, IDM_EDIT_AUTOSAVE);
            MParse.EDL_AutoSave = iCtl_EDL_AutoSave;
            break;
 
@@ -2505,68 +2511,68 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 */
 
       case IDM_VIEW_CTR_MAX:
-           Set_Toggle_Menu('T', &iCtl_View_Centre_Crop, IDM_VIEW_CTR_MAX);
+           ToggleMenu('T', &iCtl_View_Centre_Crop, IDM_VIEW_CTR_MAX);
            if (iMainWin_State >= 0)
                View_Ctr_Crop();
            break;
 
       case IDM_VIEW_CTR:
-           Set_Toggle_Menu('T', &iView_Centre_Crop, IDM_VIEW_CTR);
+           ToggleMenu('T', &iView_Centre_Crop, IDM_VIEW_CTR);
            View_Ctr_Crop();
            break;
 
 
       case IDM_ASPECT_MISMATCH:
-           Set_Toggle_Menu('T', &iCtl_AspMismatch, IDM_ASPECT_MISMATCH);
+           ToggleMenu('T', &iCtl_AspMismatch, IDM_ASPECT_MISMATCH);
            Mpeg_Aspect_Resize();
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_RED_H:
-           Set_Toggle_Menu('T', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
+           ToggleMenu('T', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_RED_V:
-           Set_Toggle_Menu('T', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
+           ToggleMenu('T', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_RED_BOTH:
-           Set_Toggle_Menu('S', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
-           Set_Toggle_Menu('S', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
+           ToggleMenu('S', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
+           ToggleMenu('S', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_BLUE_H:
-           Set_Toggle_Menu('T', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
+           ToggleMenu('T', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_BLUE_V:
-           Set_Toggle_Menu('T', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
+           ToggleMenu('T', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_BLUE_BOTH:
-           Set_Toggle_Menu('S', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
-           Set_Toggle_Menu('S', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
+           ToggleMenu('S', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
+           ToggleMenu('S', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_ALL: 
-           Set_Toggle_Menu('S', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
-           Set_Toggle_Menu('S', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
-           Set_Toggle_Menu('S', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
-           Set_Toggle_Menu('S', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
+           ToggleMenu('S', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
+           ToggleMenu('S', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
+           ToggleMenu('S', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
+           ToggleMenu('S', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
            View_Rebuild_Chk(0);
            break;
 
       case IDM_VIEW_CONVERGE_NONE:
-           Set_Toggle_Menu('C', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
-           Set_Toggle_Menu('C', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
-           Set_Toggle_Menu('C', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
-           Set_Toggle_Menu('C', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
+           ToggleMenu('C', &iConverge_Red_V, IDM_VIEW_CONVERGE_RED_V);
+           ToggleMenu('C', &iConverge_Red_H, IDM_VIEW_CONVERGE_RED_H);
+           ToggleMenu('C', &iConverge_Blue_H, IDM_VIEW_CONVERGE_BLUE_H);
+           ToggleMenu('C', &iConverge_Blue_V, IDM_VIEW_CONVERGE_BLUE_V);
            View_Rebuild_Chk(0);
            break;
 
@@ -2574,7 +2580,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_ASPECT_RETAIN:
-          Set_Toggle_Menu('T', &iCtl_Aspect_Retain, IDM_ASPECT_RETAIN);
+          ToggleMenu('T', &iCtl_Aspect_Retain, IDM_ASPECT_RETAIN);
           break;
 
       case IDM_ASP_MPEG1_FORCE:
@@ -2738,21 +2744,21 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_DEINT_AUTO:
-          Set_Toggle_Menu('T', &Deint_AUTO_View, IDM_DEINT_AUTO);
+          ToggleMenu('T', &Deint_AUTO_View, IDM_DEINT_AUTO);
           Deint_Auto_CURR = Deint_AUTO_View;
           break;
 
       case IDM_DEINT_VOB:
-          Set_Toggle_Menu('T', &Deint_VOB, IDM_DEINT_VOB);
+          ToggleMenu('T', &Deint_VOB, IDM_DEINT_VOB);
           break;
 
       case IDM_DEINT_SNAP:
-          Set_Toggle_Menu('T', &Deint_SNAP, IDM_DEINT_SNAP);
+          ToggleMenu('T', &Deint_SNAP, IDM_DEINT_SNAP);
           break;
 
 
       case IDM_CROP_TOP:
-          Set_Toggle_Menu('T', &iCtl_CropTop, IDM_CROP_TOP);
+          ToggleMenu('T', &iCtl_CropTop, IDM_CROP_TOP);
           break;
 
 
@@ -2782,7 +2788,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
           break;
 
       case IDM_ZOOM_RETAIN:
-          Set_Toggle_Menu('T', &iCtl_Zoom_Retain, IDM_ZOOM_RETAIN);
+          ToggleMenu('T', &iCtl_Zoom_Retain, IDM_ZOOM_RETAIN);
           break;
 
 
@@ -2830,7 +2836,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
             //else
             //    iView_Centre_Crop = 1;
             iView_Centre_Crop = 1;
-            Set_Toggle_Menu('=', &iView_Centre_Crop, IDM_VIEW_CTR);
+            ToggleMenu('=', &iView_Centre_Crop, IDM_VIEW_CTR);
 
             process.iView_TopMask    = -2;
           }
@@ -2847,27 +2853,27 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_SKIP_BEHIND_HD: 
-          Set_Toggle_Menu('T', &iCtl_Drop_Behind, IDM_SKIP_BEHIND_HD);
+          ToggleMenu('T', &iCtl_Drop_Behind, IDM_SKIP_BEHIND_HD);
           PlayCtl.iDrop_Behind   = iCtl_Drop_Behind;
           PlayCtl.iDrop_B_Frames_Flag = (iCtl_Drop_Behind && 0xFF);
           break;
 
       case IDM_SKIP_BEHIND_SD:
-          Set_Toggle_Menu('T', ((char*)(&iCtl_Drop_Behind)+1), IDM_SKIP_BEHIND_SD);
+          ToggleMenu('T', ((char*)(&iCtl_Drop_Behind)+1), IDM_SKIP_BEHIND_SD);
           PlayCtl.iDrop_Behind   = iCtl_Drop_Behind;
           PlayCtl.iDrop_B_Frames_Flag = (iCtl_Drop_Behind && 0xFF00);
           break;
 
       case IDM_SKIP_PTS:
-          Set_Toggle_Menu('T', &iCtl_Drop_PTS, IDM_SKIP_PTS);
+          ToggleMenu('T', &iCtl_Drop_PTS, IDM_SKIP_PTS);
           PlayCtl.iDrop_PTS_Flag = iCtl_Drop_PTS;
           break;
       case IDM_FIELD_DROP:
-          Set_Toggle_Menu('T', &iField_Drop, IDM_FIELD_DROP);
+          ToggleMenu('T', &iField_Drop, IDM_FIELD_DROP);
           break;
 
       case IDM_CUE_SLOW:
-          Set_Toggle_Menu('T', &iCtl_NotSoFast, IDM_CUE_SLOW);
+          ToggleMenu('T', &iCtl_NotSoFast, IDM_CUE_SLOW);
           if (iCtl_NotSoFast)
               iCtl_CUE_BUTTON_Speed = CUE_SLOW;
           else
@@ -2876,18 +2882,18 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_PLAY_AUDLOCK:
-          Set_Toggle_Menu('T', &iCtl_Play_AudLock, IDM_PLAY_AUDLOCK);
+          ToggleMenu('T', &iCtl_Play_AudLock, IDM_PLAY_AUDLOCK);
           if (iAudio_SEL_Track != TRACK_NONE)
              iAudio_Lock = iCtl_Play_AudLock;
           break;
 
       case IDM_PLAY_SYNC:
-          Set_Toggle_Menu('T', &iCtl_Play_Sync, IDM_PLAY_SYNC);
+          ToggleMenu('T', &iCtl_Play_Sync, IDM_PLAY_SYNC);
           break;
 
 
       case IDM_ERR_ANL:
-          Set_Toggle_Menu('T', &Err_Analysis, IDM_ERR_ANL);
+          ToggleMenu('T', &Err_Analysis, IDM_ERR_ANL);
           break;
 
       case IDM_YV12:
@@ -2896,7 +2902,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
               if (DDOverlay_Flag) 
                    D300_FREE_Overlay();
 
-              Set_Toggle_Menu('T', &iCtl_YV12, IDM_YV12);
+              ToggleMenu('T', &iCtl_YV12, IDM_YV12);
 
               D100_CHECK_Overlay();
               if (MParse.iColorMode==STORE_YUY2)
@@ -2908,17 +2914,17 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_PARM_CONFIRM:
-         Set_Toggle_Menu('T', &iCtl_ParmConfirm, IDM_OUT_MIXEDCASE);
+         ToggleMenu('T', &iCtl_ParmConfirm, IDM_OUT_MIXEDCASE);
          break;
 
 
       case IDM_PARM_CLIP:
-         Set_Toggle_Menu('T', &iCtl_ParmClipSpec, IDM_PARM_CLIP);
+         ToggleMenu('T', &iCtl_ParmClipSpec, IDM_PARM_CLIP);
          break;
 
 
       case IDM_TOOLTIPS:
-         Set_Toggle_Menu('T', &iCtl_ToolTips, IDM_TOOLTIPS);
+         ToggleMenu('T', &iCtl_ToolTips, IDM_TOOLTIPS);
          if (iViewToolBar >= 256) 
          {
            ToolBar_Destroy();
@@ -2940,84 +2946,84 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 //            break;
 
       case IDM_MPEG_ANY:
-         Set_Toggle_Menu('T', &iPES_Mpeg_Any, IDM_MPEG_ANY);
+         ToggleMenu('T', &iPES_Mpeg_Any, IDM_MPEG_ANY);
          Chg2RGB24(1,0);
          break;
 
       case IDM_BYTE_SYNC:
-          Set_Toggle_Menu('T', &iCtl_Byte_Sync, IDM_BYTE_SYNC);
+          ToggleMenu('T', &iCtl_Byte_Sync, IDM_BYTE_SYNC);
           break;
 
 
       case IDM_DRIVE_SEGMENTS:
-          Set_Toggle_Menu('T', &iCtl_Drv_Segments, IDM_DRIVE_SEGMENTS);
+          ToggleMenu('T', &iCtl_Drv_Segments, IDM_DRIVE_SEGMENTS);
           break;
 
 
       case IDM_VIEW_COLS:
-          Set_Toggle_Menu('T', &iCtl_BasicName_Panel, IDM_VIEW_COLS);
+          ToggleMenu('T', &iCtl_BasicName_Panel, IDM_VIEW_COLS);
           break;
 
 
       case IDM_ADD_PAD:
-         Set_Toggle_Menu('T', &iCtl_To_Pad, IDM_ADD_PAD);
+         ToggleMenu('T', &iCtl_To_Pad, IDM_ADD_PAD);
          if (iCtl_To_Pad && iCtl_VOB_Style)
              MessageBox(hWnd_MAIN, INCLUDE_TO_NOT_VOB,
                               Mpg2Cut2_WARNING,  MB_OK);
          break;
  
       case IDM_OUT_SD_HDR:
-         Set_Toggle_Menu('T', &iCtl_Out_Fix_SD_Hdr, IDM_OUT_SD_HDR);
+         ToggleMenu('T', &iCtl_Out_Fix_SD_Hdr, IDM_OUT_SD_HDR);
          break;
 
       case IDM_OUT_FIX_ERRORS:
-         Set_Toggle_Menu('T', &iCtl_Out_Fix_Errors, IDM_OUT_FIX_ERRORS);
+         ToggleMenu('T', &iCtl_Out_Fix_Errors, IDM_OUT_FIX_ERRORS);
          break;
 
       case IDM_OUT_KILLPAD:
-         Set_Toggle_Menu('T', &iCtl_Out_KillPadding, IDM_OUT_KILLPAD);
+         ToggleMenu('T', &iCtl_Out_KillPadding, IDM_OUT_KILLPAD);
          break; 
 
       case IDM_OUT_DROPCRUD:
-         Set_Toggle_Menu('T', &iCtl_Out_DropCrud, IDM_OUT_DROPCRUD);
+         ToggleMenu('T', &iCtl_Out_DropCrud, IDM_OUT_DROPCRUD);
          process.iOut_DropCrud = iCtl_Out_DropCrud;
          break; 
 
       case IDM_OUT_DEFLAG:
-         Set_Toggle_Menu('T', ((char*)(&iCtl_Out_Fix_SD_Hdr)+1), IDM_OUT_DEFLAG);
+         ToggleMenu('T', ((char*)(&iCtl_Out_Fix_SD_Hdr)+1), IDM_OUT_DEFLAG);
          break;
 
       case IDM_OUT_INTERLACE:
-         Set_Toggle_Menu('T', ((char*)&iCtl_Out_Force_Interlace), IDM_OUT_INTERLACE);
+         ToggleMenu('T', ((char*)&iCtl_Out_Force_Interlace), IDM_OUT_INTERLACE);
          break;
 
 
       case IDM_OUT_PARSE:
-         Set_Toggle_Menu('T', &iCtl_Out_Parse, IDM_OUT_PARSE);
+         ToggleMenu('T', &iCtl_Out_Parse, IDM_OUT_PARSE);
          break;
 
       case IDM_OUT_TC_ADJUST:
-         Set_Toggle_Menu('T', &iCtl_Out_TC_Adjust, IDM_OUT_TC_ADJUST);
+         ToggleMenu('T', &iCtl_Out_TC_Adjust, IDM_OUT_TC_ADJUST);
          break;
       case IDM_OUT_TC_FORCE:
-         Set_Toggle_Menu('T', &iCtl_Out_TC_Force, IDM_OUT_TC_FORCE);
+         ToggleMenu('T', &iCtl_Out_TC_Force, IDM_OUT_TC_FORCE);
          break;
       case IDM_PTS_INVENT:
-         Set_Toggle_Menu('T', &iCtl_Out_PTS_Invent, IDM_PTS_INVENT);
+         ToggleMenu('T', &iCtl_Out_PTS_Invent, IDM_PTS_INVENT);
          break;
       case IDM_OUT_HIDE_AUDIO:
-         Set_Toggle_Menu('T', &iOut_HideAudio, IDM_OUT_HIDE_AUDIO);
+         ToggleMenu('T', &iOut_HideAudio, IDM_OUT_HIDE_AUDIO);
          break;
       case IDM_OUT_FIX_PKT_LEN:
-         Set_Toggle_Menu('T', &iOut_FixPktLens, IDM_OUT_FIX_PKT_LEN);
+         ToggleMenu('T', &iOut_FixPktLens, IDM_OUT_FIX_PKT_LEN);
          break;
       case IDM_OUT_PS1PS2:  // Convert Private Stream 1 to PS2 - TWINHAN PROBLEM
-         Set_Toggle_Menu('T', &iOut_PS1PS2, IDM_OUT_PS1PS2);
+         ToggleMenu('T', &iOut_PS1PS2, IDM_OUT_PS1PS2);
          break;
 
 
       case IDM_OUT_BROKEN_FLAG:
-         //Set_Toggle_Menu('T', &iCtl_SetBrokenGop, IDM_OUT_BROKEN_FLAG);
+         //ToggleMenu('T', &iCtl_SetBrokenGop, IDM_OUT_BROKEN_FLAG);
          if (iCtl_SetBrokenGop == 1)
          {
            iCtl_SetBrokenGop = 0;
@@ -3050,30 +3056,30 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_OUT_PTS_MATCH:         // Audio Matching
-         Set_Toggle_Menu('T', &iCtl_Out_PTS_Match, IDM_OUT_PTS_MATCH);
+         ToggleMenu('T', &iCtl_Out_PTS_Match, IDM_OUT_PTS_MATCH);
          break;
  
       case IDM_OUT_PARSE_ALL_PKTS:
-         Set_Toggle_Menu('T', &iCtl_Out_Parse_AllPkts, IDM_OUT_PARSE_ALL_PKTS);
+         ToggleMenu('T', &iCtl_Out_Parse_AllPkts, IDM_OUT_PARSE_ALL_PKTS);
          break;
 
       case IDM_OUT_PARSE_DEEP:
-         Set_Toggle_Menu('T', &iCtl_Out_Parse_Deep, IDM_OUT_PARSE_DEEP);
+         ToggleMenu('T', &iCtl_Out_Parse_Deep, IDM_OUT_PARSE_DEEP);
          break;
 
       case IDM_OUT_ALIGN_VIDEO:
-         Set_Toggle_Menu('T', &iCtl_Out_Align_Video, wmId);
+         ToggleMenu('T', &iCtl_Out_Align_Video, wmId);
          break;
       case IDM_OUT_ALIGN_AUDIO:
-         Set_Toggle_Menu('T', &iCtl_Out_Align_Audio, wmId);
+         ToggleMenu('T', &iCtl_Out_Align_Audio, wmId);
          break; 
 
       case IDM_PARSE_SPLIT_START:
-         Set_Toggle_Menu('T', &iCtl_Out_Parse_SplitStart, wmId);
+         ToggleMenu('T', &iCtl_Out_Parse_SplitStart, wmId);
          break;
 
       //case IDM_OUT_KEEP_AC3HDR:
-      //   Set_Toggle_Menu('T', &iCtl_Out_Keep_Ac3Hdr, wmId);
+      //   ToggleMenu('T', &iCtl_Out_Keep_Ac3Hdr, wmId);
       //   break;
 
       case IDM_PARSE_UNTICK:   // _NONE_OF_THE_ABOVE
@@ -3099,14 +3105,14 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_VOB_CHUNKS:
-         Set_Toggle_Menu('T', &iCtl_VOB_Style, IDM_VOB_CHUNKS);
+         ToggleMenu('T', &iCtl_VOB_Style, IDM_VOB_CHUNKS);
          if (iCtl_To_Pad && iCtl_VOB_Style)
              MessageBox(hWnd_MAIN, INCLUDE_TO_NOT_VOB,
                               Mpg2Cut2_WARNING,  MB_OK);
          break;
 
       case IDM_OUT_SEQEND:
-         Set_Toggle_Menu('T', &iCtl_Out_Seq_End, IDM_OUT_SEQEND);
+         ToggleMenu('T', &iCtl_Out_Seq_End, IDM_OUT_SEQEND);
          break;
 
       case IDM_OUT_SYS_MPEG:
@@ -3122,15 +3128,15 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          break;
 
       case IDM_OUT_SYS_CLIP:
-         Set_Toggle_Menu('T', &iCtl_Out_SysHdr_EveryClip, IDM_OUT_SYS_CLIP);
+         ToggleMenu('T', &iCtl_Out_SysHdr_EveryClip, IDM_OUT_SYS_CLIP);
          break;
 
       case IDM_OUT_SYS_UNLOCK:
-         Set_Toggle_Menu('T', &iCtl_Out_SysHdr_Unlock, IDM_OUT_SYS_UNLOCK);
+         ToggleMenu('T', &iCtl_Out_SysHdr_Unlock, IDM_OUT_SYS_UNLOCK);
          break; 
   
       //case IDM_OUT_DEMUX:
-      //   Set_Toggle_Menu('T', &iCtl_Out_Demux, IDM_OUT_DEMUX);
+      //   ToggleMenu('T', &iCtl_Out_Demux, IDM_OUT_DEMUX);
       //   break;
 
 
@@ -3162,14 +3168,14 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break;
 
       case IDM_OUT_FOLDER_DUAL:
-           Set_Toggle_Menu('T', &iCtl_OutFolder_Both, IDM_OUT_FOLDER_DUAL);
+           ToggleMenu('T', &iCtl_OutFolder_Both, IDM_OUT_FOLDER_DUAL);
            break;
 
 
       // Similar stuff for BMP folder
 
       case IDM_BMP_FOLDER_TOGGLE:
-         Set_Toggle_Menu('T', &iCtl_BMP_Folder_Active, IDM_BMP_FOLDER_TOGGLE);
+         ToggleMenu('T', &iCtl_BMP_Folder_Active, IDM_BMP_FOLDER_TOGGLE);
          iBMP_Folder_Active = iCtl_BMP_Folder_Active;
          break;
 
@@ -3183,27 +3189,27 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_WARN_BAD_START:
-          Set_Toggle_Menu('T', &iCtl_WarnBadStart, IDM_WARN_BAD_START);
+          ToggleMenu('T', &iCtl_WarnBadStart, IDM_WARN_BAD_START);
          break;
       case IDM_WARN_BAD_SYSHDR:
-          Set_Toggle_Menu('T', &iCtl_WarnBadSysHdr, IDM_WARN_BAD_SYSHDR);
+          ToggleMenu('T', &iCtl_WarnBadSysHdr, IDM_WARN_BAD_SYSHDR);
          break;
 
       case IDM_WARN_MPEG1:
-          Set_Toggle_Menu('T', &iCtl_WarnMpeg1, IDM_WARN_MPEG1);
+          ToggleMenu('T', &iCtl_WarnMpeg1, IDM_WARN_MPEG1);
          break;
       case IDM_WARN_FMT_TS:
-          Set_Toggle_Menu('T', &iCtl_WarnTS,    IDM_WARN_FMT_TS);
+          ToggleMenu('T', &iCtl_WarnTS,    IDM_WARN_FMT_TS);
          break;
       case IDM_WARN_FMT_TSMPG:
-          Set_Toggle_Menu('T', &iCtl_WarnTSmpg, IDM_WARN_FMT_TSMPG);
+          ToggleMenu('T', &iCtl_WarnTSmpg, IDM_WARN_FMT_TSMPG);
          break;
       case IDM_WARN_FMT_CDXA:
-          Set_Toggle_Menu('T', &iCtl_WarnCDXA,  IDM_WARN_FMT_CDXA);
+          ToggleMenu('T', &iCtl_WarnCDXA,  IDM_WARN_FMT_CDXA);
          break;
          
       case IDM_WARN_DONE:
-          Set_Toggle_Menu('T', &iCtl_WarnDone,  IDM_WARN_DONE);
+          ToggleMenu('T', &iCtl_WarnDone,  IDM_WARN_DONE);
          break;
 
       case IDM_PREAMBLE_MAX:
@@ -3223,48 +3229,95 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
           break;
 
       case IDM_PREAMBLE_VTS:
-         Set_Toggle_Menu('T', &iCtl_Out_Preamble_VTS, IDM_PREAMBLE_VTS);
+         ToggleMenu('T', &iCtl_Out_Preamble_VTS, IDM_PREAMBLE_VTS);
          break;
 
 
 
 
       case IDM_AUDIO_PS2:
-         Set_Toggle_Menu('T', &iCtl_Audio_PS2, IDM_AUDIO_PS2);
+         ToggleMenu('T', &iCtl_Audio_PS2, IDM_AUDIO_PS2);
          break;
 
       case IDM_VOL_SLIDERS:
-           if (hVolDlg!=NULL)
-           {
-              DestroyWindow(hVolDlg);
-              hVolDlg = NULL;
-              //MessageBeep(MB_OK) ;
-           }
+           if (iCtl_KB_V_Popup) 
+               VOL340_Up();
            else
-           {
-              hVolDlg = CreateDialog(hInst, (LPCTSTR)IDD_VOLUME,
-                                 hWnd_MAIN, (DLGPROC)Volume_Dialog);
-           }
+               B380_Volume_Window(); 
            break;
 
+      case IDM_VOLUME_UP:
+           if (!iCtl_KB_V_Popup)
+               VOL340_Up();
+           else
+               B380_Volume_Window();
+           break;
 
+      case IDM_VOLUME_DOWN:
+           VOL320_Down();
+           break; 
+
+      case IDM_VOLUME_BOOST:
+         ToggleMenu('T', &iCtl_Volume_Boost, IDM_VOLUME_BOOST);
+         if (!iCtl_Volume_Boost)
+             VOL304_Vol_Boost_Off();
+         else
+         {
+             iVol_BoostCat_Done[iVol_Boost_Cat] = 0;
+             VOL303_Vol_Boost_On();
+         }
+         break;
+
+      case IDM_BOOST_MPA_TRAD:
+         ToggleMenu('T', &iCtl_Vol_BoostCat_Flag[FORMAT_MPA], IDM_BOOST_MPA_TRAD);
+         if (iVol_Boost_Cat == FORMAT_MPA)
+         {
+             iCtl_Volume_Boost = iCtl_Vol_BoostCat_Flag[FORMAT_MPA];
+             VolBoostChg();
+         }
+         break;
+      case IDM_BOOST_MPA_TRENDY:
+         ToggleMenu('T', &iCtl_Vol_BoostCat_Flag[FORMAT_MPA_TRENDY], IDM_BOOST_MPA_TRENDY);
+         if (iVol_Boost_Cat == FORMAT_MPA_TRENDY)
+         {
+             iCtl_Volume_Boost = iCtl_Vol_BoostCat_Flag[FORMAT_MPA_TRENDY];
+             VolBoostChg();
+         }
+         break;
+      case IDM_BOOST_AC3:
+         ToggleMenu('T', &iCtl_Vol_BoostCat_Flag[FORMAT_AC3], IDM_BOOST_AC3);
+         if (iVol_Boost_Cat == FORMAT_AC3)
+         {
+             iCtl_Volume_Boost = iCtl_Vol_BoostCat_Flag[FORMAT_AC3];
+             VolBoostChg();
+         }
+         break;
+      case IDM_BOOST_DTS:
+         ToggleMenu('T', &iCtl_Vol_BoostCat_Flag[FORMAT_DTS], IDM_BOOST_DTS);
+         if (iVol_Boost_Cat == FORMAT_DTS)
+         {
+             iCtl_Volume_Boost = iCtl_Vol_BoostCat_Flag[FORMAT_DTS];
+             VolBoostChg();
+         }
+         break;
+      case IDM_BOOST_LPCM:
+         ToggleMenu('T', &iCtl_Vol_BoostCat_Flag[FORMAT_LPCM], IDM_BOOST_LPCM);
+         if (iVol_Boost_Cat == FORMAT_LPCM)
+         {
+             iCtl_Volume_Boost = iCtl_Vol_BoostCat_Flag[FORMAT_MPA];
+             VolBoostChg();
+         }
+         break;
 
       case IDM_VOLUME_LIMITING:  // Turn down volume on loud files - we want it not too loud.  Volume_Limiter
          VOL203_Volume_Target();
          break;
 
-      case IDM_VOLUME_BOOST:
-         if (iCtl_Volume_Boost)
-             VOL304_Vol_Boost_Off();
-         else
-            VOL303_Vol_Boost_On();
-         break;
-
 
       case IDM_VOLUME_AUTO:  // Automatic Volume Control
-         Set_Toggle_Menu('T', &iCtl_Volume_AUTO, IDM_VOLUME_AUTO);
+         ToggleMenu('T', &iCtl_Volume_AUTO, IDM_VOLUME_AUTO);
 
-         if (iCtl_Volume_AUTO)
+         if (iCtl_Volume_AUTO) 
              VOL301_Volume_Boost_Start();
          break;
 
@@ -3276,7 +3329,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
                  && iAudio_SEL_Format >= FORMAT_AC3)
             )
          {
-             Set_Toggle_Menu('S', &iCtl_Volume_AUTO, IDM_VOLUME_AUTO);
+             ToggleMenu('S', &iCtl_Volume_AUTO, IDM_VOLUME_AUTO);
              VOL301_Volume_Boost_Start();
          }
          else
@@ -3285,27 +3338,23 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          }
          break;
 
+      case IDM_VOL_RETAIN:
+         ToggleMenu('T', &iCtl_Volume_Retain, IDM_VOL_RETAIN);
+         break;
 
-      case IDM_VOLUME_MUTE:
+      case IDM_VOLUME_MUTE: 
            VOL210_MUTE_Toggle();
            break;
 
-      case IDM_VOLUME_UP:
-           VOL340_Up();
-           break;
-
-      case IDM_VOLUME_DOWN:
-           VOL320_Down();
-           break; 
-
       case IDM_VOL_STARKEY:  // StarKey Keyboard Volume Controls
-           Set_Toggle_Menu('T', &iCtl_Vol_StarKey, IDM_VOL_STARKEY);
+           ToggleMenu('T', &iCtl_Vol_StarKey, IDM_VOL_STARKEY);
            break;
 
       case IDM_VOLUME_GENTLE:
-         iCtl_Volume_SlowAttack = -iCtl_Volume_SlowAttack;
          if (iCtl_Volume_SlowAttack == 0)
              iCtl_Volume_SlowAttack  = 64;
+         else
+             iCtl_Volume_SlowAttack = -iCtl_Volume_SlowAttack;
 
          if (iCtl_Volume_SlowAttack > 0)
              uTmp1 = MF_CHECKED;
@@ -3316,29 +3365,29 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          break;
   
       case IDM_AUDIO_KARAOKE:
-          Set_Toggle_Menu('T', &MParse.Karaoke_Flag, IDM_AUDIO_KARAOKE);
+          ToggleMenu('T', &MParse.Karaoke_Flag, IDM_AUDIO_KARAOKE);
           break;
       case IDM_AUDIO_ANTIPHASE:
-          Set_Toggle_Menu('T', &MParse.Anti_Phase, IDM_AUDIO_ANTIPHASE);
+          ToggleMenu('T', &MParse.Anti_Phase, IDM_AUDIO_ANTIPHASE);
           break;
 
       case IDM_AUDIO_AHEAD:
-         Set_Toggle_Menu('T', &iCtl_AudioAhead, IDM_AUDIO_AHEAD);
+         ToggleMenu('T', &iCtl_AudioAhead, IDM_AUDIO_AHEAD);
          RdAHD_Flag = iCtl_AudioAhead;
          GetBlk_RdAHD_RESET();
          break;
 
       case IDM_AUDIO_THREAD:
-         Set_Toggle_Menu('T', &iCtl_AudioThread, IDM_AUDIO_AHEAD);
+         ToggleMenu('T', &iCtl_AudioThread, IDM_AUDIO_AHEAD);
          break;
 
       case IDM_AUDIO_CRC:
-         Set_Toggle_Menu('T', &iCtl_Audio_CRC, IDM_AUDIO_CRC);
+         ToggleMenu('T', &iCtl_Audio_CRC, IDM_AUDIO_CRC);
          AC3_CRC_Chk = iCtl_Audio_CRC;
          break;
 
       case IDM_AUDIO_44K:
-         Set_Toggle_Menu('T', &iAudio_Force44K, IDM_AUDIO_44K);
+         ToggleMenu('T', &iAudio_Force44K, IDM_AUDIO_44K);
          if(iWAV_Init && MParse.Stop_Flag)
          {
             WAV_Flush();  
@@ -3348,15 +3397,15 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
             }
          }
          if (iAudio_Force44K)
-             Set_Toggle_Menu('C', &iCtl_PALTelecide, IDM_AUDIO_PALTEL);
+             ToggleMenu('C', &iCtl_PALTelecide, IDM_AUDIO_PALTEL);
          break;
 
       case IDM_AUDIO_PALTEL:
-         Set_Toggle_Menu('T', &iCtl_PALTelecide, IDM_AUDIO_PALTEL);
+         ToggleMenu('T', &iCtl_PALTelecide, IDM_AUDIO_PALTEL);
          if (iCtl_PALTelecide)
          {
              Set_Frame_Rate(2);
-             Set_Toggle_Menu('C', &iAudio_Force44K, IDM_AUDIO_44K);
+             ToggleMenu('C', &iAudio_Force44K, IDM_AUDIO_44K);
          }
          else
              Set_Frame_Rate(0);
@@ -3387,12 +3436,12 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_FILE_WIN32API:
-         Set_Toggle_Menu('T', &iCtl_File_WIN32, IDM_FILE_WIN32API);
+         ToggleMenu('T', &iCtl_File_WIN32, IDM_FILE_WIN32API);
          break;
 
 
       case IDM_TRACK_MEMO:
-            Set_Toggle_Menu('T', &iCtl_Track_Memo, IDM_TRACK_MEMO);
+            ToggleMenu('T', &iCtl_Track_Memo, IDM_TRACK_MEMO);
             if (iCtl_Track_Memo)
                 Set_AudioTrack(TRACK_AUTO);
             break;
@@ -3516,7 +3565,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_DSDOWN:
-            Set_Toggle_Menu('T', &AC3_DSDown_Flag, IDM_DSDOWN);
+            ToggleMenu('T', &AC3_DSDown_Flag, IDM_DSDOWN);
             break;
 /*
       case IDM_PRESCALE:
@@ -3592,7 +3641,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_FIELD_EXPERIMENT:
-          Set_Toggle_Menu('T', &iField_Experiment, IDM_FIELD_EXPERIMENT);
+          ToggleMenu('T', &iField_Experiment, IDM_FIELD_EXPERIMENT);
           break;
 
 
@@ -3664,7 +3713,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
               }
            }
            else
-             Set_Toggle_Menu('T', &iLumEnable_Flag[iColorSpaceTab], IDM_LUMINANCE);
+             ToggleMenu('T', &iLumEnable_Flag[iColorSpaceTab], IDM_LUMINANCE);
 
            Lum_Filter_Init(iColorSpaceTab);
            RefreshVideoFrame();
@@ -3718,7 +3767,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break;
 
       case IDM_LUM_DESEL:
-          Set_Toggle_Menu('T', &iCtl_Lum_Deselector, IDM_LUM_DESEL);
+          ToggleMenu('T', &iCtl_Lum_Deselector, IDM_LUM_DESEL);
 
           if (!iCtl_Lum_Deselector
           || (process.CurrFile  <  process.ToViewFile)
@@ -3741,11 +3790,11 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_SAT_RETAIN:
-           Set_Toggle_Menu('T', &iCtl_SAT_Retain, IDM_SAT_RETAIN);
+           ToggleMenu('T', &iCtl_SAT_Retain, IDM_SAT_RETAIN);
            break;
 
       case IDM_SINE:  // SIN CITY - Still experimental
-          Set_Toggle_Menu('T', &iSat_Sine, IDM_SINE);
+          ToggleMenu('T', &iSat_Sine, IDM_SINE);
           if (iSat_Sine) 
               iSatAdj_Flag  = 1;    //    [iColorSpaceTab]
           Lum_Filter_Init(0);
@@ -3756,7 +3805,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_VIEW_INVERT:
-          Set_Toggle_Menu('T', &iView_Invert, IDM_VIEW_INVERT);
+          ToggleMenu('T', &iView_Invert, IDM_VIEW_INVERT);
 
           if (MParse.SeqHdr_Found_Flag 
           && (MParse.Stop_Flag || MParse.Tulebox_SingleStep_flag))
@@ -3834,12 +3883,13 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
       case IDM_FILE_NEWNAME:
 
            F600_NewName_Setup();
+           DSP2_Main_SEL_INFO(1);
            break;
 
 
 
       case IDM_MULTI_ANGLE:
-           Set_Toggle_Menu('T', &iCtl_MultiAngle, IDM_MULTI_ANGLE);
+           ToggleMenu('T', &iCtl_MultiAngle, IDM_MULTI_ANGLE);
            break;
 
 
@@ -4004,7 +4054,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_KBNAV_VDUB:
-         Set_Toggle_Menu('T', &iCtl_KB_NavOpt, IDM_KBNAV_VDUB);
+         ToggleMenu('T', &iCtl_KB_NavOpt, IDM_KBNAV_VDUB);
          DSP_Button_Abbr();
          if (iViewToolBar)
          {
@@ -4014,17 +4064,23 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
          break;
 
       case IDM_KBMARK_VDUB:
-         Set_Toggle_Menu('T', &iCtl_KB_MarkOpt, IDM_KBMARK_VDUB);
+         ToggleMenu('T', &iCtl_KB_MarkOpt, IDM_KBMARK_VDUB);
          break;
       case IDM_KB_STOPPLAY:
-         Set_Toggle_Menu('T', &iCtl_KB_NavStopPlay, IDM_KB_STOPPLAY);
+         ToggleMenu('T', &iCtl_KB_NavStopPlay, IDM_KB_STOPPLAY);
          break;
+
+      case IDM_KB_V_POPUP:
+         ToggleMenu('T', &iCtl_KB_V_Popup, IDM_KB_V_POPUP);
+         break;
+
+
       case IDM_NAV_INDEX:
-         Set_Toggle_Menu('T', &iCTL_FastBack, IDM_NAV_INDEX);
+         ToggleMenu('T', &iCTL_FastBack, IDM_NAV_INDEX);
          break;
 
  //     case IDM_VOB_NAV:
- //        Set_Toggle_Menu('T', &iVob_Nav, IDM_VOB_NAV);
+ //        ToggleMenu('T', &iVob_Nav, IDM_VOB_NAV);
  //        break;
 
 
@@ -4065,7 +4121,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_DISPLAY:
-           Set_Toggle_Menu('T', &iCtl_ShowVideo_Flag, IDM_DISPLAY);
+           ToggleMenu('T', &iCtl_ShowVideo_Flag, IDM_DISPLAY);
            iShowVideo_Flag = iCtl_ShowVideo_Flag;
 
            if (process.Action == ACTION_RIP
@@ -4077,7 +4133,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_PLAY_INFO:
-          Set_Toggle_Menu('T', &iCtl_Play_Info, IDM_PLAY_INFO);
+          ToggleMenu('T', &iCtl_Play_Info, IDM_PLAY_INFO);
           break;
 
       case IDM_BMP_SHIFT:
@@ -4163,11 +4219,11 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            break;
 
       case IDM_DATE_INTERNATIONALE:
-           Set_Toggle_Menu('T', &iCtl_Date_Internationale, IDM_DATE_INTERNATIONALE);
+           ToggleMenu('T', &iCtl_Date_Internationale, IDM_DATE_INTERNATIONALE);
            break;
 
       case IDM_READABILITY:
-           Set_Toggle_Menu('T', &iCtl_Readability, IDM_READABILITY);
+           ToggleMenu('T', &iCtl_Readability, IDM_READABILITY);
            if (iViewToolBar > 1)
            {
                Toolbar_Chg();
@@ -4178,10 +4234,10 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 
 
       case IDM_F3_NAMES:
-           Set_Toggle_Menu('T', &iCtl_F3_Names, IDM_F3_NAMES);
+           ToggleMenu('T', &iCtl_F3_Names, IDM_F3_NAMES);
            break;
       case IDM_F5_TOGGLER:
-           Set_Toggle_Menu('T', &iCtl_F5_Toggler, IDM_F5_TOGGLER);
+           ToggleMenu('T', &iCtl_F5_Toggler, IDM_F5_TOGGLER);
            break;
 
  
@@ -4563,6 +4619,29 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
 //---------------------------
 
 
+void B380_Volume_Window()
+{
+           if (hVolDlg!=NULL)
+           {
+              DestroyWindow(hVolDlg);
+              hVolDlg = NULL;
+              //MessageBeep(MB_OK) ;
+           }
+           else
+           {
+              hVolDlg = CreateDialog(hInst, (LPCTSTR)IDD_VOLUME,
+                                 hWnd_MAIN, (DLGPROC)Volume_Dialog);
+           }
+  
+}
+
+
+
+
+
+//---------------------------
+
+
 void B390_Audio_Cycle()
 {
   unsigned int uTmp1;
@@ -4601,6 +4680,7 @@ void B390_Audio_Cycle()
 
   }
 
+  iVol_PREV_Cat = 0;
 
 }
 
@@ -5209,6 +5289,7 @@ void Set_AudioTrack(int P_Track)
   // Allow auto fallback
   PlayCtl.iGOP_Ctr = 0;
   PlayCtl.iAudio_SelStatus = 0;
+  iVol_PREV_Cat = 0;
 
 
 }
@@ -5572,7 +5653,7 @@ void ClearMPALib(int P_Mpa_NUM)
   else
      cAct = 'S';
 
-  Set_Toggle_Menu(cAct, &iMpa_AUTO, IDM_MPA_AUTO);
+  ToggleMenu(cAct, &iMpa_AUTO, IDM_MPA_AUTO);
 
   if (iMpa_AUTO)
   {
@@ -5648,7 +5729,7 @@ void IDCT_SetHardware(int P_Value, unsigned P_Menu_Code)
 //  'T' = Toggles between 0 and 1
 //  '=' = Sets to match variable
 //---------------------------------------------------------
-void Set_Toggle_Menu(char P_Act, void *P_Value, int P_NAME)
+void ToggleMenu(char P_Act, void *P_Value, int P_NAME)
 {
 
   UINT uMark;
@@ -5687,7 +5768,7 @@ void Set_Folder(char *lsP_Folder, int *lpP_Active, int iP_MenuItem,
   char szTemp2[_MAX_PATH];
 
   if (iP_MenuItem)
-      Set_Toggle_Menu('S', lpP_Active, iP_MenuItem);
+      ToggleMenu('S', lpP_Active, iP_MenuItem);
 
 
   if ( iP_AlwaysReset  ||  !*lsP_Folder)

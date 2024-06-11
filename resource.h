@@ -350,6 +350,8 @@
 #define VOL_MUTE_CHK                    1220
 #define VOL_EXIT                        1221
 #define VOL_BOOST_NUM                   1222
+#define VOL_BOOST_ZERO                  1223
+#define VOL_BOOST_SNAP                  1224
 #define IDC_FPS_SHOWN                   1441
 #define IDC_GOP_CTR                     1442
 #define IDC_PSD                         1443
@@ -837,6 +839,13 @@
 #define IDM_WARN_FMT_CDXA               33308
 #define IDM_WARN_DONE                   33309
 #define IDM_VOL_SLIDERS                 33310
+#define IDM_KB_V_POPUP                  33311
+#define IDM_BOOST_MPA_TRAD              33312
+#define IDM_BOOST_MPA_TRENDY            33313
+#define IDM_BOOST_AC3                   33314
+#define IDM_BOOST_DTS                   33315
+#define IDM_BOOST_LPCM                  33317
+#define IDM_VOL_RETAIN                  33318
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -844,8 +853,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        172
-#define _APS_NEXT_COMMAND_VALUE         33311
-#define _APS_NEXT_CONTROL_VALUE         1222
+#define _APS_NEXT_COMMAND_VALUE         33319
+#define _APS_NEXT_CONTROL_VALUE         1225
 #define _APS_NEXT_SYMED_VALUE           107
 #endif
 #endif

@@ -413,7 +413,7 @@ void Button_LUM_OVR()
 void Lum_Swap_UV(const int P_Reshow)
 {
           Chg2YUV2(1, 0) ;
-          Set_Toggle_Menu('T', &iView_SwapUV, IDM_YUV_SWAP);
+          ToggleMenu('T', &iView_SwapUV, IDM_YUV_SWAP);
           iView_SwapUV = iView_SwapUV<<1;
 
           if (P_Reshow
@@ -429,7 +429,7 @@ void Lum_Swap_UV(const int P_Reshow)
 
 void Lum_Negative(const int P_Reshow)
 {
-          Set_Toggle_Menu('T', &iView_Negative, IDM_VIEW_NEGATIVE);
+          ToggleMenu('T', &iView_Negative, IDM_VIEW_NEGATIVE);
           if (iView_Negative)
               iLumEnable_Flag[iColorSpaceTab] = 1;
           Lum_Filter_Init(0);
@@ -818,7 +818,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
           case IDL_LUM_NEG_CHK:
                if (!iView_Negative)
                {
-                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  //ToggleMenu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
                   iView_Fast_YUV = 1;
                }
                Lum_Negative(0);
@@ -860,7 +860,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                   //iSatGain[0] = 100; 
                   //iSatGain[1] = 100;
 
-                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  //ToggleMenu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
                   iView_Fast_YUV = 1;
                }
                else
@@ -878,7 +878,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                if (!iView_SwapUV)
                {
                   iSatAdj_Flag = 1; 
-                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  //ToggleMenu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
                   iView_Fast_YUV = 1;
                }
                Lum_Swap_UV(0);
@@ -894,7 +894,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                          IDL_SAT_CHK, BM_GETCHECK, 1, 0) == BST_CHECKED)
                {
                   iSatAdj_Flag = 1;
-                  //Set_Toggle_Menu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
+                  //ToggleMenu('S', &iCtl_View_Fast_YUV, IDM_YUV_FAST);
                   iView_Fast_YUV = 1;
                }
                else

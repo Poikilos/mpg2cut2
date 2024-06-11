@@ -79,9 +79,9 @@ LRESULT CALLBACK Pane_Dialog(HWND hPrefDlg, UINT message, WPARAM wParam, LPARAM 
 
   // ???
     //Set_Bmp_Fmt(2);
-    //Set_Toggle_Menu('T', &iCtl_SetBrokenGop, IDM_OUT_BROKEN_FLAG);
-    //Set_Toggle_Menu('T', &iCtl_Out_Align_Video, wmId);
-  //Set_Toggle_Menu('T', &iCtl_Out_Align_Audio, wmId);
+    //ToggleMenu('T', &iCtl_SetBrokenGop, IDM_OUT_BROKEN_FLAG);
+    //ToggleMenu('T', &iCtl_Out_Align_Video, wmId);
+  //ToggleMenu('T', &iCtl_Out_Align_Audio, wmId);
 
    return false;
 }

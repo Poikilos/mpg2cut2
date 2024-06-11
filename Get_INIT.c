@@ -117,7 +117,7 @@ void  Decoder_INIT()
            if (iTmp1)
            {
                iCtl_View_Limit2k = iView_Limit2k;
-               Set_Toggle_Menu('=', &iCtl_View_Limit2k, IDM_VIEW_HUGE);
+               ToggleMenu('=', &iCtl_View_Limit2k, IDM_VIEW_HUGE);
            }
       }
       else

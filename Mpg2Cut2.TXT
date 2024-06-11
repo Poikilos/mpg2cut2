@@ -135,8 +135,8 @@ Shift-F11 = Both Buttons and Scrollbar
 
 
 NOTE:- PAUSE (space bar) is different to STOP (esc key).
-       Stop aligns on an I-frame, suitable for From/To marking,
-       but Pause just freezes the decoder mid-stream.
+       Pause simply freezes the decoder mid-stream.
+       STOP actually shuts down the decoder task.
 
 ==========================================================================
 
@@ -1502,12 +1502,15 @@ Leadtek OVL Key - Grey
            This option forces Mpg2Cut2 to use the Leadtek Color Key.
            *BUT* It has the side effect of turning menus TRANSPARENT !
 
-           Furthermore, if you minimize and restore, 
+           Furthermore, in some situations, when you minimize and restore, 
            sometimes the overlay key has changed to black in the interim.
            Tick the Leadtek OVL - Black option to overcome this.
            As this situation is usually transient,        
            Black mode is reset to Grey at the end of the session.
-           Thanks for the buggy software Mr LeadTek. Grrr... Argh....
+           Thanks for the annoying software Mr LeadTek. Grrr... Argh....
+
+           If the LeadTek conflict is simply too annoying,
+           then tick "Never Use Overlay" to avoid the situation.
 
 
 
@@ -1740,6 +1743,10 @@ that has 2 sliders and a number of tick boxes.
 The 1st slider is a conventional volume control.
 The 2nd slider is for the audio limiter.
 
+On the Keyboard, Ctrl-V brings up this window.
+However, this can be changed in MENU - MISC - KEYBOARD,
+to allow the V key to bring up the window, without the Ctrl key.
+
 Volume Boost - Audio boost during preview, for files that are too quiet.
                If overflow occurs, boost is decreased.
 
@@ -1751,31 +1758,18 @@ Automatic Volume Control (AVC)
 Limit Loud Sounds 
             - Set a maximum for the overall volume,
               for closer matching to other PC applications.
-              If active, default limit is one quarter of max volume.
+              If activated, default limit is one quarter of max volume.
               Adjustable via 2nd slider on Volume window.
 
-Slow Attack - Slow down the Bold reboosting effect.
+              If you have the Volume set quite HIGH,
+              but the Limiter set quite LOW,
+              then they will be acting against each other,
+              and the sound may become choppy,
+              or background sounds may become annoying.
+                
 
-Advanced Users ONLY :-
-       If Boost, AVC and Limit do not give exactly what you want,
-       the controls can be tweaked in the INI file. 
-       On the INI line with the keyword "VOLUME" :-
-            - parm1 = reserved
-            - parm2 = Audio Boost for Mpeg Audio. 
-            - parm3 - Audio Boost for basic AC3 files. 
-                      For DTS or DD+, this value is doubled.
-            - parm4 - Audio Limiter. 1=on. 0=off.
-            - parm5 - Audio Ceiling for limiter.  Max=32767. 
-                      Smaller is quieter. 0=Quarter Max Volume.
-            - parm6 - AVC Slow Attack Delay period
-                      0=Off 16=Moderate. 
-                      Negative is temporarily off.
-            Other parms reserved for future use.
-               
 Karaoke      - Attempts to remove vocals from STEREO music track.
                Only basic function, no lag compensation.
-
-
 
 Audio Track  
        - Allows for selection of different language tracks,
@@ -1811,6 +1805,8 @@ FROM VHS TAPES RECORDED IN STERO FROM A MONO SOURCE.
 
 MISC AUDIO OPTIONS
 
+Slow Attack - Slow down the AVC reboosting effect.
+
 PS2 Audio    - Needed for Australian DTV HD with Nebula Card
                which uses Private Stream 2 for Audio.
                Different to DVD VOBs, which use PS2 for navigation info.
@@ -1829,7 +1825,22 @@ Decoder - If the default Audio decoder does not work on your CPU,
 
 CRC Checking - Can be turned off to allow for cruddy files.
 
-
+Advanced Users ONLY :-
+       If Boost, AVC and Limit do not give exactly what you want,
+       the controls can be tweaked in the INI file. 
+       On the INI line with the keyword "VOLUME" :-
+            - parm1 = reserved
+            - parm2 = Audio Boost for Mpeg Audio. 
+            - parm3 - Audio Boost for basic AC3 files. 
+                      For DTS or DD+, this value is doubled.
+            - parm4 - Audio Limiter. 1=on. 0=off.
+            - parm5 - Audio Ceiling for limiter.  Max=32767. 
+                      Smaller is quieter. 0=Quarter Max Volume.
+            - parm6 - AVC Slow Attack Delay period
+                      0=Off 16=Moderate. 
+                      Negative is temporarily off.
+            Other parms reserved for future use.
+               
 -----------------------------------------------------------------
 
 If a crash occurs in a module name starting with "MPA",

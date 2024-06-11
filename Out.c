@@ -373,7 +373,7 @@ void OUT_SAVE_GO(char P_Act)
 
    //__int64 i64Tmp1; //, i64Tmp2;
 
-  //cOut_ACT = P_Act;
+  cOut_ACT = P_Act;
 
   File_Final       = File_Limit - 1;
   ZeroMemory(&uFileSubStream_Id, sizeof(uFileSubStream_Id));
@@ -431,7 +431,10 @@ void OUT_SAVE_GO(char P_Act)
       break;
 
     default:
-      strcpy(szTitle, "SAVE Mpeg2 File");
+      if (cOut_ACT == 'P')
+         strcpy(szTitle, "Save Mpeg2 File parts");
+      else
+         strcpy(szTitle, "SAVE Mpeg2 File");
       if (Ed_Prev_Act != '+'  // Current Selection has not been added
       && (Ed_Prev_Act != '-' || iEDL_ctr == 0)) // nor deleted
       {
@@ -1016,9 +1019,7 @@ void OUT_SAVE(char P_Act)
       else
           process.iOut_AutoSPLIT  =  0;
 
-      if (iRC)
-          cOut_ACT = 'L';
-      else
+      if (!iRC)
           cOut_ACT = 0; // Abandon
   }
 
