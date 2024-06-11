@@ -1,0 +1,431 @@
+
+
+//-------------------------------------------------------------------
+/*
+LRESULT CALLBACK ClipResize(HWND hDialog, UINT message, WPARAM wParam,
+																	LPARAM lParam)
+{
+	int i;
+
+	switch (message)
+	{
+		case WM_INITDIALOG:
+			SendDlgItemMessage(hDialog, IDC_LEFT_SLIDER, TBM_SETRANGE, 0, MAKELPARAM(0, 128));
+			SendDlgItemMessage(hDialog, IDC_LEFT_SLIDER, TBM_SETPOS, 1, Clip_Left>>1);
+			sprintf(szTemp, "%d", Clip_Left);
+			SetDlgItemText(hDialog, IDC_LEFT, szTemp);
+
+			SendDlgItemMessage(hDialog, IDC_RIGHT_SLIDER, TBM_SETRANGE, 0,
+															MAKELPARAM(0, 128));
+			SendDlgItemMessage(hDialog, IDC_RIGHT_SLIDER, TBM_SETPOS, 1,
+															Clip_Right>>1);
+			sprintf(szTemp, "%d", Clip_Right);
+			SetDlgItemText(hDialog, IDC_RIGHT, szTemp);
+
+			SendDlgItemMessage(hDialog, IDC_TOP_SLIDER, TBM_SETRANGE, 0,
+															MAKELPARAM(0, 128));
+			SendDlgItemMessage(hDialog, IDC_TOP_SLIDER, TBM_SETPOS, 1,
+															Clip_Top>>1);
+			sprintf(szTemp, "%d", Clip_Top);
+			SetDlgItemText(hDialog, IDC_TOP, szTemp);
+
+			SendDlgItemMessage(hDialog, IDC_BOTTOM_SLIDER, TBM_SETRANGE, 0,
+																MAKELPARAM(0, 128));
+			SendDlgItemMessage(hDialog, IDC_BOTTOM_SLIDER, TBM_SETPOS, 1,
+																	Clip_Bottom>>1);
+			sprintf(szTemp, "%d", Clip_Bottom);
+			SetDlgItemText(hDialog, IDC_BOTTOM, szTemp);
+
+			SendDlgItemMessage(hDialog, IDC_WIDTH_SLIDER, TBM_SETRANGE, 0,
+												MAKELPARAM(0,
+											(Coded_Pic_Width-Clip_Left-Clip_Right)>>3));
+			SendDlgItemMessage(hDialog, IDC_WIDTH_SLIDER, TBM_SETPOS, 1,
+											(Coded_Pic_Width-Clip_Left-Clip_Right
+											 -Squeeze_Width)>>3);
+			sprintf(szTemp, "%d", Coded_Pic_Width
+														-Clip_Left-Clip_Right-Squeeze_Width);
+			SetDlgItemText(hDialog, IDC_WIDTH, szTemp);
+
+			SendDlgItemMessage(hDialog, IDC_HEIGHT_SLIDER, TBM_SETRANGE, 0,
+				MAKELPARAM(0, (Coded_Pic_Height-Clip_Top-Clip_Bottom)>>3));
+			SendDlgItemMessage(hDialog, IDC_HEIGHT_SLIDER, TBM_SETPOS, 1,
+					(Coded_Pic_Height-Clip_Top-Clip_Bottom-Squeeze_Height)>>3);
+			sprintf(szTemp, "%d", Coded_Pic_Height
+														-Clip_Top-Clip_Bottom
+														-Squeeze_Height);
+			SetDlgItemText(hDialog, IDC_HEIGHT, szTemp);
+
+			ShowWindow(hDialog, SW_SHOW);
+
+			if (ClipResize_Flag)
+				SendDlgItemMessage(hDialog, IDC_CLIPRESIZE_CHECK,
+																		BM_SETCHECK, BST_CHECKED, 0);
+			return true;
+
+		case WM_COMMAND:
+			switch (LOWORD(wParam))
+			{
+				case IDC_CLIPRESIZE_CHECK:
+					if (SendDlgItemMessage(hDialog, IDC_CLIPRESIZE_CHECK,
+															BM_GETCHECK, 1, 0)==BST_CHECKED)
+					{
+						CheckMenuItem(hMenu, IDM_CLIPRESIZE, MF_CHECKED);
+						ClipResize_Flag = true;
+					}
+					else
+					{
+						CheckMenuItem(hMenu, IDM_CLIPRESIZE, MF_UNCHECKED);
+						ClipResize_Flag = false;
+					}
+
+					RefreshFrame();
+					ShowStatistics(false);
+					break;
+
+				case IDCANCEL:
+					DestroyWindow(hDialog);
+					hClipResizeDlg = NULL;
+					return true;
+			}
+			break;
+
+		case WM_HSCROLL:
+			switch (GetWindowLong((HWND)lParam, GWL_ID))
+			{
+				case IDC_LEFT_SLIDER:
+					i = SendDlgItemMessage(hDialog, IDC_LEFT_SLIDER,
+																TBM_GETPOS, 0, 0)<<1;
+					if (i + Clip_Right + MIN_D2V_WIDTH <= Coded_Pic_Width)
+					{
+						Clip_Left = i;
+						sprintf(szTemp, "%d", Clip_Left);
+						SetDlgItemText(hDialog, IDC_LEFT, szTemp);
+
+						Clip_Right = 8 - Clip_Left%8;
+						sprintf(szTemp, "%d", Clip_Right);
+						SetDlgItemText(hDialog, IDC_RIGHT, szTemp);
+						SendDlgItemMessage(hDialog, IDC_RIGHT_SLIDER, TBM_SETPOS,
+																							1, Clip_Right>>1);
+
+						Squeeze_Width = 0;
+						SendDlgItemMessage(hDialog, IDC_WIDTH_SLIDER, TBM_SETRANGE, 0,
+										MAKELPARAM(0,
+													(Coded_Pic_Width-Clip_Left-Clip_Right)>>3));
+						SendDlgItemMessage(hDialog, IDC_WIDTH_SLIDER, TBM_SETPOS, 1,
+							(Coded_Pic_Width-Clip_Left-Clip_Right-Squeeze_Width)>>3);
+						sprintf(szTemp, "%d",
+							Coded_Pic_Width-Clip_Left-Clip_Right-Squeeze_Width);
+						SetDlgItemText(hDialog, IDC_WIDTH, szTemp);
+					}
+					break;
+
+				case IDC_RIGHT_SLIDER:
+					i = SendDlgItemMessage(hDialog, IDC_RIGHT_SLIDER, TBM_GETPOS,
+																										0, 0)<<1;
+					if (i + Clip_Left + MIN_D2V_WIDTH
+								<= Coded_Pic_Width
+								&& (i + Clip_Left)%8 == 0)
+					{
+						Clip_Right = i;
+						sprintf(szTemp, "%d", Clip_Right);
+						SetDlgItemText(hDialog, IDC_RIGHT, szTemp);
+
+						Squeeze_Width = 0;
+						SendDlgItemMessage(hDialog, IDC_WIDTH_SLIDER, TBM_SETRANGE, 0,
+									MAKELPARAM(0,
+										(Coded_Pic_Width-Clip_Left-Clip_Right)>>3));
+						SendDlgItemMessage(hDialog, IDC_WIDTH_SLIDER, TBM_SETPOS, 1,
+													(Coded_Pic_Width-Clip_Left
+																	-Clip_Right-Squeeze_Width)>>3);
+						sprintf(szTemp, "%d", Coded_Pic_Width
+																	-Clip_Left-Clip_Right
+																	-Squeeze_Width);
+						SetDlgItemText(hDialog, IDC_WIDTH, szTemp);
+					}
+					break;
+
+				case IDC_TOP_SLIDER:
+					i = SendDlgItemMessage(hDialog, IDC_TOP_SLIDER, TBM_GETPOS, 0, 0)<<1;
+					if (i + Clip_Bottom + MIN_HEIGHT <= Coded_Pic_Height)
+					{
+						Clip_Top = i;
+						sprintf(szTemp, "%d", Clip_Top);
+						SetDlgItemText(hDialog, IDC_TOP, szTemp);
+
+						Clip_Bottom = 8 - Clip_Top%8;
+						sprintf(szTemp, "%d", Clip_Bottom);
+						SetDlgItemText(hDialog, IDC_BOTTOM, szTemp);
+						SendDlgItemMessage(hDialog, IDC_BOTTOM_SLIDER, TBM_SETPOS, 1, Clip_Bottom>>1);
+
+						Squeeze_Height = 0;
+						SendDlgItemMessage(hDialog, IDC_HEIGHT_SLIDER, TBM_SETRANGE, 0, MAKELPARAM(0, (Coded_Pic_Height-Clip_Top-Clip_Bottom)>>3));
+						SendDlgItemMessage(hDialog, IDC_HEIGHT_SLIDER, TBM_SETPOS, 1, (Coded_Pic_Height-Clip_Top-Clip_Bottom-Squeeze_Height)>>3);
+						sprintf(szTemp, "%d", Coded_Pic_Height-Clip_Top-Clip_Bottom-Squeeze_Height);
+						SetDlgItemText(hDialog, IDC_HEIGHT, szTemp);
+					}
+					break;
+
+				case IDC_BOTTOM_SLIDER:
+					i = SendDlgItemMessage(hDialog, IDC_BOTTOM_SLIDER, TBM_GETPOS, 0, 0)<<1;
+					if (i + Clip_Top + MIN_HEIGHT <= Coded_Pic_Height && (i + Clip_Top)%8 == 0)
+					{
+						Clip_Bottom = i;
+						sprintf(szTemp, "%d", Clip_Bottom);
+						SetDlgItemText(hDialog, IDC_BOTTOM, szTemp);
+
+						Squeeze_Height = 0;
+						SendDlgItemMessage(hDialog, IDC_HEIGHT_SLIDER, TBM_SETRANGE, 0, MAKELPARAM(0, (Coded_Pic_Height-Clip_Top-Clip_Bottom)>>3));
+						SendDlgItemMessage(hDialog, IDC_HEIGHT_SLIDER, TBM_SETPOS, 1, (Coded_Pic_Height-Clip_Top-Clip_Bottom-Squeeze_Height)>>3);
+						sprintf(szTemp, "%d", Coded_Pic_Height-Clip_Top-Clip_Bottom-Squeeze_Height);
+						SetDlgItemText(hDialog, IDC_HEIGHT, szTemp);
+					}
+					break;
+
+				case IDC_WIDTH_SLIDER:
+					i = Coded_Pic_Width - Clip_Left - Clip_Right - (SendDlgItemMessage(hDialog, IDC_WIDTH_SLIDER, TBM_GETPOS, 0, 0)<<3);
+					if (MIN_D2V_WIDTH + i + Clip_Left + Clip_Right <= Coded_Pic_Width)
+					{
+						Squeeze_Width = i;
+						sprintf(szTemp, "%d", Coded_Pic_Width - Clip_Left - Clip_Right - Squeeze_Width);
+						SetDlgItemText(hDialog, IDC_WIDTH, szTemp);
+					}
+					break;
+
+				case IDC_HEIGHT_SLIDER:
+					i = Coded_Pic_Height - Clip_Top - Clip_Bottom - (SendDlgItemMessage(hDialog, IDC_HEIGHT_SLIDER, TBM_GETPOS, 0, 0)<<3);
+					if (MIN_HEIGHT + i + Clip_Top + Clip_Bottom <= Coded_Pic_Height)
+					{
+						Squeeze_Height = i;
+						sprintf(szTemp, "%d", Coded_Pic_Height - Clip_Top - Clip_Bottom - Squeeze_Height);
+						SetDlgItemText(hDialog, IDC_HEIGHT, szTemp);
+					}
+					break;
+			}
+
+			RefreshFrame();
+			ShowStatistics(false);
+	}
+	return false;
+}
+*/
+//--------------------------------------------------------------
+
+/* static void	D2Vsave() ;
+{
+	if (X800__PopFileDlg(szOutput, hWnd, SAVE_D2V, 0))
+					{
+						sprintf(szBuffer, "%s.d2v", szOutput);
+
+						D2VFile = fopen(szBuffer, "w+");
+
+						D2V_Flag = true;
+						Display_Flag = false;
+
+						EnableMenuItem(hMenu, IDM_OPEN, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_SAVE, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_LOAD_D2V, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_SAVE_D2V, MF_GRAYED);
+						EnableMenuItem(hMenu, IDM_STOP, MF_ENABLED);
+
+						Menu_Main_Disable(true, true);
+						ShowStatistics(true);
+
+						process.locate = LOCATE_RIP;
+
+						if (WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
+							hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
+					}
+					break;
+
+				case IDM_LOAD_D2V:
+					if (X800__PopFileDlg(szInput, hWnd, OPEN_D2V, 0))
+					{
+D2V_PROCESS:
+						D2VFile = fopen(szInput, "r");
+
+						while (File_Limit)
+						{
+							File_Final--;
+							File_Limit--;
+							_close(FileDCB[File_Limit]);
+						}
+
+						fscanf(D2VFile, "DVD2AVIProjectFile\n%d\n", &File_Limit);
+
+						i = File_Limit;
+						while (i)
+						{
+							fscanf(D2VFile, "%d ", &j);
+							fgets(File_Name[File_Limit-i], j+1, D2VFile);
+							if ((FileDCB[File_Limit-i] = _open(File_Name[File_Limit-i], _O_RDONLY | _O_BINARY | _O_SEQUENTIAL))==-1)
+							{
+								while (i<File_Limit)
+								{
+									_close(FileDCB[File_Limit-i-1]);
+									i++;
+								}
+
+								File_Limit = 0;
+								break;
+							}
+
+							i--;
+						}
+
+						Recovery();
+
+						fscanf(D2VFile, "\nStream_Type=%d,%X,%X\n", &MParse.SystemStream_Flag, &lfsr0, &lfsr1);
+						if (lfsr0 || lfsr1)
+							KeyOp_Flag = KEY_INPUT;
+						else
+							KeyOp_Flag = KEY_OFF;
+
+						fscanf(D2VFile, "iDCT_Algorithm=%d\n", &MParse.iDCT_Flag);
+						fscanf(D2VFile, "YUVRGB_Scale=%d\n", &MParse.Scale_Flag);
+						fscanf(D2VFile, "Luminance=%d,%d,%d,%d\n", &LumGain, &LumOffset.&LumGamma,&LumSLock_Flag);
+
+						if (Luminance_Flag)
+						{
+							CheckMenuItem(hMenu, IDM_LUMINANCE, MF_CHECKED);
+						}
+						else
+						{
+							CheckMenuItem(hMenu, IDM_LUMINANCE, MF_UNCHECKED);
+						}
+
+						if (hLumDlg!=NULL)
+						{
+							DestroyWindow(hLumDlg);
+							hLumDlg = CreateDialog(hInst, (LPCTSTR)IDD_LUMINANCE, hWnd, (DLGPROC)Luminance_Dialog);
+						}
+
+						fscanf(D2VFile, "Picture_Size=%d,%d,%d,%d,%d,%d\n", &Clip_Top, &Clip_Bottom,
+							&Clip_Left, &Clip_Right, &Squeeze_Width, &Squeeze_Height);
+
+						if (Clip_Top || Clip_Bottom || Clip_Left || Clip_Right || Squeeze_Width || Squeeze_Height)
+						{
+							CheckMenuItem(hMenu, IDM_CLIPRESIZE, MF_CHECKED);
+							ClipResize_Flag = true;
+						}
+						else
+						{
+							CheckMenuItem(hMenu, IDM_CLIPRESIZE, MF_UNCHECKED);
+							ClipResize_Flag = false;
+						}
+
+						if (hClipResizeDlg!=NULL)
+						{
+							DestroyWindow(hClipResizeDlg);
+							hClipResizeDlg = CreateDialog(hInst, (LPCTSTR)IDD_CLIPRESIZE, hWnd, (DLGPROC)ClipResize);
+						}
+
+						fscanf(D2VFile, "Field_Operation=%d\n", &MParse.FO_Flag);
+						fscanf(D2VFile, "Frame_Rate=%d\n", &i);
+
+						CheckFlag();
+
+						if (File_Limit)
+						{
+							fscanf(D2VFile, "Location=%d,%X,%d,%X\n", &process.FromFile,
+								&process.FromBlk, &process.toFile, &process.toBlk);
+
+							process.startFile = process.FromFile;
+							process.startLoc = process.FromBlk * MPEG_SEARCH_BUFSZ;
+							process.endfile = process.toFile;
+							process.endloc = (process.toBlk - 1) * MPEG_SEARCH_BUFSZ;
+
+							process.run = 0;
+							for (i=0; i<process.startFile; i++)
+								process.run += process.length[i];
+							process.startrunloc = process.run + process.startLoc;
+
+							process.endrunloc = 0;
+							for (i=0; i<process.endfile; i++)
+								process.endrunloc += process.length[i];
+							process.endrunloc += process.endloc;
+
+							process.trackleft = (int)(process.startrunloc*TRACK_PITCH/process.total);
+							process.trackright = (int)(process.endrunloc*TRACK_PITCH/process.total);
+
+							process.locate = LOCATE_INIT;
+
+							if (!threadId_MPEG || WaitForSingleObject(hThread_MPEG, 0)==WAIT_OBJECT_0)
+								hThread_MPEG = CreateThread(NULL, 0, MPEG2Dec, 0, 0, &threadId_MPEG);
+						}
+					}
+}
+*/
+
+/*
+void D2VFile_Init()
+{
+
+  if  (D2V_Flag)
+  {
+    i  =  File_Limit;
+
+    fprintf(D2VFile,  "DVD2AVIProjectFile\n%d\n",  i);
+    while  (i)
+    {
+      fprintf(D2VFile,  "%d  %s\n",  strlen(File_Name[File_Limit-i]),  File_Name[File_Limit-i]);
+      i--;
+    }
+
+    if  (KeyOp_Flag)
+      fprintf(D2VFile,  "\nStream_Type=%d,%X,%X\n",  MParse.SystemStream_Flag,  lfsr0,  lfsr1);
+    else
+      fprintf(D2VFile,  "\nStream_Type=%d,0,0\n",  MParse.SystemStream_Flag);
+
+    fprintf(D2VFile,  "iDCT_Algorithm=%d\n",  MParse.iDCT_Flag);
+    fprintf(D2VFile,  "YUVRGB_Scale=%d\n",  MParse.Scale_Flag);
+
+    fprintf(D2VFile,  "Luminance=%d,%d,%d,%d\n",
+          LumGain,  LumOffset,LumGamma,LumSLock_Flag);
+
+    if  (ClipResize_Flag)
+      fprintf(D2VFile,  "Picture_Size=%d,%d,%d,%d,%d,%d\n",  Clip_Top,  Clip_Bottom,
+        Clip_Left,  Clip_Right,  Squeeze_Width,  Squeeze_Height);
+    else
+      fprintf(D2VFile,  "Picture_Size=0,0,0,0,0,0\n");
+
+    fprintf(D2VFile,  "Field_Operation=%d\n",  MParse.FO_Flag);
+    fprintf(D2VFile,  "Frame_Rate=%d\n",  (int)(fFrame_Rate_Orig*1000));
+    fprintf(D2VFile,  "Location=%d,%X,%d,%X\n",  process.FromFile,  (int)process.FromBlk,
+      process.ToPadFile,  (int)process.ToPadBlk);
+  }
+
+
+}
+*/
+
+/*
+  void D2V_Pic()
+
+    if ((Frame_Number && MPEG_Pic_Structure==FULL_FRAME_PIC) || Second_Field)
+    {
+      if (d2v_curr.type==B_TYPE)
+      {
+        fprintf(D2VFile, " %d", d2v_curr.Fld1_Top_Rpt);
+        DetectVideoType(Frame_Number-1, d2v_curr.Fld1_Top_Rpt);
+      }
+      else
+        switch (d2v_fwd.type)
+        {
+          case P_TYPE:
+            fprintf(D2VFile, " %d", d2v_fwd.Fld1_Top_Rpt);
+            DetectVideoType(Frame_Number-1, d2v_fwd.Fld1_Top_Rpt);
+            break;
+
+          case I_TYPE:
+            fprintf(D2VFile, "\n7 %d %X", d2v_fwd.file, (int)d2v_fwd.lba);
+            fprintf(D2VFile, " %d", d2v_fwd.Fld1_Top_Rpt);
+            DetectVideoType(Frame_Number-1, d2v_fwd.Fld1_Top_Rpt);
+            break;
+
+          default:
+            SetDlgItemText(hStats, IDC_INFO, "P.E.!");
+            break;
+        }
+    }
+*/
+

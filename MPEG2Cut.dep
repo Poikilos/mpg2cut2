@@ -1,0 +1,135 @@
+# Microsoft Developer Studio Generated Dependency File, included by MPEG2Cut.mak
+
+.\da.c : \
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\getbit.c : \
+	".\AC3Dec\ac3.h"\
+	".\da.h"\
+	".\getbit.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	".\wave_out.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\gethdr.c : \
+	".\getbit.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\getpic.c : \
+	".\getbit.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\gui.cpp : \
+	".\AC3Dec\ac3.h"\
+	".\da.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	".\out.c"\
+	".\wave_out.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\motion.c : \
+	".\getbit.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\mpeg2dec.c : \
+	".\getbit.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\store.c : \
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\wave_out.c : \
+	".\wave_out.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\gui.rc : \
+	".\F_Open.ico"\
+	".\Flop35.ico"\
+	".\movie.ico"\
+	
+
+.\AC3Dec\bit_allocate.c : \
+	".\AC3Dec\ac3.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\bitstream.c : \
+	".\AC3Dec\ac3.h"\
+	".\AC3Dec\bitstream.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\coeff.c : \
+	".\AC3Dec\ac3.h"\
+	".\AC3Dec\bitstream.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\crc.c : \
+	".\AC3Dec\ac3.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\decode.c : \
+	".\AC3Dec\ac3.h"\
+	".\AC3Dec\bitstream.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\downmix.c : \
+	".\AC3Dec\ac3.h"\
+	".\global.h"\
+	".\mpalib.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\exponent.c : \
+	".\AC3Dec\ac3.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\imdct.c : \
+	".\AC3Dec\ac3.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\parse.c : \
+	".\AC3Dec\ac3.h"\
+	".\AC3Dec\bitstream.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\rematrix.c : \
+	".\AC3Dec\ac3.h"\
+	"p:\vc98\include\basetsd.h"\
+	
+
+.\AC3Dec\sanity_check.c : \
+	".\AC3Dec\ac3.h"\
+	"p:\vc98\include\basetsd.h"\
+	

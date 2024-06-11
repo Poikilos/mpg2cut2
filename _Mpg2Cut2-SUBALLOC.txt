@@ -1,0 +1,143 @@
+
+Greetings chaps,
+
+I've been adding fault tolerance to Mpeg2Cut,
+a descendant of DVD2AVI,
+to handle very bad DTV captures.
+
+This has been very successful, 
+so I thought I would pass the idea on.
+
+The main vulnerability to corrupt data
+arose from violations of frame buffer boundaries.
+
+Since I do not know enough about the way
+macro-blocks are decoded,
+I changed the buffer allocation stategy.
+
+Instead of allocating all the buffers separately,
+I changed it to do allocate one big area at once,
+and then sub-allocated that area
+to the various frame buffers.
+
+By putting the riskiest buffers in the middle of the area,
+the chance of an overflow causijng a crash is reduced by
+an order of magnitude.
+
+I also padded out the sizes of the frame buffers,
+and included the macroblock pointer arrays as well.
+
+Below are the sections of coded that are impacted.
+
+Regards,
+RocketJet
+
+
+--------
+GLOBAL.H
+
+short *block[16], *p_block[16]; 	//RJ WAS [8] Expanded for safety
+
+-------
+GUI.CPP
+
+Remove allocation of macroblock arrays block, p_block
+and corresponding free.
+
+----------
+MPEG2DEC.C
+
+New subroutine:-
+
+//---------------------------------------------------------
+// Allocate memory area as internal sub-pool, mimics "malloc"
+
+unsigned char * suballoc(int P_Size)
+{
+  unsigned char * iPtr;
+
+  iPtr        = (unsigned char *)((int)(subpool_ptr   + 16) & 0xFFFFFFF0);
+  subpool_ptr = iPtr + P_Size;     // ((iPtr + P_Size + 16) & 0xFFFFFFF0) ;
+
+return iPtr;
+}
+
+
+
+Frame buffer mallocs replaced by:-
+
+	// RJ 
+	// Changed buffer allocation strategy for fault tolerance
+	// Single GetMain for combined buffer area, with padding,
+	// which I then suballocate,
+	// with the safest buffers at each end,
+	// and the risky buffers in the middle
+
+	// First, add some padding to all the dimensions
+
+	SafeWidth  = Coded_Pic_Width + 8 ;
+	SafeHeight = Coded_Pic_Height + 8 ;
+	SafeSize   = SafeWidth * SafeHeight ;
+
+	SafeCWidth	= Chroma_Width  + 8 ;
+	SafeCHeight = Chroma_Height + 8 ;
+	SafeCSize 	= SafeCWidth * SafeCHeight ;
+
+	// Calculate total size of buffers to be pooled
+	SafeTotal  = (SafeSize * 12) + (SafeCSize * 6) + 8192 
+				     + 8 * (sizeof(short)*64 + 64)
+					   + sizeof(float)*128 + 1024;
+	frame_pool = (unsigned char*)malloc(SafeTotal);
+
+	// Now we sub allocate into various frame work areas
+	subpool_ptr = (unsigned char *)(frame_pool  + 4096);
+
+	// Safe buffers (less likely to cause crash)
+	u444	= (unsigned char*)suballoc(SafeSize);
+	v444	= (unsigned char*)suballoc(SafeSize);
+
+	// RJ Moved here from GUI initialization
+	// Allocate memory for macroblock tiles
+	for (i=0; i<8; i++)
+	{
+		p_block[i] = (short *)suballoc(sizeof(short)*64 + 64);
+		block[i]   = (short *)((long)p_block[i] + 64
+														 - (long)p_block[i]%64);
+	}
+
+	for (i=0; i<3; i++)
+	{
+		if (i==0)
+			size = SafeSize ;
+		else
+			size = SafeCSize ;
+
+		bwd_ref_frame[i] = (unsigned char*)suballoc(size);
+		fwd_ref_frame[i] = (unsigned char*)suballoc(size);
+		aux_frame[i]	 = (unsigned char*)suballoc(size);
+	}
+
+	
+	// Australian DTV is mostly 4:2:0, don't know about others
+	// therefore risk area, so stick it in the middle
+	u422	= (unsigned char*)suballoc(SafeSize/2);
+	v422	= (unsigned char*)suballoc(SafeSize/2);
+	yuy2	= (unsigned char*)suballoc(SafeSize*2);
+	lum 	= (unsigned char*)suballoc(SafeSize);
+
+
+	// Allocate rgb24 here because not used when overlay available
+	// Allocated last in case it proceeds backwards
+	rgb24 = (unsigned char*)suballoc(SafeSize*3);
+
+
+
+
+
+Frame buffer frees replaced by a single free:-
+
+	// Free the big frame pool
+	free(frame_pool);
+
+	// RJ *** No longer have individual frame mallocs to free ***
+

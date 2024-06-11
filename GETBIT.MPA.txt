@@ -1,0 +1,85 @@
+            if (mpa_Ctl[getbit_MPA_Track].rip
+            && (iAudio_Track_SEL == getbit_MPA_Track)
+            && (iWAV_Init && iMPAdec_Init && iPlayAudio && byMPALib_OK))
+            {
+
+              while (iPkt_Len_Remain > 0
+                &&   MParse.Fault_Flag < CRITICAL_ERROR_LEVEL
+                && ! MParse.Stop_Flag )
+              {
+
+                // RE-ARRANGED FOR AUDIO FRAME EXPERIMENTATION
+
+                // Check for Frame alignment
+                //if (iPkt_Len_Remain > iMPA_FrameLen // Check frame is NOT split across packets
+                //&&  RdPTR[0] == 0xFF // Syncronized ?
+                //&&  uMPA_Layer < 3) // don't try this with mp3
+                //{
+                //    //PlayCtl.iWarpDone     = 1;
+                //    iPkt_2Use_Len   = iMPA_FrameLen;
+                //}
+                //else
+                {
+                    PlayCtl.iWarpDone     = 0;
+                    iPkt_2Use_Len = iPkt_Len_Remain;
+                }
+
+
+                // Check for packet split across buffer boundary
+                iPkt_Avail_Len = RdEOB-RdPTR;
+                if (iPkt_2Use_Len > iPkt_Avail_Len)
+                {
+                   memcpy(lpTmpMPA, RdPTR, iPkt_Avail_Len);
+                   lpTmpMPA += iPkt_Avail_Len;
+                   Mpeg_READ();
+                   RdPTR = RdBFR;
+                   iTmp1 = iPkt_2Use_Len - iPkt_Avail_Len;
+                   memcpy(lpTmpMPA, RdPTR, iTmp1);
+                   RdPTR += iTmp1;
+                }
+                else
+                {
+                    lpTmpMPA = RdPTR;
+                    RdPTR += iPkt_2Use_Len;
+                }
+
+                {
+                  //iTmp3 = 2;  // Experimental slow
+                  //while (iTmp3--)
+                  {
+                    MPAdec.nRet =MPAdec.mlDecode(&MPAdec.mp,
+                                                  lpTmpMPA,
+                                                  iPkt_2Use_Len,
+                                           (char*)fPCMData,MPAdec.dwFree,
+                                                 &MPAdec.nSize);
+                     while(MPAdec.nRet == ML_OK
+                      &&   MParse.Fault_Flag < CRITICAL_ERROR_LEVEL
+                      && ! MParse.Stop_Flag )
+                     {
+                       if (MPAdec.nSize && iPlayAudio
+                       //&&  !PlayCtl.iWarpToggle   // Experimental Fast Play
+                       && MParse.FastPlay_Flag < 3 )
+                       {
+                         float2int(fPCMData,(BYTE*)fPCMData,
+                                             MPAdec.nSize/sizeof(float));
+                         iMPA_PCM_Len1 = MPAdec.nSize/2;
+                         if (PlayCtl.iWarpDone)
+                             WAV_WIN_Play_Samples ((BYTE*)fPCMData, iMPA_PCM_Len1);
+                         else
+                             WAV_Packet_Warp((BYTE*)fPCMData, iMPA_PCM_Len1);
+
+                       }
+                       MPAdec.nRet = MPAdec.mlDecode(&MPAdec.mp,NULL,0,
+                                             (char*)fPCMData,
+                                           MPAdec.dwFree,&MPAdec.nSize);
+                     }
+                     PlayCtl.iWarpToggle = 1 - PlayCtl.iWarpToggle;
+                    }
+
+                    lpTmpMPA = (char*)&AC3Dec_Buffer;
+                    iPkt_Len_Remain -= iPkt_2Use_Len;
+                }
+              }
+
+            }
+

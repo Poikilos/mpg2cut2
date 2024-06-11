@@ -1,0 +1,47 @@
+
+
+OLD MANUAL METHOD FOR ASSOCIATING MPG2CUT2 WITH MPEG FILES
+
+
+This can be either done manually using Windows Explorer Options
+or semi-manually using a REG file.
+
+If you don't know anything about REG files,
+use the following manual method in Windows 98 :-
+
+	- Check what Windows Explorer calls mpeg files
+	- Menu - View - Folder Options
+	- File Types
+	- Scroll down to the entry name relating to mpeg files
+	- Click on the "Edit" button
+	- Click into the retangle labelled "Actions"
+	- Click on the "New" button
+	- Create a new action called "EDIT"
+	- "Browse" button to navigate to the folder
+        where you have put the Mpg2Cut program
+      - Highlight the file named "Mpg2Cut2.exe"
+	- Click "OK"
+	- Click "OK"
+	- You may want to repeat the whole process for "VOB" files
+	- Click "OK"
+
+
+ALTERNATIVELY
+=============
+
+If you are quite familiar with REG files,
+AND you have a current BACKUP of your System Registry,
+try the following:- 
+
+Edit the supplied file MPG2CUT2.REG
+
+Change the path to match where you have installed Mpg2Cut2.EXE
+Note that back slashes must be DOUBLED within the quoted string.
+REPEAT FOR ALL OCCURENCES.
+
+Save the changes and open in Regedit.
+
+NOTE:  To avoid accidentally laumching the supplied sample REG file,
+       it has been shipped with a dummy extension of .TXT
+
+

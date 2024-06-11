@@ -1,0 +1,34 @@
+REGEDIT4
+
+[HKEY_CLASSES_ROOT\MPEGFILE\shell\Edit]
+
+[HKEY_CLASSES_ROOT\MPEGFILE\shell\Edit\command]
+@="C:\\m_Video\\MPG2Cut2.exe %1"
+
+
+
+
+[HKEY_CLASSES_ROOT\.EDL]
+@="EDLfile"
+
+[HKEY_CLASSES_ROOT\EDLfile]
+@="EDList"
+"EditFlags"=hex:00,00,00,00
+
+[HKEY_CLASSES_ROOT\EDLfile\shell]
+@="Mpg2Cut2"
+
+[HKEY_CLASSES_ROOT\EDLfile\shell\Mpg2Cut2]
+"EditFlags"=hex:01,00,00,00
+
+[HKEY_CLASSES_ROOT\EDLfile\shell\Mpg2Cut2\command]
+@="C:\\m_Video\\MPG2Cut2.exe %1"
+
+[HKEY_CLASSES_ROOT\EDLfile\shell\WordPad]
+"EditFlags"=hex:01,00,00,00
+
+[HKEY_CLASSES_ROOT\EDLfile\shell\WordPad\command]
+@="\"C:\\Program Files\\Accessories\\WORDPAD.EXE\" \"%1\""
+
+
+

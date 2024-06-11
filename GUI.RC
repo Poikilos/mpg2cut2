@@ -1,0 +1,1883 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#define APSTUDIO_HIDDEN_SYMBOLS
+#include "windows.h"
+#undef APSTUDIO_HIDDEN_SYMBOLS
+#include "resource.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_PROGRESS DIALOGEX 0, 0, 225, 52
+STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+EXSTYLE WS_EX_CLIENTEDGE
+CAPTION "Saving..."
+FONT 12, "Tahoma", 0, 0, 0x1
+BEGIN
+    LTEXT           "Clip progress",IDC_PROGRESS_TXT,4,42,178,8
+    CONTROL         "Progress1",IDC_PROGRESS_BAR,"msctls_progress32",
+                    WS_BORDER,4,35,55,6
+    PUSHBUTTON      "CANCEL",IDP_CANCEL,134,24,32,11,BS_CENTER
+    DEFPUSHBUTTON   "PAUSE",IDP_PAUSE,95,24,30,11
+    CONTROL         "Progress1",IDC_PROGRESS_BAR2,"msctls_progress32",
+                    WS_BORDER,4,16,163,6
+    LTEXT           "Overall progress",IDC_PROGRESS_TXT2,5,3,218,8
+    LTEXT           ".....",IDP_PROGRESS_ETA,4,24,88,8
+    CONTROL         "Slow",IDP_SLOW_CHK,"Button",BS_AUTORADIOBUTTON,188,20,
+                    31,8
+    CONTROL         "Medium",IDP_NORM_CHK,"Button",BS_AUTORADIOBUTTON,188,29,
+                    33,10
+    CONTROL         "Max",IDP_HIGH_CHK,"Button",BS_AUTORADIOBUTTON,188,39,29,
+                    10
+    GROUPBOX        "",IDC_STATIC,185,12,38,38
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_PROGRESS, DIALOG
+    BEGIN
+        LEFTMARGIN, 1
+        RIGHTMARGIN, 224
+        BOTTOMMARGIN, 50
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.K.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENG)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_UK
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_PREFERENCES_ALL DIALOGEX 0, 0, 272, 443
+STYLE WS_CHILD
+EXSTYLE WS_EX_STATICEDGE
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+END
+
+IDD_PREFERENCES_CHILD DIALOGEX 0, 0, 325, 306
+STYLE WS_CHILD | WS_VISIBLE
+EXSTYLE WS_EX_CLIENTEDGE
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_PREFERENCES_ALL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 265
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 436
+    END
+
+    IDD_PREFERENCES_CHILD, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 318
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 299
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.K.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (Australia) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENA)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_AUS
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUT DIALOGEX 4, 17, 214, 166
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About"
+FONT 10, "System"
+BEGIN
+    LTEXT           " MPG2Cut2     by Jakei, Symbiose, Dark Avenger, MSSG",
+                    IDC_STATIC,26,6,183,19,SS_CENTERIMAGE | NOT WS_GROUP,
+                    WS_EX_STATICEDGE
+    PUSHBUTTON      "OK",IDOK,173,146,22,15
+    ICON            IDI_MOVIE,IDC_STATIC,2,5,20,20,0,WS_EX_DLGMODALFRAME
+    LTEXT           "Plugins, etc by WeWantWideScreen, Aaron Holtzman",
+                    IDC_STATIC,8,77,189,12,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "HELP - refer to document MPG2CUT2.TXT  [F1]",IDC_STATIC,
+                    5,149,160,12,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "Ver",IDA_ABOUT_VER,5,31,17,12,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "Built YYYY-MMM-DD",IDA_BUILD,57,31,87,12,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    LTEXT           "SSE2 code by Dmitry Rozhdestvensky",IDC_STATIC,7,90,144,
+                    12,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "WAV interface  Copyright (c) 2002, John Edwards",
+                    IDC_STATIC,7,102,155,8
+    LTEXT           "Single Frame Advance by TuleBox",IDC_STATIC,7,113,147,8
+    LTEXT           "by RocketJet ",IDC_STATIC,158,31,48,12,SS_CENTERIMAGE | 
+                    NOT WS_GROUP
+    GROUPBOX        "",IDC_STATIC,4,70,201,67
+    LTEXT           "nnn mmm",IDA_WINVER,144,123,54,11,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "Windows Ver",IDC_STATIC,78,125,61,10
+    LTEXT           "path",IDA_PATH,7,49,198,12,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "a.b.c",IDA_VER_STR,27,31,23,12,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+END
+
+IDD_STATISTICS DIALOGEX 0, 0, 149, 249
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Statistics Window"
+FONT 10, "System", 0, 0, 0x1
+BEGIN
+    LTEXT           "Found",IDC_STATIC,30,198,22,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "Played",IDC_STATIC,30,207,24,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "",IDC_CODED_NUMBER,4,198,25,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    GROUPBOX        "AUDIO",IDC_STATIC,0,84,146,62
+    LTEXT           "Elapsed",IDC_STATIC,30,216,29,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "Remain",IDC_STATIC,30,225,30,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "",IDC_PLAYBACK_NUMBER,4,207,25,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_FRAME_RATE,1,11,47,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",IDC_VIDEO_STANDARD,1,20,47,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",IDC_SCAN_MODE1,56,2,43,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",IDC_ASPECT_RATIO,1,2,50,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "",IDC_REMAIN,4,225,25,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_ELAPSED,4,216,25,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_FPS_DECODED,5,186,18,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "FPS",IDC_STATIC,24,168,16,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",IDC_INFO,5,156,50,9,SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE,21,93,62,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    CTEXT           "A",IDC_STATIC,42,61,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "",IDC_AUDIO_PTS,2,61,38,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    GROUPBOX        "Decoder",IDC_STATIC,0,148,146,91,BS_LEFT
+    LTEXT           "",IDC_VOB_ID,50,20,50,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "Avg",IDC_STATIC,101,11,15,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    CONTROL         "Progress1",IDC_BITRATE_BAR,"msctls_progress32",
+                    PBS_SMOOTH,102,2,44,9
+    RTEXT           "",IDC_VID_DTS,111,61,35,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    CTEXT           "V",IDC_STATIC,41,51,10,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "",IDC_BITRATE_AVG,118,11,28,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    RTEXT           "",IDC_BITRATE_NOM,118,20,28,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    RTEXT           "Nom",IDC_STATIC,101,20,15,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "",IDC_AUDIO_DELAY,2,70,38,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    CTEXT           "-",STATS_DELAY_SIGN,42,70,8,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    CTEXT           "",STATS_AUDIO_WAV,84,93,42,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_GOP_TC,111,52,35,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "",STATS_VPTS_RES,52,52,46,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_VID_PTS,2,52,38,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_2,5,123,64,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_3,5,132,64,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_4,71,105,53,8,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_5,71,113,53,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_PS1,126,119,18,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_PS2,126,128,18,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_1,5,114,64,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_0,5,105,64,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_FORMAT_FLAG,2,93,19,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "",STATS_MPAdec_STATUS,96,156,46,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP,WS_EX_STATICEDGE
+    LTEXT           "",IDC_MPAdec_NAME,56,156,39,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    RTEXT           "",IDC_FPS_SHOWN,5,168,18,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_FPS_DROPPED,5,177,18,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "Drop",IDC_STATIC,24,177,18,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "Dec",IDC_STATIC,24,186,13,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",IDC_SUBTIT,126,110,18,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "",IDC_PS2_STATUS,65,223,77,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP,WS_EX_STATICEDGE
+    RTEXT           "",IDC_PS1_CTR,116,194,26,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_PS2_CTR,116,203,26,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_MPA_CTR,116,185,26,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_VPK_CTR,75,186,25,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",IDC_PAD_CTR,75,203,25,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    CTEXT           "Pkt/s",IDC_STATIC,72,177,28,8,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "V",IDC_STATIC,65,186,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "+",IDC_STATIC,65,203,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "A",IDC_STATIC,106,185,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "ps1",IDC_STATIC,103,194,12,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "ps2",IDC_STATIC,103,203,12,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "",IDC_SUBT_CTR,75,194,25,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "st",IDC_STATIC,65,195,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "",IDC_UNK_CTR,116,176,26,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "?",IDC_STATIC,105,175,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "",IDC_GOP_CTR,104,166,38,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "Gop",IDC_STATIC,84,166,16,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",STATS_PACK_LENS,65,214,58,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP,WS_EX_STATICEDGE
+    RTEXT           "",IDC_AC3_OFFSET,123,214,19,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_APTS_RES,52,61,20,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "G",IDC_STATIC,101,51,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_6,71,122,53,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_AUDIO_TYPE_7,71,132,53,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",IDC_SCAN_MODE2,56,11,44,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",STATS_AUDIO_FLAGS,126,93,18,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    LTEXT           "",STATS_PIC_TREF,83,78,14,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "",STATS_AUDIO_INTERLEAVE,52,70,20,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    RTEXT           "R",IDC_STATIC,73,78,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "D",IDC_STATIC,101,61,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "",STATS_TEXTURE,3,41,32,9,SS_CENTERIMAGE | NOT WS_GROUP
+    RTEXT           "",STATS_DEC_PCT,42,186,19,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    RTEXT           "",STATS_DROP_MODE,42,177,19,9,SS_CENTERIMAGE | 
+                    SS_SUNKEN | NOT WS_GROUP
+    RTEXT           "Mux",IDC_STATIC,100,30,15,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "",IDC_MUX_RATE,118,29,28,9,SS_CENTERIMAGE | SS_SUNKEN | 
+                    NOT WS_GROUP
+    LTEXT           "Timers",IDC_STATIC,37,41,28,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    LTEXT           "",IDC_CHROMA_FMT,50,29,49,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+    RTEXT           "",IDC_SCR,111,70,35,9,SS_CENTERIMAGE | SS_SUNKEN | NOT 
+                    WS_GROUP
+    RTEXT           "S",IDC_STATIC,101,70,8,9,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "",IDC_SCR_TXT,3,32,35,9,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "",IDC_OVL_MODE,42,168,19,9,SS_CENTERIMAGE | NOT 
+                    WS_GROUP
+END
+
+IDD_FILELIST DIALOGEX 0, 0, 317, 159
+STYLE DS_NOIDLEMSG | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
+CAPTION "File List"
+FONT 10, "System", 0, 0, 0x1
+BEGIN
+    LISTBOX         IDC_LIST,2,24,312,132,NOT LBS_NOTIFY | 
+                    LBS_DISABLENOSCROLL | WS_VSCROLL | WS_HSCROLL,
+                    WS_EX_LEFTSCROLLBAR
+    PUSHBUTTON      "OK",IDOK,155,2,28,15,NOT WS_TABSTOP
+    PUSHBUTTON      "-",ID_DEL,41,3,13,12,NOT WS_TABSTOP
+    PUSHBUTTON      "+",ID_ADD,4,3,13,12,NOT WS_TABSTOP
+    PUSHBUTTON      "REN",ID_NEWNAME,63,3,22,12,NOT WS_TABSTOP
+    PUSHBUTTON      "CLOSE",IDCANCEL,190,2,36,15,NOT WS_TABSTOP
+    PUSHBUTTON      "INFO",ID_INFO,118,2,23,15,NOT WS_TABSTOP
+    PUSHBUTTON      "1",ID_ONLY,91,3,14,12,NOT WS_TABSTOP
+    PUSHBUTTON      "++",ID_ADD_LIKE,22,3,14,12,NOT WS_TABSTOP
+END
+
+IDD_DELAY DIALOGEX 0, 0, 183, 26
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_POPUP | WS_CAPTION
+CAPTION "Delay Compensation"
+FONT 10, "System", 0, 0, 0x1
+BEGIN
+    RTEXT           "Input the DELAY value from filename",IDC_STATIC,6,8,120,
+                    8,NOT WS_GROUP
+    EDITTEXT        IDC_DELAY,131,6,32,13,ES_CENTER | ES_AUTOHSCROLL,
+                    WS_EX_STATICEDGE
+    LTEXT           "ms",IDC_STATIC,166,8,12,8,NOT WS_GROUP
+END
+
+IDD_ERROR DIALOGEX 0, 0, 197, 32
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Unsupported WAV Format"
+FONT 10, "System", 0, 0, 0x1
+BEGIN
+    CTEXT           "Support 16-bit 48/44.1KHz Stereo LPCM Only !",
+                    IDC_STATIC,6,7,184,16,SS_CENTERIMAGE | NOT WS_GROUP | 
+                    WS_TABSTOP,WS_EX_DLGMODALFRAME | WS_EX_CLIENTEDGE
+END
+
+IDD_LUMINANCE DIALOG DISCARDABLE  0, 65516, 250, 70
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION 
+"Luminance                                                                        Color"
+
+FONT 10, "System"
+BEGIN
+    CONTROL         "OVL",IDL_MODE_OVL,"Button",BS_AUTORADIOBUTTON | 
+                    BS_PUSHLIKE,0,0,29,10
+    CONTROL         "BMP",IDL_MODE_RGB,"Button",BS_AUTORADIOBUTTON | 
+                    BS_PUSHLIKE,32,0,29,10
+    CONTROL         "On",IDL_LUM_CHK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,4,
+                    14,18,8
+    CONTROL         "Lock",IDL_LUMLOCK_CHK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,28,14,26,8
+    PUSHBUTTON      "D",IDL_LUM_RESET,76,14,11,9
+    PUSHBUTTON      "0",IDL_LUM_ZERO,63,14,11,9
+    PUSHBUTTON      "B",IDL_LUM_BOLD,102,14,11,9
+    RTEXT           "Gamma",IDC_STATIC,4,29,23,8,NOT WS_GROUP
+    CONTROL         "Slider1",IDL_GAMMA_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS | WS_TABSTOP,27,29,83,10
+    RTEXT           "0",IDC_GAMMA,109,29,12,8,NOT WS_GROUP
+    RTEXT           "C'trast",IDC_STATIC,4,43,22,8,NOT WS_GROUP
+    CONTROL         "Slider1",IDL_CONTRAST_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS,26,43,83,10
+    RTEXT           "0",IDC_CONTRAST,109,43,12,8,NOT WS_GROUP
+    RTEXT           "Bright",IDC_STATIC,5,57,20,8,NOT WS_GROUP
+    CONTROL         "Slider1",IDL_BRIGHT_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS,26,56,83,10
+    RTEXT           "0",IDC_BRIGHT,109,57,12,8,NOT WS_GROUP
+    CONTROL         "On",IDL_SAT_CHK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,
+                    136,14,18,8
+    CONTROL         "Lock",IDC_SATLOCK_CHK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,158,14,26,8
+    PUSHBUTTON      "0",IDL_SAT_ZERO,190,14,11,9
+    PUSHBUTTON      "D",IDL_SAT_RESET,205,14,11,9
+    PUSHBUTTON      "B",IDL_SAT_BOLD,220,14,11,9
+    RTEXT           "Sat",IDC_STATIC,134,30,12,8,NOT WS_GROUP
+    CONTROL         "Slider1",IDC_SAT_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS,148,29,83,10
+    RTEXT           "0",IDC_SAT_GAIN,233,30,14,8,NOT WS_GROUP
+    RTEXT           "Red",IDC_STATIC,132,58,13,8,NOT WS_GROUP
+    CONTROL         "Slider1",IDC_RED_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS,147,57,83,10
+    RTEXT           "0",IDC_RED_OFFSET,233,58,13,8,NOT WS_GROUP
+    CONTROL         "Slider1",IDC_BLUE_SLIDER,"msctls_trackbar32",
+                    TBS_AUTOTICKS,147,43,83,10
+    RTEXT           "0",IDC_BLUE_OFFSET,233,44,13,8,NOT WS_GROUP
+    RTEXT           "Blue",IDC_STATIC,131,44,15,8,NOT WS_GROUP
+    CONTROL         "VHS",LUM_SAT_VHS_CHK,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,158,4,26,8
+    PUSHBUTTON      "C",IDL_LUM_C,89,14,11,9
+END
+
+IDD_NEWNAME_DIALOG DIALOG DISCARDABLE  0, 0, 256, 136
+STYLE WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | 
+    WS_THICKFRAME
+CAPTION "Newname"
+FONT 10, "MS Sans Serif"
+BEGIN
+    EDITTEXT        IDC_NEWNAME,41,50,212,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "OK",IDOK,70,115,46,14
+    PUSHBUTTON      "Cancel",IDCANCEL,163,115,42,14
+    EDITTEXT        IDC_CREATED,65,71,94,14,ES_AUTOHSCROLL | WS_DISABLED
+    RTEXT           "File Date:",IDC_ATTR_NAME_2,3,74,58,8,WS_DISABLED
+    EDITTEXT        IDC_NEWFOLDER,41,32,212,14,ES_AUTOHSCROLL
+    RTEXT           "Folder:",IDC_STATIC,4,35,30,8
+    RTEXT           "File:",IDC_STATIC,4,51,30,8
+    RTEXT           "Drive:",IDC_STATIC,15,18,19,8
+    EDITTEXT        IDC_DRIVE,42,15,32,14,ES_AUTOHSCROLL | WS_DISABLED | NOT 
+                    WS_TABSTOP
+    EDITTEXT        IDC_RESULT,3,91,247,14,ES_AUTOHSCROLL | WS_DISABLED | 
+                    NOT WS_BORDER
+END
+
+IDD_POSTPROC DIALOG DISCARDABLE  0, 0, 302, 174
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Post Processing Command"
+FONT 10, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,178,153,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,255,153,39,14
+    LTEXT           "Qualifiers :-",IDC_STATIC,7,36,46,8
+    EDITTEXT        IDC_PROC_LINE_A,7,15,287,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_PROC_LINE_B,23,47,271,14,ES_AUTOHSCROLL
+    CONTROL         "Enable",IDC_PROC_ENABLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,2,35,10
+    CONTROL         """ Quotes around file name """,IDC_QUOTES,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,60,3,100,10
+    EDITTEXT        IDC_POST_LINE,7,94,287,56,ES_MULTILINE | ES_AUTOVSCROLL | 
+                    ES_READONLY | NOT WS_BORDER | NOT WS_TABSTOP
+    LTEXT           "Sample command line :-",IDC_STATIC,8,79,90,8
+    CONTROL         "Show command before execution",IDC_PROC_SHOW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,177,3,117,10
+END
+
+IDD_EXIT_CTL DIALOG DISCARDABLE  0, 0, 232, 137
+STYLE DS_MODALFRAME | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Plug-In Menu"
+FONT 10, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,110,116,40,14
+    PUSHBUTTON      "Cancel",IDCANCEL,175,116,39,14
+    RTEXT           "RENAME :",IDC_STATIC,3,24,37,8
+    EDITTEXT        IDX_RENAME_NAME,114,22,110,14,ES_AUTOHSCROLL
+    CONTROL         "",IDX_RENAME_ENABLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,23,8,10
+    EDITTEXT        IDX_RENAME_MODE,73,22,23,14,ES_UPPERCASE | 
+                    ES_AUTOHSCROLL
+    RTEXT           "Function",IDC_STATIC,2,7,35,8
+    RTEXT           "Enable",IDC_STATIC,45,7,21,8
+    CTEXT           "Mode",IDC_STATIC,74,7,20,8
+    LTEXT           "DLL Name",IDC_STATIC,115,7,82,8
+    EDITTEXT        IDX_MSG,7,95,217,14,ES_AUTOHSCROLL | ES_READONLY | NOT 
+                    WS_BORDER | NOT WS_TABSTOP
+    RTEXT           "FILE LIST :",IDC_STATIC,7,48,30,8
+    CONTROL         "",IDX_FILELIST_ENABLE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,50,48,8,10
+    EDITTEXT        IDX_FILELIST_MODE,72,46,24,14,ES_UPPERCASE | 
+                    ES_AUTOHSCROLL
+    EDITTEXT        IDX_FILELIST_NAME,113,45,111,14,ES_AUTOHSCROLL
+    RTEXT           ".\\  = Same folder as Mpg2Cut2",IDC_STATIC,106,69,118,8
+END
+
+IDD_VGA_INFO DIALOG DISCARDABLE  0, 0, 196, 144
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "VGA INFO"
+FONT 8, "MS Sans Serif"
+BEGIN
+    RTEXT           "Resolution",IDC_STATIC,5,9,36,8
+    EDITTEXT        IDV_VGA_SIZE,46,7,40,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDV_OVL_FOURCC,28,63,40,14,ES_AUTOHSCROLL | ES_READONLY
+    CTEXT           "4CC",IDC_STATIC,73,64,26,8
+    EDITTEXT        IDV_CAP_OVERLAY,8,44,40,14,ES_AUTOHSCROLL | ES_READONLY
+    CTEXT           "OVERLAY Capabilities",IDC_STATIC,7,34,71,8
+    EDITTEXT        IDV_CAP_OVLY_STRETCH,28,77,40,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    CTEXT           "Stretch",IDC_STATIC,71,80,29,8
+    LTEXT           "BIT Capabilities",IDC_STATIC,105,47,61,8
+    EDITTEXT        IDV_VGA_SIZE2,132,6,57,14,ES_AUTOHSCROLL | ES_READONLY
+    RTEXT           "Memory",IDC_STATIC,97,8,31,8
+    EDITTEXT        IDV_CAP_BLT_STRETCH,104,77,40,14,ES_AUTOHSCROLL | 
+                    ES_READONLY
+    EDITTEXT        IDV_BLT_FOURCC,104,63,40,14,ES_AUTOHSCROLL | ES_READONLY
+END
+
+IDD_PREFERENCES DIALOG DISCARDABLE  0, 0, 368, 231
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Preferences"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDC_OK,255,210,50,14
+    PUSHBUTTON      "Cancel",IDC_CANCEL,311,210,50,14
+    CONTROL         "Save settings",IDC_CHK_SAVE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,120,214,76,10
+    CONTROL         "Tab1",IDC_TAB1,"SysTabControl32",TCS_BUTTONS,7,7,337,
+                    189
+    SCROLLBAR       IDC_SCROLLBAR1,350,24,11,170,SBS_VERT
+END
+
+IDD_PREFERENCES_BMP DIALOG DISCARDABLE  0, 0, 283, 86
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Same as input",IDC_RDO_SAME,"Button",BS_AUTORADIOBUTTON,
+                    9,25,115,9
+    CONTROL         "Nearest Neighbour (Quick, rough)",IDC_RDO_NEAREST,
+                    "Button",BS_AUTORADIOBUTTON,9,40,133,9
+    CONTROL         "Bicubic (Slow, High quality)",IDC_RDO_BICUBIC,"Button",
+                    BS_AUTORADIOBUTTON,9,55,133,9
+END
+
+IDD_PREFERENCES_OUTPUT DIALOG DISCARDABLE  0, 0, 283, 182
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    LTEXT           "Folder",IDC_STATIC,7,7,55,15
+    EDITTEXT        IDC_EDT_FOLDER,74,7,144,13,ES_AUTOHSCROLL
+    CONTROL         "Audio Matching",IDC_CHK_AUDIOMATCHING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,30,80,9
+    CONTROL         "Broken Link Flag",IDC_CHK_BROKENLINKFLAG,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,43,72,9
+    CONTROL         "Parse All Packets",IDC_CHK_PARSEALLPACKETS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,56,77,9
+    CONTROL         "Deep Parsing",IDC_CHK_DEEPPARSING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,69,80,9
+    CONTROL         "Align VIDEO End Packets",IDC_CHK_ALIGNVIDEOENDPACKETS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,82,118,9
+    CONTROL         "Align AUDIO Start Packets",
+                    IDC_CHK_ALIGNAUDIOSTARTPACKETS,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,7,95,116,9
+    PUSHBUTTON      "All",IDC_BTN_ALL,7,113,52,13
+    PUSHBUTTON      "None",IDC_BTN_NONE,66,113,52,13
+    CONTROL         "Adjust Time Stamps",IDC_CHK_ADJUSTTIMESTAMPS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,137,93,10
+    PUSHBUTTON      "...",IDC_BTN_FOLDER,223,7,17,13
+END
+
+IDD_PREFERENCES_ZEXP DIALOG DISCARDABLE  0, 0, 215, 89
+STYLE WS_CHILD
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Sequence END code",IDC_CHK_SEQEND,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,17,102,8
+    CONTROL         "Australian Ch7 Fix",IDC_CHK_AUSCH7FIX,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,32,102,8
+    CONTROL         "Bypass Cache",IDC_CHK_BYPASSCACHE,"Button",
+                    BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,7,47,102,8
+    CONTROL         "Create GOP PTS",IDC_CHK_CREATEGOPPTS,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,7,62,102,8
+END
+
+IDD_UNMUX DIALOG DISCARDABLE  120, 66, 104, 154
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Unmux Options"
+FONT 10, "System"
+BEGIN
+    CONTROL         "ALL Streams",IDU_UNMUX_ALL,"Button",BS_AUTORADIOBUTTON,
+                    24,16,50,10
+    CONTROL         "Audio Only",IDU_UNMUX_AUDIO_ONLY,"Button",
+                    BS_AUTORADIOBUTTON,24,27,50,10
+    GROUPBOX        "Extract",IDC_STATIC,2,6,100,48
+    DEFPUSHBUTTON   "OK",IDOK,9,137,27,14
+    PUSHBUTTON      "CANCEL",IDCANCEL,52,137,38,14
+    CONTROL         "Selective AUDIO",IDU_UNMUX_SELECTIVE_AUDIO_ONLY,"Button",
+                    BS_AUTORADIOBUTTON | WS_DISABLED,24,39,62,10
+    GROUPBOX        "Output Format",IDC_STATIC,2,62,100,47
+    CONTROL         "Normal - Raw",IDU_UNMUX_FMT_RAW,"Button",
+                    BS_AUTORADIOBUTTON,22,73,63,10
+    CONTROL         "Mpeg PES",IDU_UNMUX_FMT_PES,"Button",BS_AUTORADIOBUTTON,
+                    22,84,63,10
+    CONTROL         "Riff",IDU_UNMUX_FMT_RIFF,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,22,96,63,10
+    LTEXT           "EXPERIMENTAL",IDC_STATIC,10,125,85,8
+END
+
+IDD_FILEVIEW DIALOG DISCARDABLE  0, 0, 317, 159
+STYLE DS_NOIDLEMSG | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU | WS_THICKFRAME
+CAPTION "File List"
+FONT 10, "System"
+BEGIN
+    PUSHBUTTON      "OK",IDOK,158,2,28,15,NOT WS_TABSTOP
+    PUSHBUTTON      "-",ID_DEL,42,3,14,12,NOT WS_TABSTOP
+    PUSHBUTTON      "+",ID_ADD,4,3,13,12,NOT WS_TABSTOP
+    PUSHBUTTON      "REN",ID_NEWNAME,66,3,22,12,NOT WS_TABSTOP
+    PUSHBUTTON      "CLOSE",IDCANCEL,192,2,36,15,NOT WS_TABSTOP
+    PUSHBUTTON      "INFO",ID_INFO,122,2,23,15,WS_DISABLED | NOT WS_TABSTOP
+    PUSHBUTTON      "1",ID_ONLY,97,3,14,12,NOT WS_TABSTOP
+    CONTROL         "List1",IDC_VIEW1,"SysListView32",LVS_REPORT | WS_BORDER | 
+                    WS_TABSTOP,2,22,312,130
+    PUSHBUTTON      "++",ID_ADD_LIKE,22,3,14,12,NOT WS_TABSTOP
+END
+
+IDD_TRACKSEL DIALOG DISCARDABLE  0, 0, 210, 168
+STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Options"
+FONT 10, "System"
+BEGIN
+    GROUPBOX        "Audio Tracks",IDC_STATIC,2,55,70,104
+    DEFPUSHBUTTON   "OK",IDOK,168,11,27,14
+    PUSHBUTTON      "CANCEL",IDCANCEL,164,35,38,14
+    CONTROL         "",TRKS_MPG_0,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,82,8,10
+    CONTROL         "",TRKS_MPG_1,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,91,8,10
+    CONTROL         "",TRKS_MPG_2,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,100,8,10
+    CONTROL         "",TRKS_MPG_3,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,109,8,10
+    CONTROL         "",TRKS_MPG_4,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,118,8,10
+    CONTROL         "",TRKS_MPG_5,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,129,8,8
+    CONTROL         "",TRKS_MPG_6,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,138,8,8
+    CONTROL         "",TRKS_MPG_7,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_TABSTOP,8,147,8,8
+    CONTROL         "1 - xx",TRKS_SUB_0,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,80,51,10
+    GROUPBOX        "Subtitles",IDC_STATIC,78,55,70,104
+    CONTROL         "2 - xx",TRKS_SUB_1,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,90,50,10
+    CONTROL         "3 - xx",TRKS_SUB_2,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,100,50,10
+    CONTROL         "4 - xx",TRKS_SUB_3,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,110,51,10
+    CONTROL         "5 - xx",TRKS_SUB_4,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,119,51,10
+    CONTROL         "6 - xx",TRKS_SUB_5,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,128,49,10
+    CONTROL         "7 - xx",TRKS_SUB_6,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,138,49,10
+    CONTROL         "8 - xx",TRKS_SUB_7,"Button",BS_AUTOCHECKBOX | BS_BOTTOM | 
+                    WS_DISABLED | WS_TABSTOP,82,147,50,10
+    PUSHBUTTON      "ALL",TRKS_MPA_ALL,9,66,18,12,WS_DISABLED
+    PUSHBUTTON      "NONE",TRKS_MPA_NONE,43,66,22,12,WS_DISABLED
+    PUSHBUTTON      "ALL",TRKS_SUB_ALL,82,65,18,12,WS_DISABLED
+    PUSHBUTTON      "NONE",TRKS_SUB_NONE,121,65,22,12,WS_DISABLED
+    GROUPBOX        "Copy",IDC_STATIC,3,3,69,50
+    CONTROL         "ALL Streams",IDU_UNMUX_ALL,"Button",BS_AUTORADIOBUTTON,
+                    7,14,50,10
+    CONTROL         "Audio Only",IDU_UNMUX_AUDIO_ONLY,"Button",
+                    BS_AUTORADIOBUTTON | WS_DISABLED,7,29,50,10
+    CONTROL         "Selective AUDIO",IDU_UNMUX_SELECTIVE_AUDIO_ONLY,"Button",
+                    BS_AUTORADIOBUTTON,7,39,62,10
+    GROUPBOX        "Split",IDC_STATIC,79,3,69,50
+    CONTROL         "NO",PARTS_SPLIT_NONE,"Button",BS_AUTORADIOBUTTON,84,13,
+                    28,10
+    CONTROL         "4GB",PARTS_SPLIT_4GB,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,84,25,25,10
+    CONTROL         "2GB",PARTS_SPLIT_2GB,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,84,33,24,10
+    CONTROL         "1GB",PARTS_SPLIT_1GB,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,84,41,24,10
+    CONTROL         "700MB",PARTS_SPLIT_700MB,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,114,25,33,10
+    CONTROL         "100MB",PARTS_SPLIT_100MB,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,114,33,30,10
+    CONTROL         "  50MB",PARTS_SPLIT_50MB,"Button",BS_AUTORADIOBUTTON | 
+                    WS_DISABLED,114,41,30,10
+    CONTROL         "@Clip",PARTS_SPLIT_CLIPS,"Button",BS_AUTORADIOBUTTON,
+                    114,13,30,10
+    LTEXT           "1",TRK_TXT_0,16,83,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "2",TRK_TXT_1,16,92,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "3",TRK_TXT_2,16,100,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "4",TRK_TXT_3,16,110,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "5",TRK_TXT_4,16,118,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "6",TRK_TXT_5,16,128,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "7",TRK_TXT_6,16,137,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+    LTEXT           "8",TRK_TXT_7,16,146,50,8,SS_CENTERIMAGE | NOT WS_GROUP
+END
+
+IDD_WARNING DIALOG DISCARDABLE  0, 0, 228, 119
+STYLE DS_MODALFRAME | DS_SETFOREGROUND | DS_CENTER | WS_MINIMIZEBOX | 
+    WS_POPUP | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_CAPTION | 
+    WS_SYSMENU
+CAPTION "Mpg2Cut2 - Warning"
+FONT 10, "System"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,38,92,27,14
+    PUSHBUTTON      "CANCEL",IDCANCEL,135,91,38,14
+    CONTROL         "Do NOT pop up this warning again",WARN_NEVER,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,8,74,125,10
+    LTEXT           "Warning",WARN_TEXT3,8,11,185,48
+    PUSHBUTTON      "NO",IDNO,87,92,27,14,NOT WS_VISIBLE | WS_DISABLED
+END
+
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 114, 29
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Volume"
+FONT 8, "MS Sans Serif"
+BEGIN
+    CONTROL         "Slider1",IDC_VOL_SLIDER,"msctls_trackbar32",TBS_BOTH | 
+                    TBS_NOTICKS | WS_TABSTOP,7,7,100,15
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_ABOUT, DIALOG
+    BEGIN
+        RIGHTMARGIN, 211
+        BOTTOMMARGIN, 161
+    END
+
+    IDD_STATISTICS, DIALOG
+    BEGIN
+        RIGHTMARGIN, 146
+        BOTTOMMARGIN, 242
+    END
+
+    IDD_FILELIST, DIALOG
+    BEGIN
+        RIGHTMARGIN, 314
+        VERTGUIDE, 2
+        BOTTOMMARGIN, 152
+        HORZGUIDE, 157
+    END
+
+    IDD_ERROR, DIALOG
+    BEGIN
+        RIGHTMARGIN, 183
+        BOTTOMMARGIN, 31
+    END
+
+    IDD_LUMINANCE, DIALOG
+    BEGIN
+        RIGHTMARGIN, 249
+        BOTTOMMARGIN, 68
+    END
+
+    IDD_NEWNAME_DIALOG, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 252
+        VERTGUIDE, 3
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 129
+    END
+
+    IDD_POSTPROC, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 294
+        TOPMARGIN, 1
+        BOTTOMMARGIN, 167
+    END
+
+    IDD_EXIT_CTL, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 224
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 130
+    END
+
+    IDD_VGA_INFO, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 189
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 137
+    END
+
+    IDD_PREFERENCES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 361
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 224
+    END
+
+    IDD_PREFERENCES_BMP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 276
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 79
+    END
+
+    IDD_PREFERENCES_OUTPUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 276
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 175
+    END
+
+    IDD_PREFERENCES_ZEXP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 208
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 82
+    END
+
+    IDD_UNMUX, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 102
+        BOTTOMMARGIN, 151
+    END
+
+    IDD_FILEVIEW, DIALOG
+    BEGIN
+        RIGHTMARGIN, 314
+        VERTGUIDE, 2
+        BOTTOMMARGIN, 152
+        HORZGUIDE, 157
+    END
+
+    IDD_TRACKSEL, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 208
+        BOTTOMMARGIN, 165
+    END
+
+    IDD_WARNING, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+    END
+
+    IDD_VOLUME, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 107
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 22
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MOVIE               ICON    DISCARDABLE     "movie.ico"
+IDI_SNAP                ICON    DISCARDABLE     "snap.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDC_GUI MENU DISCARDABLE 
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&Open\t[F3]  [Ctrl+O]",       IDM_OPEN
+        MENUITEM "App&end File\t[Alt+O]",       IDM_APPEND
+        MENUITEM "Append &Like\t[Shift+O]",     IDM_FILE_FILTER
+        MENUITEM "Append &More Like\t[Alt+Shift-O]", IDM_FILE_MORE
+        MENUITEM "Garbage In",                  IDM_FILE_GARBAGE
+        MENUITEM SEPARATOR
+        MENUITEM "&Rename\t[F2] ",              IDM_FILE_NEWNAME
+        MENUITEM "&Names\t[Shift+F3]",          IDM_FILE_NAMES
+        MENUITEM "Sort by File Date",           IDM_SORT_DATE
+        MENUITEM "Sort by Mpeg Time",           IDM_SORT_SCR
+        MENUITEM "Sort by Names",               IDM_SORT_NAME
+        MENUITEM SEPARATOR
+        MENUITEM "Save &All clips\t[F4]  [Ctrl+S]", IDM_SAVE
+        MENUITEM "Save &Parts\t[Shift-F4]",     IDM_SAVE_PARTIAL
+        MENUITEM "Save &This clip\t[Ctrl+T]",   IDM_SAVE_THIS
+        MENUITEM "Save &Selection LIST",        IDM_CLIP_SAVE
+        MENUITEM "&Unmux All clips - Experimental", IDM_SAVE_UNMUX
+        MENUITEM SEPARATOR
+        MENUITEM "&Close All",                  IDM_FILE_CLOSE
+        MENUITEM "Clos&e Current File",         IDM_FILE_CLOSE_CURR
+        MENUITEM "Close Ot&her files",          IDM_FILE_CLOSE_OTHERS
+        MENUITEM SEPARATOR
+        MENUITEM "File &Delete",                IDM_FILE_DELETE
+        MENUITEM SEPARATOR
+        MENUITEM "&BMP snapshot\t[B]",          IDM_BMP_ASIS
+        MENUITEM "E&xit\t[Alt+F4]",             IDM_EXIT
+    END
+    POPUP "&Edit"
+    BEGIN
+        MENUITEM "Mark From\t(  [  )",          IDM_CLIP_FROM
+        MENUITEM "Mark To\t(  ]  )",            IDM_CLIP_TO
+        MENUITEM "Split Selection\t( | )",      IDM_CLIP_SPLIT
+        MENUITEM "Add Clip\t( + )",             IDM_CLIP_ADD
+        POPUP "Auto-Add"
+        BEGIN
+            MENUITEM "Auto",                        IDM_ADD_AUTO
+            MENUITEM "Remind",                      IDM_ADD_REMIND
+            MENUITEM "OFF",                         IDM_ADD_OFF
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Remove last clip",            IDM_CLIP_DEL
+        MENUITEM "Clear ALL clips",             IDM_CLIP_CLEAR
+        MENUITEM "Undo",                        IDM_UNDO
+        MENUITEM SEPARATOR
+        MENUITEM "Select All",                  IDM_SEL_ALL
+        MENUITEM SEPARATOR
+        MENUITEM "Save LIST",                   IDM_CLIP_SAVE
+        MENUITEM "Load LIST",                   IDM_CLIP_LOAD
+        MENUITEM "Append List",                 IDM_CLIP_APPEND
+        MENUITEM "Auto Save",                   IDM_EDIT_AUTOSAVE
+        MENUITEM SEPARATOR
+        MENUITEM "Export",                      IDM_CLIP_EXPORT
+        MENUITEM "Import",                      IDM_CLIP_IMPORT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Luminance Adjust\t[L]",      IDM_LUMINANCE
+        MENUITEM "De-interlace",                IDM_DEINT_CURR
+        POPUP "Aspect Ratio"
+        BEGIN
+            MENUITEM SEPARATOR
+            POPUP "Mpeg-1 Options"
+            BEGIN
+                MENUITEM "Infer Aspect Ratio",          IDM_ASP_MPEG1_GUESS
+                MENUITEM "Mpeg-1 always 4:3",           IDM_ASP_MPEG1_FORCE
+                MENUITEM "Standard",                    IDM_ASP_MPEG1_STD
+            END
+            MENUITEM "16:10 monitor on 4:3 card",   IDM_ASPECT_MISMATCH
+            MENUITEM SEPARATOR
+            MENUITEM "Aspect  - Retain Setting",    IDM_ASPECT_RETAIN
+            MENUITEM SEPARATOR
+            MENUITEM "Aspect  STANDARD",            IDM_ASPECT_STD
+            MENUITEM "Aspect  OFF",                 IDM_ASPECT_OFF
+            MENUITEM SEPARATOR
+            MENUITEM "1.06  -  Cropped ",           IDM_ASPECT_NARROW
+            MENUITEM "1.19  -   MovieTone Talkie",  IDM_ASPECT_119
+            MENUITEM "1.33  -  * TV    4:3",        IDM_ASPECT_TV
+            MENUITEM SEPARATOR
+            MENUITEM "1.37  -   Academy 1932;   Std-16mm", IDM_ASPECT_132
+            MENUITEM "1.50   -  Some Satellite feeds", IDM_ASPECT_150
+            MENUITEM "1.67  -  Euro WS;  Super-16mm;  Hi-Vision", 
+                                                    IDM_ASPECT_167
+            MENUITEM "1.77  -  * DTV Widescreen 16:9", IDM_ASPECT_WIDE
+            MENUITEM SEPARATOR
+            MENUITEM "1.85  -   U.S. Cinema WideScreen", IDM_ASPECT_185
+            MENUITEM "2.21  -  * 70mm ",            IDM_ASPECT_70mm
+            MENUITEM "2.35 -  CinemaScope - Original", IDM_ASPECT_235
+            MENUITEM "2.39  -  * CinemaScope - MODERN", IDM_ASPECT_239
+            MENUITEM "2.55  -  CinemaScope 55 - Camera Neg", IDM_ASPECT_255
+            MENUITEM "2.59  -  Cinerama ",          IDM_ASPECT_259
+            MENUITEM "2.76  -  MGM Camera 65",      IDM_ASPECT_276
+            MENUITEM "4.00  -  PolyVision",         IDM_ASPECT_400
+        END
+        POPUP "Cropping, etc"
+        BEGIN
+            MENUITEM "Crop Top and Bot Edges",      IDM_CROP_TOP
+            MENUITEM "Centre Crop When Maximized",  IDM_VIEW_CTR_MAX
+            MENUITEM "Centre Crop",                 IDM_VIEW_CTR
+            MENUITEM SEPARATOR
+            POPUP "Auto-Deinterlace"
+            BEGIN
+                MENUITEM "PAL Vob",                     IDM_DEINT_VOB
+                MENUITEM "Other Types",                 IDM_DEINT_AUTO
+                MENUITEM SEPARATOR
+            END
+            MENUITEM "Zoom In - Experimental",      IDM_ZOOM_IN
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "Zoom OFF",                    IDM_ZOOM_OFF
+        MENUITEM "Zoom Compact",                IDM_ZOOM_COMPACT
+        MENUITEM "Zoom / 2",                    IDM_ZOOM_HALF
+        MENUITEM "Zoom / 3",                    IDM_ZOOM_THIRD
+        MENUITEM SEPARATOR
+        MENUITEM "Zoom - AUTO",                 IDM_ZOOM_AUTO
+        MENUITEM "Zoom - Retain Setting",       IDM_ZOOM_RETAIN
+        MENUITEM SEPARATOR
+        POPUP "Subtitles", GRAYED
+        BEGIN
+            MENUITEM "None",                        IDM_SUBTIT_NONE
+            MENUITEM "1",                           IDM_SUBTIT_1
+            MENUITEM "2",                           IDM_SUBTIT_2
+            MENUITEM "3",                           IDM_SUBTIT_3
+            MENUITEM "4",                           IDM_SUBTIT_4
+            MENUITEM "5",                           IDM_SUBTIT_5
+            MENUITEM "6",                           IDM_SUBTIT_6
+            MENUITEM "7",                           IDM_SUBTIT_7
+            MENUITEM "8",                           IDM_SUBTIT_8
+        END
+        POPUP "PID"
+        BEGIN
+            MENUITEM "Auto",                        IDM_PID_AUTO, CHECKED
+            MENUITEM "1",                           IDM_PID_1
+            MENUITEM "2",                           IDM_PID_2
+            MENUITEM "3",                           IDM_PID_3
+            MENUITEM "4",                           IDM_PID_4
+            MENUITEM "5",                           IDM_PID_5
+            MENUITEM "6",                           IDM_PID_6
+            MENUITEM "7",                           IDM_PID_7
+            MENUITEM "8",                           IDM_PID_8
+            MENUITEM "9",                           IDM_PID_9
+            MENUITEM "10",                          IDM_PID_10
+            MENUITEM "11",                          IDM_PID_11
+            MENUITEM "12",                          IDM_PID_12
+            MENUITEM "13",                          IDM_PID_13
+            MENUITEM "14",                          IDM_PID_14
+            MENUITEM "15",                          IDM_PID_15
+            MENUITEM "16",                          IDM_PID_16
+            MENUITEM "All",                         IDM_PID_ALL
+        END
+        POPUP "Stream"
+        BEGIN
+            MENUITEM "Auto",                        IDM_VIDTRK_AUTO, CHECKED
+            MENUITEM "1 = E0",                      IDM_VIDTRK_1
+            MENUITEM "2",                           IDM_VIDTRK_2
+            MENUITEM "3",                           IDM_VIDTRK_3
+            MENUITEM "4",                           IDM_VIDTRK_4
+            MENUITEM "5",                           IDM_VIDTRK_5
+            MENUITEM "6",                           IDM_VIDTRK_6
+            MENUITEM "7",                           IDM_VIDTRK_7
+            MENUITEM "8",                           IDM_VIDTRK_8
+            MENUITEM "9",                           IDM_VIDTRK_9
+            MENUITEM "10",                          IDM_VIDTRK_10
+            MENUITEM "11",                          IDM_VIDTRK_11
+            MENUITEM "12",                          IDM_VIDTRK_12
+            MENUITEM "13",                          IDM_VIDTRK_13
+            MENUITEM "14",                          IDM_VIDTRK_14
+            MENUITEM "15",                          IDM_VIDTRK_15
+            MENUITEM "16",                          IDM_VIDTRK_16
+            MENUITEM "All",                         IDM_VIDTRK_ALL
+        END
+        MENUITEM "Multi-Angle",                 IDM_MULTI_ANGLE
+        MENUITEM SEPARATOR
+        MENUITEM "RGB\t24-bit",                 IDM_STORE_RGB24
+        MENUITEM "OVL (Fast Overlay)\t4:2:2 ",  IDM_STORE_YUY2
+        MENUITEM "Never Use Overlay",           IDM_RGB_ALWAYS
+        POPUP "Technical"
+        BEGIN
+            MENUITEM "Limit Size to 2048",          IDM_VIEW_HUGE
+            MENUITEM SEPARATOR
+            MENUITEM "DirectDraw Overlay OK",       IDM_DIRECTDRAW
+            MENUITEM "Auto-Release Overlay",        IDM_OVL_RELEASE
+            POPUP "Driver conflicts"
+            BEGIN
+                MENUITEM "ATI sloping",                 IDM_OVL_SIGNAL_ATI
+                MENUITEM "Leadtek OVL Key",             IDM_OVL_MASK_LEADTEK
+            END
+            MENUITEM SEPARATOR
+            POPUP "Decoder"
+            BEGIN
+                MENUITEM "Fast YUV 4:2:0 Decode",       IDM_YUV_FAST
+                MENUITEM "Fast RGB4:2:0 Decode - Experimental", IDM_RGB_FAST
+                MENUITEM "YV12 Experimental",           IDM_YV12
+                MENUITEM SEPARATOR
+                POPUP "PC / TV "
+                BEGIN
+                    MENUITEM "PC Range [000 - 255]",        IDM_PCSCALE
+                    MENUITEM "TV Range [016 - 235] CCIR",   IDM_TVSCALE
+                END
+                POPUP "Field Correction"
+                BEGIN
+                    MENUITEM "None",                        IDM_FO_NONE
+                    MENUITEM "Forced FILM",                 IDM_FO_FILM
+                    MENUITEM "Swap Field Order",            IDM_FO_SWAP
+                    MENUITEM SEPARATOR
+                    MENUITEM "Experimental",                IDM_FIELD_EXPERIMENT
+
+                END
+                MENUITEM SEPARATOR
+                POPUP "SIMD Technology"
+                BEGIN
+                    MENUITEM "MMX",                         IDM_MMX
+                    MENUITEM "SSE FPU",                     IDM_SSEFPU
+                    MENUITEM "SSE MMX",                     IDM_SSEMMX
+                    MENUITEM "SSE 2",                       IDM_SSE2
+                    MENUITEM SEPARATOR
+                    MENUITEM "3D Now!",                     IDM_3DNOW
+                END
+                POPUP "iDCT Algorithm"
+                BEGIN
+                    MENUITEM "32-bit MMX",                  IDM_IDCT_MMX
+                    MENUITEM "32-bit SSE MMX",              IDM_IDCT_SSEMMX
+                    MENUITEM "64-bit SSE 2",                IDM_IDCT_SSE2
+                    MENUITEM "64-bit Floating Point",       IDM_IDCT_FPU
+                    MENUITEM "3d Now!",                     IDM_IDCT_3DNOW
+                    , GRAYED
+                    MENUITEM SEPARATOR
+                    MENUITEM "IEEE-1180 Reference",         IDM_IDCT_REF
+                END
+                MENUITEM SEPARATOR
+                MENUITEM "Error Hilite",                IDM_ERR_ANL
+            END
+            MENUITEM SEPARATOR
+            POPUP "Experimental"
+            BEGIN
+                POPUP "Overlay Notification"
+                BEGIN
+                    MENUITEM "Default Notification",        IDM_OVL_NOTIFY_DEF
+
+                    MENUITEM "Notify FrameChange",          IDM_OVL_NOTIFY_FRAMECHG
+
+                    MENUITEM "Notify UpdateWindow",         IDM_OVL_NOTIFY_UPDWINDOW
+
+                    MENUITEM "Notify GUI",                  IDM_OVL_SIGNAL_GUI
+
+                    MENUITEM SEPARATOR
+                END
+                MENUITEM "OVL Transparency",            IDM_OVL_FULLKEY
+                MENUITEM "DWORD to Overlay",            IDM_OVL_DWORD
+            END
+            MENUITEM "Display Video",               IDM_DISPLAY, CHECKED
+        END
+        MENUITEM SEPARATOR
+        POPUP "Special FX"
+        BEGIN
+            MENUITEM "Negative\t[Shift-N]",         IDM_VIEW_NEGATIVE
+            MENUITEM "Swap UV\t[Shift-U]",          IDM_YUV_SWAP
+            MENUITEM "&Invert\t[Shift-I]",          IDM_VIEW_INVERT
+            POPUP "VHS Convergence"
+            BEGIN
+                MENUITEM "Red Horizontal",              IDM_VIEW_CONVERGE_RED_H
+
+                MENUITEM "Red Vertical",                IDM_VIEW_CONVERGE_RED_V
+
+                MENUITEM "Red BOTH",                    IDM_VIEW_CONVERGE_RED_BOTH
+
+                MENUITEM SEPARATOR
+                MENUITEM "Blue Horizontal",             IDM_VIEW_CONVERGE_BLUE_H
+
+                MENUITEM "Blue Vertical",               IDM_VIEW_CONVERGE_BLUE_V
+
+                MENUITEM "Blue BOTH",                   IDM_VIEW_CONVERGE_BLUE_BOTH
+
+                MENUITEM SEPARATOR
+                MENUITEM "ALL",                         IDM_VIEW_CONVERGE_ALL
+
+                MENUITEM "NONE",                        IDM_VIEW_CONVERGE_NONE
+
+            END
+        END
+    END
+    POPUP "&Preview"
+    BEGIN
+        MENUITEM "Play from here\t[F5]",        IDM_PLAY_HERE
+        MENUITEM SEPARATOR
+        MENUITEM "Preview Selection\t[F8]",     IDM_PREVIEW
+        MENUITEM "Preview End Selection\t[Alt-F8]", IDM_PREVIEW_LAST
+        MENUITEM "Preview All Clips\t[Shift-F8]", IDM_PLAY_CLIPS
+        MENUITEM "Summary Mode",                IDM_PREVIEW_SUMMARY
+        MENUITEM SEPARATOR
+        MENUITEM "Slower\t[F9]",                IDM_PLAY_SLOWER
+        MENUITEM "Slow-1\t[s]",                 IDM_PLAY_SLOW_1
+        MENUITEM "Slow-4\t[Shift-S]",           IDM_PLAY_SLOW_2A
+        MENUITEM SEPARATOR
+        MENUITEM "Faster\t[Shift-F9]",          IDM_PLAY_FASTER
+        MENUITEM "Fast-1\t[f]",                 IDM_PLAY_FAST_1
+        MENUITEM "Fast-2\t[Shift-F]",           IDM_PLAY_FAST_2
+        MENUITEM SEPARATOR
+        MENUITEM "Pause\t[Space]",              IDM_PAUSE
+        MENUITEM "Stop\t[Esc]",                 IDM_STOP
+        MENUITEM SEPARATOR
+        POPUP "Frame Rate Override"
+        BEGIN
+            MENUITEM "OFF\tAs Is",                  IDM_FRAME_RATE_STD
+            , CHECKED
+            MENUITEM "  1",                         IDM_FRAME_RATE_01
+            MENUITEM "  2",                         IDM_FRAME_RATE_02
+            MENUITEM "  6",                         IDM_FRAME_RATE_06
+            MENUITEM "12",                          IDM_FRAME_RATE_12
+            MENUITEM "16",                          IDM_FRAME_RATE_16
+            MENUITEM "18\tFilm - Silent",           IDM_FRAME_RATE_18
+            MENUITEM "20",                          IDM_FRAME_RATE_20
+            MENUITEM SEPARATOR
+            MENUITEM "23.976\tFilm - NTSC",         IDM_FRAME_RATE_23
+            MENUITEM "24\tFilm - Talkies",          IDM_FRAME_RATE_24
+            MENUITEM "25\tPAL",                     IDM_FRAME_RATE_25
+            MENUITEM "29.97\tNTSC",                 IDM_FRAME_RATE_29
+            MENUITEM "30",                          IDM_FRAME_RATE_30
+        END
+        POPUP "Timing Method"
+        BEGIN
+            MENUITEM "Lip Sync",                    IDM_PLAY_SYNC, GRAYED
+            MENUITEM "Lock to Audio",               IDM_PLAY_AUDLOCK
+            MENUITEM SEPARATOR
+            MENUITEM SEPARATOR
+            MENUITEM "Skip HD frames if behind",    IDM_SKIP_BEHIND_HD
+            MENUITEM "Skip SD frames if behind",    IDM_SKIP_BEHIND_SD
+            MENUITEM "PTS based Skip (Aggresive)",  IDM_SKIP_PTS
+            MENUITEM "Field Drop (Experimental)",   IDM_FIELD_DROP
+            MENUITEM "Not So Fast",                 IDM_CUE_SLOW
+        END
+        MENUITEM SEPARATOR
+    END
+    POPUP "&Audio"
+    BEGIN
+        MENUITEM "&Vol UP\t[V]",                IDM_VOLUME_UP
+        MENUITEM "Vol DOWN\tAlt-V",             IDM_VOLUME_DOWN
+        MENUITEM "&Mute\t[M]",                  IDM_VOLUME_MUTE
+        MENUITEM SEPARATOR
+        MENUITEM "&Automatic Volume Control",   IDM_VOLUME_BOLD
+        MENUITEM "Volume Boost ",               IDM_VOLUME_BOOST
+        MENUITEM "Not Too Loud",                IDM_VOLUME_LIMITING
+        MENUITEM "Slow Attack",                 IDM_VOLUME_GENTLE
+        MENUITEM SEPARATOR
+        MENUITEM "&Karaoke\t[K]",               IDM_AUDIO_KARAOKE
+        MENUITEM "Anti-Phase",                  IDM_AUDIO_ANTIPHASE
+        MENUITEM SEPARATOR
+        POPUP "Track Number"
+        BEGIN
+            MENUITEM "Auto Default",                IDM_TRACK_MEMO
+            MENUITEM "Auto",                        IDM_TRACK_AUTO
+            MENUITEM SEPARATOR
+            MENUITEM "None",                        IDM_TRACK_NONE
+            MENUITEM "Track 1",                     IDM_TRACK_1
+            MENUITEM "Track 2",                     IDM_TRACK_2
+            MENUITEM "Track 3",                     IDM_TRACK_3
+            MENUITEM "Track 4",                     IDM_TRACK_4
+            MENUITEM "Track 5",                     IDM_TRACK_5
+            MENUITEM "Track 6",                     IDM_TRACK_6
+            MENUITEM "Track 7",                     IDM_TRACK_7
+            MENUITEM "Track 8",                     IDM_TRACK_8
+        END
+        POPUP "Channel Format"
+        BEGIN
+            MENUITEM "Auto Default",                IDM_FORMAT_MEMO
+            , CHECKED, GRAYED
+            MENUITEM "Auto",                        IDM_SELECT
+            MENUITEM SEPARATOR
+            MENUITEM "DD - Dolby Digital",          IDM_AC3
+            MENUITEM "MPEG Audio",                  IDM_MPA
+            MENUITEM "LPCM Audio",                  IDM_LPCM
+            MENUITEM SEPARATOR
+            MENUITEM "PS2 Audio",                   IDM_AUDIO_PS2
+        END
+        MENUITEM SEPARATOR
+        POPUP "DD Dynamic Range Control"
+        BEGIN
+            MENUITEM "Off",                         IDM_DRC_NONE
+            MENUITEM SEPARATOR
+            MENUITEM "Light",                       IDM_DRC_LIGHT
+            MENUITEM "Normal",                      IDM_DRC_NORMAL
+            MENUITEM "Heavy",                       IDM_DRC_HEAVY
+            MENUITEM "Very Heavy",                  IDM_DRC_VERYHEAVY
+        END
+        MENUITEM "DD Surround Downmix",         IDM_DSDOWN
+        MENUITEM SEPARATOR
+        POPUP "Mpeg Audio Decoder"
+        BEGIN
+            MENUITEM "Auto Select",                 IDM_MPA_AUTO
+            MENUITEM SEPARATOR
+            MENUITEM "mpa_SSE2",                    IDM_Mpa_SSE2
+            MENUITEM "mpa_SSE1",                    IDM_Mpa_SSE1
+            MENUITEM "mpa_MMX",                     IDM_Mpa_MMX
+            MENUITEM "MPAlib",                      IDM_MPAlib
+            MENUITEM SEPARATOR
+            MENUITEM "CRC Check",                   IDM_AUDIO_CRC
+        END
+        MENUITEM SEPARATOR
+        POPUP "Experimental"
+        BEGIN
+            MENUITEM "Read Ahead",                  IDM_AUDIO_AHEAD
+            MENUITEM "AudioThread",                 IDM_AUDIO_THREAD, GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM "48kHz = 44.1",                IDM_AUDIO_44K
+            POPUP "PID"
+            BEGIN
+                MENUITEM "None",                        IDM_AUDPID_NONE
+                , CHECKED
+                MENUITEM "Auto",                        IDM_AUDPID_AUTO
+            END
+        END
+    END
+    POPUP "&Output"
+    BEGIN
+        MENUITEM "Parse Enable",                IDM_OUT_PARSE
+        POPUP "Parse Options"
+        BEGIN
+            MENUITEM "Audio Matching",              IDM_OUT_PTS_MATCH
+            MENUITEM SEPARATOR
+            MENUITEM "Broken Link - Set",           IDM_OUT_BROKEN_FLAG
+            MENUITEM "Broken Link - Clear",         IDM_OUT_BROKEN_CLR
+            MENUITEM SEPARATOR
+            MENUITEM SEPARATOR
+            MENUITEM "Align VIDEO Edge Packets ",   IDM_OUT_ALIGN_VIDEO
+            MENUITEM "Align AUDIO Edge Packets ",   IDM_OUT_ALIGN_AUDIO
+            MENUITEM SEPARATOR
+            MENUITEM "All the above",               IDM_PARSE_BUCKET
+            MENUITEM "None of the above",           IDM_PARSE_UNTICK
+            MENUITEM SEPARATOR
+            MENUITEM "Handle Split Start Codes",    IDM_PARSE_SPLIT_START
+            , CHECKED
+            MENUITEM SEPARATOR
+            POPUP "Experimental"
+            BEGIN
+                MENUITEM "Deep Parsing",                IDM_OUT_PARSE_DEEP
+                MENUITEM "Parse All Packets",           IDM_OUT_PARSE_ALL_PKTS
+
+                MENUITEM "Remove Padding Packets",      IDM_OUT_KILLPAD
+                MENUITEM SEPARATOR
+                MENUITEM "Convert PS1 to PS2",          IDM_OUT_PS1PS2
+                MENUITEM "Hide Audio",                  IDM_OUT_HIDE_AUDIO
+                MENUITEM SEPARATOR
+                MENUITEM "Fix Errors in Header",        IDM_OUT_FIX_ERRORS
+                MENUITEM "Fix Packet Lengths",          IDM_OUT_FIX_PKT_LEN
+                MENUITEM "Force Interlace Display On",  IDM_OUT_INTERLACE
+                MENUITEM SEPARATOR
+                MENUITEM "Adjust Time Stamps  -  EXPERIMENTAL", 
+                                                        IDM_OUT_TC_ADJUST
+                MENUITEM "Australian Ch.7 Fix - VERY EXPERIMENTAL", 
+                                                        IDM_OUT_TC_FORCE
+                MENUITEM "Create PTS from GOP",         IDM_PTS_INVENT
+            END
+        END
+        MENUITEM "Include TO frame",            IDM_ADD_PAD
+        MENUITEM SEPARATOR
+        MENUITEM "VOB Preservation",            IDM_VOB_CHUNKS
+        POPUP "System Header"
+        BEGIN
+            POPUP "Preamble"
+            BEGIN
+                MENUITEM "None",                        IDM_PREAMBLE_NONE
+                MENUITEM "Small\t(Most files)",         IDM_PREAMBLE_SMALL
+                MENUITEM "Maximum",                     IDM_PREAMBLE_MAX
+                MENUITEM SEPARATOR
+                MENUITEM "Try Start of Title Set",      IDM_PREAMBLE_VTS
+                , GRAYED
+            END
+            POPUP "Default if no Premable"
+            BEGIN
+                MENUITEM "Basic Mpeg",                  IDM_OUT_SYS_MPEG
+                MENUITEM "Generic VOB",                 IDM_OUT_SYS_VOB
+            END
+            MENUITEM SEPARATOR
+            MENUITEM "Limit SD header rate",        IDM_OUT_SD_HDR
+            MENUITEM "Mark SD as Non Standard",     IDM_OUT_DEFLAG
+            MENUITEM SEPARATOR
+            MENUITEM "Remove Lock Flags",           IDM_OUT_SYS_UNLOCK
+            MENUITEM "Sys Hdr on Every Clip",       IDM_OUT_SYS_CLIP
+        END
+        MENUITEM SEPARATOR
+        POPUP "Default Extension"
+        BEGIN
+            MENUITEM "Same as input",               IDM_XTN_SAME
+            MENUITEM ".vob",                        IDM_XTN_VOB
+            MENUITEM ".MPG",                        IDM_XTN_MPG_UPPER
+            MENUITEM ".mpg",                        IDM_XTN_MPG_LOWER
+            MENUITEM ".m2p",                        IDM_XTN_M2P
+            MENUITEM "Other",                       IDM_XTN_PS_OTHER, GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM SEPARATOR
+            MENUITEM "AUDIO",                       ID_OUTPUT_DEFAULTEXTENSION_AUDIO
+            , GRAYED
+            MENUITEM ".MPA",                        IDM_XTN_MPA
+            MENUITEM ".M2A",                        IDM_XTN_M2A
+            MENUITEM ".M1A",                        IDM_XTN_M1A
+            MENUITEM ".MP3",                        IDM_XTN_MP3
+            MENUITEM ".MP2",                        IDM_XTN_MP2
+            MENUITEM ".MP1",                        IDM_XTN_MP1
+            MENUITEM "Other",                       IDM_XTN_AUD_OTHER
+            , GRAYED
+            MENUITEM SEPARATOR
+            MENUITEM "Add Clip Number to Name (eg _001)", IDM_OUT_PART_AUTO
+        END
+        POPUP "Default Folder"
+        BEGIN
+            MENUITEM "Same As Input",               IDM_OUT_FOLDER_SAME
+            MENUITEM "Always Most Recent",          IDM_OUT_FOLDER_RECENT
+            MENUITEM "Static Default Every Time",   IDM_OUT_FOLDER_HERE
+            MENUITEM "Static Default First Time Only", IDM_OUT_FOLDER_FIRST
+            MENUITEM SEPARATOR
+            MENUITEM "Show both in Win98",          IDM_OUT_FOLDER_DUAL
+        END
+        POPUP "Tidy Name"
+        BEGIN
+            MENUITEM "No Spaces",                   IDM_OUT_DEBLANK
+            MENUITEM "Mixed Case",                  IDM_OUT_MIXEDCASE
+        END
+        MENUITEM "Retain File Date",            IDM_OUT_KEEPDATE
+        MENUITEM "Post Process",                IDM_POSTPROC
+        MENUITEM SEPARATOR
+        POPUP "Experimental"
+        BEGIN
+            MENUITEM SEPARATOR
+            MENUITEM "Seq END codes",               IDM_OUT_SEQEND
+            POPUP "Direct To HDD"
+            BEGIN
+                MENUITEM "Avoid System Pool",           IDM_OUT_WRITETHROUGH
+                , GRAYED
+                MENUITEM "EXCP style  IO Buffers",      IDM_OUT_EXCP, GRAYED
+            END
+        END
+        MENUITEM SEPARATOR
+        MENUITEM SEPARATOR
+        POPUP "BMP "
+        BEGIN
+            MENUITEM "&BMP Snapshot\t[B]",          IDM_BMP_ASIS
+            MENUITEM "&BMP Snap with Preview\t[Ctrl-B]", 
+                                                    IDM_BMP_SNAP_PREVIEW
+            MENUITEM "BMP Clipboard\t[C]",          IDM_BMP_CLIPBOARD
+            MENUITEM SEPARATOR
+            POPUP "BMP Auto Preview"
+            BEGIN
+                MENUITEM "Preview  - OFF",              IDM_BMP_PREVIEW_OFF
+                MENUITEM "Preview -  FIRST Snap",       IDM_BMP_PREVIEW_1
+                MENUITEM "Preview  - EVERY snap",       IDM_BMP_PREVIEW_ALL
+            END
+            POPUP "BMP Folder"
+            BEGIN
+                MENUITEM "Enable",                      IDM_BMP_FOLDER_TOGGLE
+
+                MENUITEM "Set Now",                     IDM_BMP_FOLDER
+            END
+            POPUP "BMP Format"
+            BEGIN
+                MENUITEM "Same As Input",               IDM_BMP_FMT_RAW
+                MENUITEM "Nearest Neighbour (Quick, Rough)", 
+                                                        IDM_BMP_FMT_SUBSAMPLE
+
+                MENUITEM "BiCubic               (Slow, High Quality)", 
+                                                        IDM_BMP_FMT_BICUBIC
+                MENUITEM SEPARATOR
+                MENUITEM "Deinterlace if current View is Deinterlaced", 
+                                                        IDM_DEINT_SNAP
+            END
+        END
+    END
+    POPUP "&Window"
+    BEGIN
+        MENUITEM "No Toolbars\t[F11]",          ID_VIEW_TOOL_NONE
+        MENUITEM "Buttons && Scrollbar\t[F11]", ID_VIEW_TOOL_BOTH
+        MENUITEM "Scrollbar only\t[F12]",       ID_VIEW_SCROLLONLY
+        MENUITEM "Buttons only\t[Alt-F12]",     ID_VIEW_BUTTONSONLY
+        MENUITEM SEPARATOR
+        MENUITEM "Statistics\t[F6]",            IDM_STATISTICS
+        MENUITEM "Status Line",                 IDM_TXT, GRAYED
+        MENUITEM "Thumbnails",                  DM_VIEW_THUMB, GRAYED
+        MENUITEM SEPARATOR
+        POPUP "E&xternal"
+        BEGIN
+            MENUITEM "Media Player Classic",        IDM_ACT_MEDIA_PLAYER_CLASSIC
+
+            MENUITEM "PowerDVD",                    IDM_ACT_POWERDVD
+            MENUITEM "VLC",                         IDM_ACT_VLC
+            MENUITEM "Creative PlayCenter",         IDM_ACT_CREATIVE
+            MENUITEM "Windows Media Player",        IDM_ACT_WMP
+            MENUITEM "Windows Media Player 2",      IDM_ACT_WMP2
+            MENUITEM SEPARATOR
+            MENUITEM "bbINFO2 Summary",             IDM_ACT_BBINFO2
+            MENUITEM "GSpot",                       DM_ACT_GSPOT, GRAYED
+        END
+    END
+    POPUP "&Misc"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Associate with File Types",   IDM_ASSOCIATE
+        MENUITEM "Preferences Dialog\tCtrl-P",  IDM_PREFERENCES
+        POPUP "Keyboard / Mouse"
+        BEGIN
+            MENUITEM "VirtualDub Navigation ",      IDM_KBNAV_VDUB
+            MENUITEM "VirtualDub Marking",          IDM_KBMARK_VDUB
+            MENUITEM "Navigation Stops Playback",   IDM_KB_STOPPLAY
+            MENUITEM SEPARATOR
+            MENUITEM "F3 = Input File Names List",  IDM_F3_NAMES
+            MENUITEM SEPARATOR
+            POPUP "Mouse Wheel"
+            BEGIN
+                MENUITEM "NONE",                        IDM_WHEEL_NONE
+                MENUITEM "Scroll 1 Frame",              IDM_WHEEL_FRAME
+                MENUITEM "Scroll 1 GOP",                IDM_WHEEL_GOP
+                MENUITEM "Scroll JUMP",                 IDM_WHEEL_JUMP
+                MENUITEM "Scroll JUMP More",            IDM_WHEEL_JUMP2
+                MENUITEM "Scroll JUMP Even More",       IDM_WHEEL_JUMP4
+            END
+        END
+        POPUP "Pop Up Msg"
+        BEGIN
+            POPUP "Size Warnings"
+            BEGIN
+                MENUITEM "Over 1GB",                    IDM_WARN_SIZE_1
+                MENUITEM "Near 2GB",                    IDM_WARN_SIZE_2
+                MENUITEM "Near 3GB",                    IDM_WARN_SIZE_3
+                MENUITEM "Near 4GB",                    IDM_WARN_SIZE_4
+            END
+            POPUP "Dropped File"
+            BEGIN
+                MENUITEM "Append",                      IDM_DROP_APPEND
+                MENUITEM "Open",                        IDM_DROP_OPEN
+                MENUITEM "Ask Me",                      IDM_DROP_ASK
+            END
+            MENUITEM "Player Stats",                IDM_PLAY_INFO
+            MENUITEM "Pic before first GOP",        IDM_WARN_GOP1
+            , CHECKED, GRAYED
+            MENUITEM "Format Not Fully Supported",  IDM_WARN_MPEG1
+            MENUITEM "Confirm Passed Filename",     IDM_PARM_CONFIRM
+            MENUITEM "Missing First xxx Warning",   IDM_WARN_BAD_START
+            MENUITEM SEPARATOR
+            MENUITEM "Enhanced Readability",        IDM_READABILITY
+            MENUITEM "Toolbar Tips",                IDM_TOOLTIPS
+        END
+        POPUP "Default Sort Sequence"
+        BEGIN
+            MENUITEM "Off",                         IDM_DEFSORT_OFF
+            MENUITEM "File Name",                   IDM_DEFSORT_NAME
+            MENUITEM "Mpeg SCR Time Code",          IDM_DEFSORT_SCR
+            MENUITEM "File Date & Time",            IDM_DEFSORT_DATE
+        END
+        POPUP "Default Time Format"
+        BEGIN
+            MENUITEM "Relative - Start = Zero",     IDM_TIME_REL
+            MENUITEM "Time Of Day - Relative to File Creation Time", 
+                                                    IDM_TIME_FILE
+            MENUITEM "Mpeg Time Of Day (GOP time)", IDM_TIME_GOP
+            MENUITEM "Mpeg Time Stamp (PTS)",       IDM_TIME_PTS
+            MENUITEM "Mpeg System Time (SCR)",      IDM_TIME_SCR
+            MENUITEM SEPARATOR
+            MENUITEM "International Date Format",   IDM_DATE_INTERNATIONALE
+        END
+        MENUITEM "Plug-Ins",                    IDM_PLUGINS
+        MENUITEM "Delete To Recycle Bin",       IDM_DEL2RECYCLE
+        MENUITEM "Parm with Time Codes",        IDM_PARM_CLIP
+        MENUITEM SEPARATOR
+        MENUITEM "Fast Back",                   IDM_NAV_INDEX
+        POPUP "Buffer Size"
+        BEGIN
+            MENUITEM "Very Large",                  IDM_BUF_VERYLARGE
+            MENUITEM "Large",                       IDM_BUF_LARGE, CHECKED
+            MENUITEM "Medium",                      IDM_BUF_MEDIUM
+            MENUITEM "Small",                       IDM_BUF_SMALL, GRAYED
+            MENUITEM "Use Win32 API",               IDM_FILE_WIN32API
+            , GRAYED
+        END
+        POPUP "Process Priority"
+        BEGIN
+            POPUP "Navigation"
+            BEGIN
+                MENUITEM "Low",                         IDM_PRI_RAN_LOW
+                MENUITEM "Normal",                      IDM_PRI_RAN_NORMAL
+                MENUITEM "High",                        IDM_PRI_RAN_HIGH
+            END
+            POPUP "Preview"
+            BEGIN
+                MENUITEM "Low",                         IDM_PP_LOW
+                MENUITEM "Normal",                      IDM_PP_NORMAL
+                MENUITEM "High",                        IDM_PP_HIGH
+            END
+            POPUP "Output"
+            BEGIN
+                MENUITEM "Low",                         IDM_PRI_OUT_LOW
+                MENUITEM "Normal",                      IDM_PRI_OUT_NORMAL
+                MENUITEM "High",                        IDM_PRI_OUT_HIGH
+            END
+        END
+        MENUITEM SEPARATOR
+        POPUP "Obsolete"
+        BEGIN
+            POPUP "Loc Method", GRAYED
+            BEGIN
+                MENUITEM "Block",                       IDM_LOC_BLK
+                MENUITEM "Header",                      IDM_LOC_HDR
+                MENUITEM SEPARATOR
+            END
+            POPUP "Taskbar "
+            BEGIN
+                MENUITEM "Bottom",                      IDM_TASKBAR_BOT
+                , CHECKED
+                MENUITEM "Top",                         IDM_TASKBAR_TOP
+                MENUITEM "Left",                        IDM_TASKBAR_LEFT
+                MENUITEM "Right",                       IDM_TASKBAR_RIGHT
+            END
+            MENUITEM "None",                        IDM_PREAMBLE_NONE
+            MENUITEM "Zoom",                        IDM_ZOOM
+            MENUITEM "Trackbar - Full Width",       IDM_TRACKBAR_BIG
+        END
+        POPUP "Experimental"
+        BEGIN
+            MENUITEM SEPARATOR
+            MENUITEM "Columns In Name List",        IDM_VIEW_COLS
+            MENUITEM "Access Non-OS Drive",         IDM_DRIVE_SEGMENTS
+            MENUITEM SEPARATOR
+            MENUITEM "Anything Goes",               IDM_MPEG_ANY
+            MENUITEM "Byte Sync",                   IDM_BYTE_SYNC
+            MENUITEM SEPARATOR
+            MENUITEM "Thumbnail ",                  IDM_BMP_THUMB
+            MENUITEM "Sin City",                    IDM_SINE
+        END
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "READ ME\tF1",                 IDM_HELP_TXT
+        MENUITEM "About Mpg2Cut2",              IDM_ABOUT
+        MENUITEM SEPARATOR
+        MENUITEM "HOME PAGE",                   IDM_HOMEPAGE
+        MENUITEM "Online Forum",                IDM_NET_FORUM
+        MENUITEM SEPARATOR
+        MENUITEM "Debug bDBGStr",               IDM_DBGSTR
+        MENUITEM "Debug Audio",                 IDM_AUDIO_DBG
+        MENUITEM "Debug Trace",                 IDM_DBG
+        MENUITEM "Longer",                      IDM_HELP_PF1
+    END
+END
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#define APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""windows.h""\r\n"
+    "#undef APSTUDIO_HIDDEN_SYMBOLS\r\n"
+    "#include ""resource.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATOR ACCELERATORS DISCARDABLE 
+BEGIN
+    "*",            ID_CUE_FWD,             ASCII,  NOINVERT
+    "+",            IDM_CLIP_ADD,           ASCII,  NOINVERT
+    ",",            ID_FWD_FRAME_OLD,       ASCII,  NOINVERT
+    "/",            ID_FWD_FRAME,           ASCII,  NOINVERT
+    "<",            ID_LEFT_ARROW,          ASCII,  NOINVERT
+    "=",            IDM_CLIP_ADD,           ASCII,  NOINVERT
+    ">",            ID_RIGHT_ARROW,         ASCII,  NOINVERT
+    "B",            IDM_BMP_SHIFT,          ASCII,  NOINVERT
+    "B",            IDM_BMP_SNAP_PREVIEW,   VIRTKEY, CONTROL, NOINVERT
+    "C",            IDM_BMP_CLIPBOARD,      VIRTKEY, NOINVERT
+    "C",            IDM_BMP_CLIPBOARD,      VIRTKEY, CONTROL, NOINVERT
+    "F",            IDM_PLAY_FAST_2,        ASCII,  NOINVERT
+    "I",            IDM_VIEW_INVERT,        VIRTKEY, SHIFT, NOINVERT
+    "K",            IDM_AUDIO_KARAOKE,      VIRTKEY, NOINVERT
+    "L",            IDM_LUMINANCE,          VIRTKEY, NOINVERT
+    "L",            IDM_LUMINANCE_TOGGLE,   VIRTKEY, ALT, NOINVERT
+    "M",            IDM_VOLUME_MUTE,        VIRTKEY, NOINVERT
+    "N",            IDM_VIEW_NEGATIVE,      VIRTKEY, NOINVERT
+    "N",            IDM_VIEW_NEGATIVE,      VIRTKEY, SHIFT, NOINVERT
+    "O",            IDM_APPEND,             VIRTKEY, ALT, NOINVERT
+    "O",            IDM_FILE_FILTER,        VIRTKEY, SHIFT, NOINVERT
+    "O",            IDM_FILE_MORE,          VIRTKEY, SHIFT, ALT, NOINVERT
+    "P",            IDM_PLAY_HERE,          ASCII,  NOINVERT
+    "P",            IDM_PREFERENCES,        VIRTKEY, CONTROL, NOINVERT
+    "P",            IDM_PLAY_CLIPS,         ASCII,  ALT, NOINVERT
+    "S",            IDM_PLAY_SLOW_2A,       ASCII,  NOINVERT
+    "S",            IDM_SAVE,               VIRTKEY, CONTROL, NOINVERT
+    "U",            IDM_YUV_SWAP,           VIRTKEY, NOINVERT
+    "U",            IDM_YUV_SWAP,           VIRTKEY, SHIFT, NOINVERT
+    "V",            IDM_VOLUME_UP,          ASCII,  NOINVERT
+    "V",            IDM_VOLUME_DOWN,        VIRTKEY, ALT, NOINVERT
+    VK_ADD,         IDM_VOLUME_UP,          VIRTKEY, CONTROL, NOINVERT
+    VK_CLEAR,       IDM_STOP,               VIRTKEY, NOINVERT
+    VK_DOWN,        ID_DOWN_ARROW,          VIRTKEY, NOINVERT
+    VK_DOWN,        ID_DOWN_SHIFT,          VIRTKEY, SHIFT, NOINVERT
+    VK_ESCAPE,      IDM_STOP,               VIRTKEY, NOINVERT
+    VK_F1,          IDM_HELP_PF1,           VIRTKEY, NOINVERT
+    VK_F1,          IDM_DBG,                VIRTKEY, ALT, NOINVERT
+    VK_F11,         ID_VIEW_TOOL_TOGGLE,    VIRTKEY, NOINVERT
+    VK_F12,         ID_VIEW_SCROLLONLY,     VIRTKEY, NOINVERT
+    VK_F12,         ID_VIEW_BUTTONSONLY,    VIRTKEY, ALT, NOINVERT
+    VK_F2,          IDM_FILE_NEWNAME,       VIRTKEY, NOINVERT
+    VK_F3,          IDM_OPEN,               VIRTKEY, NOINVERT
+    VK_F3,          IDM_FILE_NAMES,         VIRTKEY, SHIFT, NOINVERT
+    VK_F4,          IDM_SAVE,               VIRTKEY, NOINVERT
+    VK_F4,          IDM_SAVE_PARTIAL,       VIRTKEY, SHIFT, NOINVERT
+    VK_F5,          IDM_PLAY_HERE,          VIRTKEY, NOINVERT
+    VK_F6,          IDM_STATISTICS,         VIRTKEY, NOINVERT
+    VK_F7,          IDM_DISPLAY,            VIRTKEY, NOINVERT
+    VK_F8,          IDM_PREVIEW,            VIRTKEY, NOINVERT
+    VK_F8,          IDM_PREVIEW_LAST,       VIRTKEY, ALT, NOINVERT
+    VK_F8,          IDM_PLAY_CLIPS,         VIRTKEY, SHIFT, NOINVERT
+    VK_F9,          IDM_PLAY_SLOWER,        VIRTKEY, NOINVERT
+    VK_F9,          IDM_PLAY_FASTER,        VIRTKEY, SHIFT, NOINVERT
+    VK_HOME,        ID_HOME,                VIRTKEY, NOINVERT
+    VK_INSERT,      IDM_PLAY_HERE,          VIRTKEY, NOINVERT
+    VK_LEFT,        ID_LEFT_ARROW,          VIRTKEY, NOINVERT
+    VK_LEFT,        ID_LEFT_CTRL,           VIRTKEY, CONTROL, NOINVERT
+    VK_LEFT,        ID_LEFT_SHIFT,          VIRTKEY, SHIFT, NOINVERT
+    VK_MULTIPLY,    ID_CUE_FWD,             VIRTKEY, NOINVERT
+    VK_MULTIPLY,    ID_CUE2_FWD,            VIRTKEY, SHIFT, NOINVERT
+    VK_OEM_CLEAR,   IDM_STOP,               VIRTKEY, NOINVERT
+    VK_PAUSE,       IDM_PAUSE,              VIRTKEY, NOINVERT
+    VK_PAUSE,       IDM_STOP,               VIRTKEY, ALT, NOINVERT
+    VK_PLAY,        IDM_PLAY_HERE,          VIRTKEY, NOINVERT
+    VK_PRINT,       IDM_BMP_ASIS,           VIRTKEY, NOINVERT
+    VK_RIGHT,       ID_RIGHT_ARROW,         VIRTKEY, NOINVERT
+    VK_RIGHT,       ID_RIGHT_CTRL,          VIRTKEY, CONTROL, NOINVERT
+    VK_RIGHT,       ID_RIGHT_SHIFT,         VIRTKEY, SHIFT, NOINVERT
+    VK_SPACE,       IDM_PAUSE,              VIRTKEY, NOINVERT
+    VK_SUBTRACT,    IDM_VOLUME_DOWN,        VIRTKEY, CONTROL, NOINVERT
+    VK_UP,          ID_UP_ARROW,            VIRTKEY, NOINVERT
+    VK_UP,          ID_UP_SHIFT,            VIRTKEY, SHIFT, NOINVERT
+    VK_ZOOM,        IDM_ZOOM,               VIRTKEY, NOINVERT
+    "Z",            IDM_ZOOM_IN,            ASCII,  NOINVERT
+    "[",            IDM_CLIP_FROM,          ASCII,  NOINVERT
+    "\\",           ID_BWD_FRAME,           ASCII,  NOINVERT
+    "]",            IDM_CLIP_TO,            ASCII,  NOINVERT
+    "^L",           IDM_FILE_FILTER,        ASCII,  NOINVERT
+    "^O",           IDM_OPEN,               ASCII,  NOINVERT
+    "^T",           IDM_SAVE_THIS,          ASCII,  NOINVERT
+    "b",            IDM_BMP_ASIS,           ASCII,  NOINVERT
+    "f",            IDM_PLAY_FAST_1,        ASCII,  NOINVERT
+    "s",            IDM_PLAY_SLOW_1,        ASCII,  NOINVERT
+    "v",            IDM_VOLUME_UP,          ASCII,  NOINVERT
+    "z",            IDM_ZOOM,               ASCII,  NOINVERT
+    "{",            ID_FROM_SHIFT,          ASCII,  NOINVERT
+    "|",            IDM_CLIP_SPLIT,         ASCII,  NOINVERT
+    "}",            ID_TO_SHIFT,            ASCII,  NOINVERT
+END
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 2,8,5,1
+ PRODUCTVERSION 2,8,5,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "000004b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", " \0"
+            VALUE "FileDescription", "Mpg2Cut2-RELEASE\0"
+            VALUE "FileVersion", "2, 8, 5\0"
+            VALUE "InternalName", "Mpg2Cut2-RELEASE\0"
+            VALUE "LegalCopyright", "Copyright © 2009\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "Mpg2Cut2-RELEASE.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "  Mpg2Cut2-RELEASE\0"
+            VALUE "ProductVersion", "2, 8, 5\0"
+            VALUE "SpecialBuild", "\0"
+        END
+        BLOCK "0c0904b0"
+        BEGIN
+            VALUE "Comments", "GNU\0"
+            VALUE "CompanyName", "RocketJet4\0"
+            VALUE "FileDescription", "MPG2Cut2 - Free Mpeg Cutting Tool\0"
+            VALUE "FileVersion", "2.8.5\0"
+            VALUE "InternalName", "MPG2Cut2\0"
+            VALUE "LegalCopyright", "Copyright © 2003 onwards\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "MPG2Cut2.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "RocketJet4 Mpg2Cut2 \0"
+            VALUE "ProductVersion", "2, 8, 5\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0, 1200, 0xc09, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDC_GUI                 "MPG2CUT2 "
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_SEL_CLEAR           "THROW AWAY ALL SELECTIONS ?"
+END
+
+#endif    // English (Australia) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

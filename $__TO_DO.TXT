@@ -1,0 +1,80 @@
+
+- BUGS
+   Clip/selection stats not always showing on status line.
+
+-  Rename/File-Open plugin issues.
+
+
+- CHECK Traling packet alignment on Audio.
+    AC3, MPA and LPCM frames are all diferent.
+
+- make the "|" key act like the sequence ]+[
+  to mark 2 separate clips in one key press.
+
+- Save each clip to separate file.
+
+- Auto-split at user selected MBs.
+  Nearest SEQ, or nearest clip ?
+
+- Time Offset based per file.
+
+- Multiple Favourite Output Folders
+  Should be easy.  
+  Show list of Folder Names, using.existing Names Dialog.
+
+-  PVA & TS formats - Audio Preview.
+
+- BRIDGING TIME STAMPS ACROSS CLIP BOUNDARIES
+   Probably need to rebuild like in ProjectX
+
+- Balance Audio/Video frames.
+  Analyse MPA, AC3, LPCM packets and Pic hdrs.
+
+-. Adjust delay of output Audio to 472ms. (~1GOP)
+   Will help with VOB compatibility.
+   May reduce need for PVAstrumento.
+
+- Lip Sync on preview.
+  Need buffer pre-fetch and scan.
+
+-. Manipulate Edit List.
+   + Proper GUI.  
+
+- General Purpose markers (with thumbnails)
+
+- MPALIB crashes on bad data.
+     AND doesn't decode mono correctly.
+            Cannot get source to compile.
+            MAYBE Use MAD decoder instead ?
+
+- Allow ScrollBar navigation without stopping playback 
+
+- Grab header from first VTS when opening N'th VTS.
+
+- Snapshots
+    . Smart Auto-Deinterlace decision ?
+    . Vertical Centre Crop for 4:3  
+    . Horizontal Middle-crop for Widescreen mask
+    . JPEG output instead of BMP.
+
+- General Abend trap.
+
+- Separate the A52 decoder into separate DLL plugin.
+
+- Some DTV mpg files contain VOB NAV packs.
+  Allow this to be candidate for VOB Preservation
+
+- Command line Interface
+   Multiple Clips - based on TimeStamp.
+   Multiple files
+
+- VLC cannot play GMA files even straight from Twinhan.
+  Figure out why, and invent a fix for it.
+
+- Clip #0, Saved n clips not always correct.
+  AND Sometimes CANCEL resets clip list to zero.
+
+- CTRL-Drag'n'drop to reverse Open/Appen default ?
+
+
+

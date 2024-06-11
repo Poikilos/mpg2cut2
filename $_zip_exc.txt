@@ -1,0 +1,5 @@
+*.ncb
+*.opt
+*.bak
+*.OLD
+*\*.asm

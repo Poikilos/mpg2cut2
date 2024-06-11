@@ -1,0 +1,1433 @@
+/* 
+ *	Copyright (C) Chia-chen Kuo - April 2001
+ *
+ *  This file is part of DVD2AVI, a free MPEG-2 decoder
+ *	
+ *  DVD2AVI is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2, or (at your option)
+ *  any later version.
+ *   
+ *  DVD2AVI is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU General Public License for more details.
+ *   
+ *  You should have received a copy of the GNU General Public License
+ *  along with GNU Make; see the file COPYING.  If not, write to
+ *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA. 
+ *
+ */
+
+#include <math.h>
+#include "global.h"
+#include "filters.h"
+
+static int DOUBLE_WIDTH, HALF_WIDTH, LUM_AREA, PROGRESSIVE_HEIGHT, INTERLACED_HEIGHT;
+static int HALF_WIDTH_D8, RGB_DOWN1, RGB_DOWN2;
+static int NINE_CLIP_WIDTH, QUAD_CLIP_WIDTH, DOUBLE_CLIP_WIDTH, HALF_CLIP_WIDTH;
+static int CLIP_AREA, HALF_CLIP_AREA, CLIP_STEP, CLIP_HALF_STEP;
+
+static const __int64 mmmask_0001 = 0x0001000100010001;
+static const __int64 mmmask_0002 = 0x0002000200020002;
+static const __int64 mmmask_0003 = 0x0003000300030003;
+static const __int64 mmmask_0004 = 0x0004000400040004;
+static const __int64 mmmask_0005 = 0x0005000500050005;
+static const __int64 mmmask_0007 = 0x0007000700070007;
+static const __int64 mmmask_0064 = 0x0040004000400040;
+static const __int64 mmmask_0128 = 0x0080008000800080;
+
+static __int64 LumOffsetMask, LumGainMask;
+static FilteredResizeV* v_filter;
+static FilteredResizeH* h_filter;
+
+static unsigned char* yuv_result;
+static unsigned char* rgb_result;
+
+// This function returns a resampling "program" which is interpreted by the
+// FilteredResize filters.  It handles edge conditions so FilteredResize
+// doesn't have to.
+
+// Original value: 65536
+// 2 bits sacrificed because of 16 bit signed MMX multiplication
+const int FPScale = 16384; // fixed point scaler
+
+static int* GetResamplingPatternRGB(int original_width, double subrange_start, double subrange_width, int target_width, ResamplingFunction* func)
+{
+	double scale = double(target_width) / subrange_width;
+	double filter_step = min(scale, 1.0);
+	double filter_support = func->support() / filter_step;
+	int fir_filter_size = int(ceil(filter_support*2));
+	int* result = (int*)aligned_malloc((1 + target_width*(1+fir_filter_size)) * 4, 128);
+	
+	int* cur = result;
+	*cur++ = fir_filter_size;
+	
+	double pos_step = subrange_width / target_width;
+	// the following translates such that the image center remains fixed
+	double pos = subrange_start + ((subrange_width - target_width) / (target_width*2));
+	
+	for (int i=0; i<target_width; ++i)
+	{
+		int end_pos = int(pos + filter_support);
+		if (end_pos > original_width-1)
+			end_pos = original_width-1;
+		int start_pos = end_pos - fir_filter_size + 1;
+		if (start_pos < 0)
+			start_pos = 0;
+		*cur++ = start_pos;
+		// the following code ensures that the coefficients add to exactly FPScale
+		double total = 0.0;
+		for (int j=0; j<fir_filter_size; ++j)
+			total += func->f((start_pos+j - pos) * filter_step);
+		double total2 = 0.0;
+		for (int k=0; k<fir_filter_size; ++k)
+		{
+			double total3 = total2 + func->f((start_pos+k - pos) * filter_step) / total;
+			*cur++ = int(total3*FPScale+0.5) - int(total2*FPScale+0.5);
+			total2 = total3;
+		}
+		pos += pos_step;
+	}
+	return result;
+}
+
+// This is the same as for RGB except for the special treatments taken
+// to support the YUV-MMX code.
+
+static int* GetResamplingPatternYUV(int original_width, double subrange_start, double subrange_width, int target_width, ResamplingFunction* func, bool luma, unsigned char *temp)
+{
+	double scale = double(target_width) / subrange_width;
+	double filter_step = min(scale, 1.0);
+	double filter_support = func->support() / filter_step;
+	int fir_filter_size = int(ceil(filter_support*2));
+	int fir_fs_mmx = (fir_filter_size / 2) +1;  // number of loops in MMX code
+	int* result = luma ?
+		(int*)aligned_malloc(2*4 + target_width*(1+fir_fs_mmx)*8, 128) :
+    (int*)aligned_malloc(2*4 + target_width*(1+fir_filter_size)*8, 128);
+	
+	int* cur[2] = { result +2, result +3 };
+	*result = luma ? fir_fs_mmx : fir_filter_size;
+	
+	double pos_step = subrange_width / target_width;
+	// the following translates such that the image center remains fixed
+	double pos = subrange_start + ((subrange_width - target_width) / (target_width*2));
+	
+	for (int i=0; i<target_width; ++i)
+	{
+		int end_pos = int(pos + filter_support);
+		if (end_pos > original_width-1)
+			end_pos = original_width-1;
+		int start_pos = end_pos - fir_filter_size + 1;
+		if (start_pos < 0)
+			start_pos = 0;
+		int ii = luma ? i&1 : 0;
+		*(cur[ii]) = luma ?
+			(int)(temp + (start_pos & -2) * 2) :
+		(int)(temp + start_pos * 8);
+		cur[ii] += 2;
+		// the following code ensures that the coefficients add to exactly FPScale
+		double total = 0.0;
+		for (int j=0; j<fir_filter_size; ++j)
+			total += func->f((start_pos+j - pos) * filter_step);
+		double total2 = 0.0;
+		int oldCoeff = 0;
+		for (int k=0; k<fir_filter_size; ++k)
+		{
+			double total3 = total2 + func->f((start_pos+k - pos) * filter_step) / total;
+			int coeff = int(total3*FPScale+0.5) - int(total2*FPScale+0.5);
+			total2 = total3;
+			if (luma)
+			{
+				if ((k + start_pos) & 1)
+				{
+					*(cur[ii]) = (coeff << 16) + (oldCoeff & 0xFFFF);
+					cur[ii] += 2;
+				}
+				else
+					oldCoeff = coeff;
+			}
+			else
+			{
+				*(cur[0]) = coeff;  cur[0] += 1;
+				*(cur[0]) = coeff;  cur[0] += 1;
+			}
+		}
+		if (luma)
+		{
+			if ((start_pos + fir_filter_size) & 1)
+			{
+				*(cur[ii]) = 0 + (oldCoeff & 0xFFFF);
+				cur[ii] += 2;
+			}
+			else
+				if ((fir_filter_size & 1) == 0)
+				{
+					*(cur[ii]) = 0;  cur[ii] += 2;
+				}
+		}
+		pos += pos_step;
+	}
+	return result;
+}
+
+FilteredResizeH::FilteredResizeH(int isYUV, int wi, int he, double subrange_left, double subrange_width, int target_width, ResamplingFunction* func):tempY(0), tempUV(0), width(wi), height(he), m_YUV(isYUV)
+{
+    pattern_chroma = 0;
+    original_width = wi;
+	if (isYUV)
+    {
+		tempY = (unsigned char*)aligned_malloc(original_width*2+4, 128);   // aligned for Athlon cache line
+		tempUV = (unsigned char*)aligned_malloc(original_width*4+8, 128);  // aligned for Athlon cache line
+		pattern_chroma = GetResamplingPatternYUV(width>>1, subrange_left/2, subrange_width/2, target_width>>1, func, false, tempUV);
+		pattern_luma = GetResamplingPatternYUV(width, subrange_left, subrange_width, target_width, func, true, tempY);
+    }
+	else
+		pattern_luma = GetResamplingPatternRGB(width, subrange_left, subrange_width, target_width, func);
+    width = target_width;
+}
+
+void FilteredResizeH::ResizeFrame(unsigned char* srcp, unsigned char* dstp, int src_pitch, int dst_pitch) 
+{
+	
+	if (m_YUV)
+	{
+	  int fir_filter_size_luma = pattern_luma[0];
+	  int fir_filter_size_chroma = pattern_chroma[0];
+	  static const __int64 x0000000000FF00FF = 0x0000000000FF00FF;
+	  static const __int64 x00FF000000FF0000 = 0x00FF000000FF0000;
+	  static const __int64 FPround =           0x0000200000002000;  // 16384/2
+
+	  __asm 
+	  {
+		emms
+		pxor        mm0, mm0
+		movq        mm7, x0000000000FF00FF
+		movq        mm6, FPround
+		movq        mm5, x00FF000000FF0000
+	  }
+	  for (int y=0; y<height; ++y)
+	  {
+		int* cur_luma = pattern_luma+2;
+		int* cur_chroma = pattern_chroma+2;
+		int x = width >> 1;
+		__asm
+		{
+		  mov         edi, this
+		  mov         ecx, [edi].original_width
+		  mov         edx, [edi].tempY
+		  mov         ebx, [edi].tempUV
+		  mov         esi, srcp
+		  mov         eax, -1
+		// deinterleave current line
+		deintloop:
+		  inc         eax
+		  movd        mm1, [esi]          ;mm1 = 0000VYUY
+		  movq        mm2, mm1
+		  punpcklbw   mm2, mm0            ;mm2 = 0V0Y0U0Y
+		  pand        mm1, mm7            ;mm1 = 00000Y0Y
+		  psrld       mm2, 16             ;mm2 = 000V000U
+		  movd        [edx+eax*4], mm1
+		  add         esi, 4
+		  movq        [ebx+eax*8], mm2
+		  sub         ecx, 2
+		  jnz         deintloop
+		// use this as source from now on
+		  mov         eax, cur_luma
+		  mov         ebx, cur_chroma
+		  mov         edx, dstp
+		xloopYUV:
+		  mov         esi, [eax]          ;esi=&tempY[ofs0]
+		  movq        mm1, mm0
+		  mov         edi, [eax+4]        ;edi=&tempY[ofs1]
+		  movq        mm3, mm0
+		  mov         ecx, fir_filter_size_luma
+		  add         eax, 8              ;cur_luma++
+		aloopY:
+		  // Identifiers:
+		  // Ya, Yb: Y values in srcp[ofs0]
+		  // Ym, Yn: Y values in srcp[ofs1]
+		  movd        mm2, [esi]          ;mm2 =  0| 0|Yb|Ya
+		  punpckldq   mm2, [edi]          ;mm2 = Yn|Ym|Yb|Ya
+										  ;[eax] = COn|COm|COb|COa
+		  pmaddwd     mm2, [eax]          ;mm2 = Y1|Y0 (DWORDs)
+		  paddd       mm1, mm2            ;accumulate
+		  add         esi, 4
+		  add         edi, 4
+		  add         eax, 8              ;cur_luma++
+		  dec         ecx
+		  jnz         aloopY
+
+		  mov         esi, [ebx]          ;esi=&tempUV[ofs]
+		  add         ebx, 8              ;cur_chroma++
+		  mov         ecx, fir_filter_size_chroma
+		aloopUV:
+		  movq        mm2, [esi]          ;mm2 = 0|V|0|U
+										  ;[ebx] = 0|COv|0|COu
+		  pmaddwd     mm2, [ebx]          ;mm2 = V|U (DWORDs)
+		  paddd       mm3, mm2            ;accumulate
+		  add         esi, 8
+		  add         ebx, 8              ;cur_chroma++
+		  dec         ecx
+		  jnz         aloopUV
+
+		  paddd       mm1, mm6            ;Y1|Y1|Y0|Y0
+		  paddd       mm3, mm6            ; V| V| U| U
+		  pslld       mm3, 2
+		  pand        mm3, mm5            ;mm3 = v| 0|u| 0
+		  psrld       mm1, 14             ;mm1 = 0|y1|0|y0
+		  por         mm3, mm1
+		  packuswb    mm3, mm3            ;mm3 = ...|v|y1|u|y0
+		  movd        [edx], mm3
+		  add         edx, 4
+		  dec         x
+		  jnz         xloopYUV
+		}
+		srcp += src_pitch;
+		dstp += dst_pitch;
+	  }
+	  __asm { emms }
+	}
+	else
+	{
+	  // RGB24 is not recommended. 75% of all pixels are not aligned.
+	  int y = height;
+	  int w = (width<<1) + width;
+	  int fir_filter_size = pattern_luma[0];
+	  int* pattern_lumaP1 = pattern_luma+1 - fir_filter_size;
+	  static const __int64 xFF000000 = 0xFF000000;
+	  __asm
+	  {
+		emms
+		mov         esi, srcp
+		mov         edi, dstp
+		pxor        mm2, mm2
+		movq        mm4, xFF000000
+
+	  yloop24:
+		xor         ecx, ecx
+		mov         edx, pattern_lumaP1       ;cur - fir_filter_size
+	  xloop24:
+		mov         eax, fir_filter_size
+		lea         edx, [edx+eax*4]          ;cur += fir_filter_size
+		mov         ebx, [edx]
+		lea         ebx, [ebx+ebx*2]          ;ebx = ofs = *cur * 3
+		add         edx, 4                    ;cur++
+		pxor        mm0, mm0                  ;btotal, gtotal
+		pxor        mm1, mm1                  ;rtotal
+		lea         edx, [edx+eax*4]          ;cur += fir_filter_size
+		add         ebx, esi                  ;ebx = srcp + ofs*3
+		lea         eax, [eax+eax*2]          ;eax = a = fir_filter_size*3
+	  aloop24:
+		sub         edx, 4                    ;cur--
+		movd        mm7, [ebx+eax]            ;mm7 = srcp[ofs+a] = 0|0|0|0|x|r|g|b
+		punpcklbw   mm7, mm2                  ;mm7 = 0x|0r|0g|0b
+		movq        mm6, mm7
+		punpcklwd   mm7, mm2                  ;mm7 = 00|0g|00|0b
+		punpckhwd   mm6, mm2                  ;mm6 = 00|0x|00|0r
+		movd        mm5, [edx]                ;mm5 =    00|co (co = coefficient)
+		packssdw    mm5, mm2
+		punpckldq   mm5, mm5                  ;mm5 =    co|co
+		pmaddwd     mm7, mm5                  ;mm7 =  g*co|b*co
+		pmaddwd     mm6, mm5                  ;mm6 =  x*co|r*co
+		paddd       mm0, mm7
+		paddd       mm1, mm6
+		sub         eax, 3
+		jnz         aloop24
+		pslld       mm0, 2
+		pslld       mm1, 2                    ;compensate the fact that FPScale = 16384
+		packuswb    mm0, mm1                  ;mm0 = x|_|r|_|g|_|b|_
+		psrlw       mm0, 8                    ;mm0 = 0|x|0|r|0|g|0|b
+		packuswb    mm0, mm2                  ;mm0 = 0|0|0|0|x|r|g|b
+		pslld       mm0, 8
+		psrld       mm0, 8                    ;mm0 = 0|0|0|0|0|r|g|b
+		movd        mm3, [edi+ecx]            ;mm3 = 0|0|0|0|x|r|g|b (dst)
+		pand        mm3, mm4                  ;mm3 = 0|0|0|0|x|0|0|0 (dst)
+		por         mm3, mm0
+		movd        [edi+ecx], mm3
+
+		add         ecx, 3
+		cmp         ecx, w
+		jnz         xloop24
+
+		add         esi, src_pitch
+		add         edi, dst_pitch
+		dec         y
+		jnz         yloop24
+
+		emms
+	  }
+	}
+}
+  
+FilteredResizeH::~FilteredResizeH() 
+{
+	  aligned_free(pattern_luma);
+	  if (pattern_chroma)
+		  aligned_free(pattern_chroma);
+	  if (tempY)
+		  aligned_free(tempY);
+	  if (tempUV)
+		  aligned_free(tempUV);
+}
+
+
+FilteredResizeV::FilteredResizeV(int isYUV,int wi, int he, int subrange_top, int subrange_height, int target_height, ResamplingFunction* func):width(wi),height(he),m_YUV(isYUV)
+{
+	//if (!isYUV)
+	//	subrange_top = height - subrange_top - subrange_height;
+    resampling_pattern = GetResamplingPatternRGB(height, subrange_top, subrange_height, target_height, func);
+    height = target_height;
+    int sh = he;
+    yOfs = (int*)aligned_malloc(sizeof(int)*sh, 128);
+    for (int i = 0; i < sh; i++) 
+		yOfs[i] = (isYUV ? (wi*2) * i : (wi*3) * i);
+}
+
+void FilteredResizeV::ResizeFrame(unsigned char* srcp, unsigned char* dstp, int src_pitch, int dst_pitch, int row_size)
+{
+    const int* cur = resampling_pattern;
+    const int fir_filter_size = *cur++;
+    const int xloops = row_size>>2;
+    int y = height;
+    int *yOfs = this->yOfs;
+
+    __asm
+	{
+      emms
+      mov         edx, cur
+      pxor        mm0, mm0
+      mov         edi, fir_filter_size
+    yloop:
+      mov         esi, yOfs
+      mov         eax, [edx]              ;eax = *cur
+      mov         esi, [esi+eax*4]
+      add         esi, srcp               ;esi = srcp + yOfs[*cur]
+      add         edx, 4                  ;cur++
+      xor         ecx, ecx                ;ecx = x = 0
+    xloop:
+      pxor        mm7, mm7
+      pxor        mm1, mm1                ;total = 0
+      lea         eax, [esi+ecx*4]        ;eax = srcp2 = srcp + x
+      xor         ebx, ebx                ;ebx = b = 0
+    bloop:
+      movd        mm2, [eax]              ;mm2 = *srcp2 = 0|0|0|0|d|c|b|a
+      movd        mm3, [edx+ebx*4]        ;mm3 = cur[b] = 0|co
+      punpckldq   mm3, mm3                ;mm3 = co|co
+      punpcklbw   mm2, mm0                ;mm2 = 0d|0c|0b|0a
+      movq        mm4, mm2
+      punpcklwd   mm2, mm0                ;mm2 = 00|0b|00|0a
+      punpckhwd   mm4, mm0                ;mm4 = 00|0d|00|0c
+      pmaddwd     mm2, mm3                ;mm2 =  b*co|a*co
+      pmaddwd     mm4, mm3                ;mm4 =  d*co|c*co
+      paddd       mm1, mm2
+      paddd       mm7, mm4                ;accumulate
+      add         eax, src_pitch          ;srcp2 += src_pitch
+      inc         ebx
+      cmp         ebx, edi
+      jnz         bloop
+      mov         eax, dstp
+      pslld       mm1, 2
+      pslld       mm7, 2                  ;compensate the fact that FPScale = 16384
+      packuswb    mm1, mm7                ;mm1 = d|_|c|_|b|_|a|_
+      psrlw       mm1, 8                  ;mm1 = 0|d|0|c|0|b|0|a
+      packuswb    mm1, mm2                ;mm1 = 0|0|0|0|d|c|b|a
+      movd        [eax+ecx*4], mm1
+      inc         ecx
+      cmp         ecx, xloops
+      jnz         xloop
+      add         eax, dst_pitch
+      lea         edx, [edx+edi*4]        ;cur += fir_filter_size
+      mov         dstp, eax
+      dec         y
+      jnz         yloop
+      emms
+    }
+}
+
+FilteredResizeV::~FilteredResizeV()
+{
+    aligned_free(resampling_pattern);
+    aligned_free(yOfs);
+}
+
+extern "C" void InitFilters()
+{
+	NINE_CLIP_WIDTH = Clip_Width * 9;
+	QUAD_CLIP_WIDTH = Clip_Width<<2;
+	DOUBLE_CLIP_WIDTH = Clip_Width<<1;
+	HALF_CLIP_WIDTH = Clip_Width>>1;
+	
+	LUM_AREA = Coded_Picture_Width * Clip_Height;
+	DOUBLE_WIDTH = Coded_Picture_Width<<1;
+	HALF_WIDTH = Coded_Picture_Width>>1;
+	HALF_WIDTH_D8 = (Coded_Picture_Width>>1) - 8;
+	PROGRESSIVE_HEIGHT = (Coded_Picture_Height>>1) - 2;
+	INTERLACED_HEIGHT = (Coded_Picture_Height>>2) - 2;
+	RGB_DOWN1 = Clip_Width * (Clip_Height - 1) * 3;
+	RGB_DOWN2 = Clip_Width * (Clip_Height - 2) * 3;
+	
+	LumGainMask = ((__int64)LumGain<<48) + ((__int64)LumGain<<32) + ((__int64)LumGain<<16) + (__int64)LumGain;
+	LumOffsetMask = ((__int64)LumOffset<<48) + ((__int64)LumOffset<<32) + ((__int64)LumOffset<<16) + (__int64)LumOffset;
+	
+	CLIP_AREA = HALF_CLIP_AREA = CLIP_STEP = CLIP_HALF_STEP = 0;
+	
+	if (Clip_Top || Clip_Bottom || Clip_Left || Clip_Right)
+	{
+		CLIP_AREA = Coded_Picture_Width * Clip_Top;
+		HALF_CLIP_AREA = (Coded_Picture_Width>>1) * Clip_Top;
+		
+		CLIP_STEP = Coded_Picture_Width * Clip_Top + Clip_Left;
+		CLIP_HALF_STEP = (Coded_Picture_Width>>1) * Clip_Top + (Clip_Left>>1);
+	}
+	
+	if (Store_Flag == STORE_YUY2)
+	{
+		if (Clip_Width != Resize_Width)
+		{
+			if (h_filter==0)
+			{
+				switch(Resize_Function)
+				{
+				case FILTER_BILINEAR:
+					h_filter = new FilteredResizeH(1,Clip_Width,Clip_Height,0,Clip_Width, Resize_Width, &TriangleFilter());
+					break;
+				case FILTER_SOFT_BICUBIC:
+					h_filter = new FilteredResizeH(1,Clip_Width,Clip_Height,0,Clip_Width, Resize_Width, &MitchellNetravaliFilter(1./3.,1./3.));
+					break;
+				case FILTER_PRECISE_BICUBIC:
+					h_filter = new FilteredResizeH(1,Clip_Width,Clip_Height,0,Clip_Width, Resize_Width, &MitchellNetravaliFilter(0,0.75));
+					break;
+				}
+			}
+		}
+		else if (h_filter)
+		{
+			delete h_filter;
+			h_filter=0;
+		}
+		
+		if (Clip_Height != Resize_Height)
+		{
+			if (v_filter==0)
+			{
+				switch(Resize_Function)
+				{
+				case FILTER_BILINEAR:
+					v_filter = new FilteredResizeV(1,Resize_Width,Clip_Height,0,Clip_Height, Resize_Height, &TriangleFilter());
+					break;
+				case FILTER_SOFT_BICUBIC:
+					v_filter = new FilteredResizeV(1,Resize_Width,Clip_Height,0,Clip_Height, Resize_Height, &MitchellNetravaliFilter(1./3.,1./3.));
+					break;
+				case FILTER_PRECISE_BICUBIC:
+					v_filter = new FilteredResizeV(1,Resize_Width,Clip_Height,0,Clip_Height, Resize_Height, &MitchellNetravaliFilter(0,0.75));
+					break;
+				}
+			}
+		}
+		else if (v_filter)
+		{
+			delete v_filter;
+			v_filter=0;
+		}
+	}
+	else
+	{
+		if (Clip_Width != Resize_Width)
+		{
+			if (h_filter==0)
+			{
+				switch(Resize_Function)
+				{
+				case FILTER_BILINEAR:
+					h_filter = new FilteredResizeH(0,Clip_Width,Clip_Height,0,Clip_Width, Resize_Width, &TriangleFilter());
+					break;
+				case FILTER_SOFT_BICUBIC:
+					h_filter = new FilteredResizeH(0,Clip_Width,Clip_Height,0,Clip_Width, Resize_Width, &MitchellNetravaliFilter(1./3.,1./3.));
+					break;
+				case FILTER_PRECISE_BICUBIC:
+					h_filter = new FilteredResizeH(0,Clip_Width,Clip_Height,0,Clip_Width, Resize_Width, &MitchellNetravaliFilter(0,0.75));
+					break;
+				}
+			}
+		}
+		else if (h_filter)
+		{
+			delete h_filter;
+			h_filter=0;
+		}
+		
+		if (Clip_Height != Resize_Height)
+		{
+			if (v_filter==0)
+			{
+				switch(Resize_Function)
+				{
+				case FILTER_BILINEAR:
+					v_filter = new FilteredResizeV(0,Resize_Width,Clip_Height,0,Clip_Height, Resize_Height, &TriangleFilter());
+					break;
+				case FILTER_SOFT_BICUBIC:
+					v_filter = new FilteredResizeV(0,Resize_Width,Clip_Height,0,Clip_Height, Resize_Height, &MitchellNetravaliFilter(1./3.,1./3.));
+					break;
+				case FILTER_PRECISE_BICUBIC:
+					v_filter = new FilteredResizeV(0,Resize_Width,Clip_Height,0,Clip_Height, Resize_Height, &MitchellNetravaliFilter(0,0.75));
+					break;
+				}
+			}
+		}
+		else if (v_filter)
+		{
+			delete v_filter;
+			v_filter=0;
+		}
+	}
+}
+
+extern "C" void ApplyFilters()
+{
+	if (Store_Flag == STORE_YUY2)
+	{
+		unsigned char* loc_result = yuy2;
+	
+		if (h_filter)
+		{
+			h_filter->ResizeFrame(loc_result, yuy2_temp, Clip_Width<<1, Resize_Width<<1);
+			loc_result = yuy2_temp;
+		}
+		if (v_filter)
+		{
+			v_filter->ResizeFrame(loc_result, (loc_result == yuy2_temp ? yuy2 : yuy2_temp), Resize_Width<<1, Resize_Width<<1, Resize_Width<<1);
+			loc_result = (loc_result == yuy2_temp ? yuy2 : yuy2_temp);
+		}
+
+		yuv_result = loc_result;
+	}
+	else
+	{
+		unsigned char *loc_result = rgb24;
+
+		if (h_filter)
+		{
+			h_filter->ResizeFrame(loc_result, rgb24_temp, Clip_Width*3, Resize_Width*3);
+			loc_result = rgb24_temp;
+		}
+		if (v_filter)
+		{
+			v_filter->ResizeFrame(loc_result, rgb24_temp2, Resize_Width*3, Resize_Width*3, Resize_Width*3);
+			loc_result = rgb24_temp2;
+		}
+
+		rgb_result = loc_result;
+	}
+}
+
+extern "C" unsigned char* GetFilteredOutput()
+{
+	return ((Store_Flag == STORE_YUY2) ? yuv_result : rgb_result);
+}
+
+extern "C" void KillFilters()
+{
+	if (v_filter)
+	{
+		delete v_filter;
+		v_filter=0;
+	}
+
+	if (h_filter)
+	{
+		delete h_filter;
+		h_filter=0;
+	}
+}
+
+extern "C" void Luminance_Filter(unsigned char *src, unsigned char *dst)
+{
+	src += CLIP_AREA;
+	dst += CLIP_AREA;
+
+	__asm
+	{
+		mov			eax, [src]
+		mov			ebx, [dst]
+		mov			esi, 0x00
+		mov			edi, [LUM_AREA]
+		pxor		mm0, mm0
+		movq		mm5, [LumOffsetMask]
+		movq		mm6, [LumGainMask]
+		movq		mm7, [mmmask_0064]
+
+lumconv:
+		movq		mm1, [eax+esi]
+		movq		mm2, mm1
+
+		punpcklbw	mm1, mm0
+		punpckhbw	mm2, mm0
+
+		pmullw		mm1, mm6
+		pmullw		mm2, mm6
+
+		paddw		mm1, mm7
+		paddw		mm2, mm7
+
+		psrlw		mm1, 7
+		psrlw		mm2, 7
+
+		paddw		mm1, mm5
+		paddw		mm2, mm5
+
+		packuswb	mm1, mm0
+		packuswb	mm2, mm0
+
+		add			esi, 0x08
+		cmp			esi, edi
+		movq		[ebx+esi-8], mm1
+		movq		[ebx+esi-4], mm2
+		jl			lumconv
+	}
+}
+
+extern "C" void conv422to444(unsigned char *src, unsigned char *dst)
+{
+	src += HALF_CLIP_AREA;
+	dst += CLIP_AREA;
+
+	__asm
+	{
+		mov			eax, [src]
+		mov			ebx, [dst]
+		mov			edi, [Clip_Height]
+
+		movq		mm1, [mmmask_0001]
+		pxor		mm0, mm0
+
+convyuv444init:
+		movq		mm7, [eax]
+		mov			esi, 0x00
+
+convyuv444:
+		movq		mm2, mm7
+		movq		mm7, [eax+esi+8]
+		movq		mm3, mm2
+		movq		mm4, mm7
+
+		psrlq		mm3, 8
+		psllq		mm4, 56
+		por			mm3, mm4
+
+		movq		mm4, mm2
+		movq		mm5, mm3
+
+		punpcklbw	mm4, mm0
+		punpcklbw	mm5, mm0
+
+		movq		mm6, mm4
+		paddusw		mm4, mm1
+		paddusw		mm4, mm5
+		psrlw		mm4, 1
+		psllq		mm4, 8
+		por			mm4, mm6
+
+		punpckhbw	mm2, mm0
+		punpckhbw	mm3, mm0
+
+		movq		mm6, mm2
+		paddusw		mm2, mm1
+		paddusw		mm2, mm3
+
+		movq		[ebx+esi*2], mm4
+
+		psrlw		mm2, 1
+		psllq		mm2, 8
+		por			mm2, mm6
+
+		add			esi, 0x08
+		cmp			esi, [HALF_WIDTH_D8]
+		movq		[ebx+esi*2-8], mm2
+		jl			convyuv444
+
+		movq		mm2, mm7
+		punpcklbw	mm2, mm0
+		movq		mm3, mm2
+
+		psllq		mm2, 8
+		por			mm2, mm3
+
+		movq		[ebx+esi*2], mm2
+
+		punpckhbw	mm7, mm0
+		movq		mm6, mm7
+
+		psllq		mm6, 8
+		por			mm6, mm7
+
+		movq		[ebx+esi*2+8], mm6
+
+		add			eax, [HALF_WIDTH]		
+		add			ebx, [Coded_Picture_Width]
+		dec			edi
+		cmp			edi, 0x00
+		jg			convyuv444init
+	}
+}
+
+extern "C" void conv420to422(int frame_type, unsigned char *src, unsigned char *dst)
+{
+	if (frame_type)
+	{
+		__asm
+		{
+			mov			eax, [src]
+			mov			ebx, [dst]
+			mov			ecx, ebx
+			add			ecx, [HALF_WIDTH]
+			mov			esi, 0x00
+			movq		mm3, [mmmask_0003]
+			pxor		mm0, mm0
+			movq		mm4, [mmmask_0002]
+
+			mov			edx, eax
+			add			edx, [HALF_WIDTH]
+convyuv422topp:
+			movd		mm1, [eax+esi]
+			movd		mm2, [edx+esi]
+			movd		[ebx+esi], mm1
+			punpcklbw	mm1, mm0
+			pmullw		mm1, mm3
+			paddusw		mm1, mm4
+			punpcklbw	mm2, mm0
+			paddusw		mm2, mm1
+			psrlw		mm2, 0x02
+			packuswb	mm2, mm0
+
+			add			esi, 0x04
+			cmp			esi, [HALF_WIDTH]
+			movd		[ecx+esi-4], mm2
+			jl			convyuv422topp
+
+			add			eax, [HALF_WIDTH]
+			add			ebx, [Coded_Picture_Width]
+			add			ecx, [Coded_Picture_Width]
+			mov			esi, 0x00
+
+			mov			edi, [PROGRESSIVE_HEIGHT]
+convyuv422p:
+			movd		mm1, [eax+esi]
+
+			punpcklbw	mm1, mm0
+			mov			edx, eax
+
+			pmullw		mm1, mm3
+			sub			edx, [HALF_WIDTH]
+
+			movd		mm5, [edx+esi]
+			movd		mm2, [edx+esi]
+
+			punpcklbw	mm5, mm0
+			punpcklbw	mm2, mm0
+			paddusw		mm5, mm1
+			paddusw		mm2, mm1
+			paddusw		mm5, mm4
+			paddusw		mm2, mm4
+			psrlw		mm5, 0x02
+			psrlw		mm2, 0x02
+			packuswb	mm5, mm0
+			packuswb	mm2, mm0
+
+			mov			edx, eax
+			add			edx, [HALF_WIDTH]
+			add			esi, 0x04
+			cmp			esi, [HALF_WIDTH]
+			movd		[ebx+esi-4], mm5
+			movd		[ecx+esi-4], mm2
+
+			jl			convyuv422p
+
+			add			eax, [HALF_WIDTH]
+			add			ebx, [Coded_Picture_Width]
+			add			ecx, [Coded_Picture_Width]
+			mov			esi, 0x00
+			dec			edi
+			cmp			edi, 0x00
+			jg			convyuv422p
+
+			mov			edx, eax
+			sub			edx, [HALF_WIDTH]
+convyuv422bottomp:
+			movd		mm1, [eax+esi]
+			movd		mm5, [edx+esi]
+			punpcklbw	mm5, mm0
+			movd		[ecx+esi], mm1
+
+			punpcklbw	mm1, mm0
+			pmullw		mm1, mm3
+			paddusw		mm5, mm1
+			paddusw		mm5, mm4
+			psrlw		mm5, 0x02
+			packuswb	mm5, mm0
+
+			add			esi, 0x04
+			cmp			esi, [HALF_WIDTH]
+			movd		[ebx+esi-4], mm5
+			jl			convyuv422bottomp
+		}
+	}
+	else
+	{
+		__asm
+		{
+			mov			eax, [src]
+			mov			ecx, [dst]
+			mov			esi, 0x00
+			pxor		mm0, mm0
+			movq		mm3, [mmmask_0003]
+			movq		mm4, [mmmask_0004]
+			movq		mm5, [mmmask_0005]
+
+convyuv422topi:
+			movd		mm1, [eax+esi]
+			mov			ebx, eax
+			add			ebx, [HALF_WIDTH]
+			movd		mm2, [ebx+esi]
+			movd		[ecx+esi], mm1
+			punpcklbw	mm1, mm0
+			movq		mm6, mm1
+			pmullw		mm1, mm3
+
+			punpcklbw	mm2, mm0
+			movq		mm7, mm2
+			pmullw		mm2, mm5
+			paddusw		mm2, mm1
+			paddusw		mm2, mm4
+			psrlw		mm2, 0x03
+			packuswb	mm2, mm0
+
+			mov			edx, ecx
+			add			edx, [HALF_WIDTH]
+			pmullw		mm6, mm5
+			movd		[edx+esi], mm2
+
+			add			ebx, [HALF_WIDTH]
+			movd		mm2, [ebx+esi]
+			punpcklbw	mm2, mm0
+			pmullw		mm2, mm3
+			paddusw		mm2, mm6
+			paddusw		mm2, mm4
+			psrlw		mm2, 0x03
+			packuswb	mm2, mm0
+
+			add			edx, [HALF_WIDTH]
+			add			ebx, [HALF_WIDTH]
+			pmullw		mm7, [mmmask_0007]
+			movd		[edx+esi], mm2
+
+			movd		mm2, [ebx+esi]
+			punpcklbw	mm2, mm0
+			paddusw		mm2, mm7
+			paddusw		mm2, mm4
+			psrlw		mm2, 0x03
+			packuswb	mm2, mm0
+
+			add			edx, [HALF_WIDTH]
+			add			esi, 0x04
+			cmp			esi, [HALF_WIDTH]
+			movd		[edx+esi-4], mm2
+
+			jl			convyuv422topi
+
+			add			eax, [Coded_Picture_Width]
+			add			ecx, [DOUBLE_WIDTH]
+			mov			esi, 0x00
+
+			mov			edi, [INTERLACED_HEIGHT]
+convyuv422i:
+			movd		mm1, [eax+esi]
+			punpcklbw	mm1, mm0
+			movq		mm6, mm1
+			mov			ebx, eax
+			sub			ebx, [Coded_Picture_Width]
+			movd		mm3, [ebx+esi]
+			pmullw		mm1, [mmmask_0007]
+			punpcklbw	mm3, mm0
+			paddusw		mm3, mm1
+			paddusw		mm3, mm4
+			psrlw		mm3, 0x03
+			packuswb	mm3, mm0
+
+			add			ebx, [HALF_WIDTH]
+			movq		mm1, [ebx+esi]
+			add			ebx, [Coded_Picture_Width]
+			movd		[ecx+esi], mm3
+
+			movq		mm3, [mmmask_0003]
+			movd		mm2, [ebx+esi]
+
+			punpcklbw	mm1, mm0
+			pmullw		mm1, mm3
+			punpcklbw	mm2, mm0
+			movq		mm7, mm2
+			pmullw		mm2, mm5
+			paddusw		mm2, mm1
+			paddusw		mm2, mm4
+			psrlw		mm2, 0x03
+			packuswb	mm2, mm0
+
+			pmullw		mm6, mm5
+			mov			edx, ecx
+			add			edx, [HALF_WIDTH]
+			movd		[edx+esi], mm2
+
+			add			ebx, [HALF_WIDTH]
+			movd		mm2, [ebx+esi]
+			punpcklbw	mm2, mm0
+			pmullw		mm2, mm3
+			paddusw		mm2, mm6
+			paddusw		mm2, mm4
+			psrlw		mm2, 0x03
+			packuswb	mm2, mm0
+
+			pmullw		mm7, [mmmask_0007]
+			add			edx, [HALF_WIDTH]
+			add			ebx, [HALF_WIDTH]
+ 			movd		[edx+esi], mm2
+
+			movd		mm2, [ebx+esi]
+			punpcklbw	mm2, mm0
+			paddusw		mm2, mm7
+			paddusw		mm2, mm4
+			psrlw		mm2, 0x03
+			packuswb	mm2, mm0
+
+			add			edx, [HALF_WIDTH]
+			add			esi, 0x04
+			cmp			esi, [HALF_WIDTH]
+			movd		[edx+esi-4], mm2
+
+			jl			convyuv422i
+			add			eax, [Coded_Picture_Width]
+			add			ecx, [DOUBLE_WIDTH]
+			mov			esi, 0x00
+			dec			edi
+			cmp			edi, 0x00
+			jg			convyuv422i
+
+convyuv422bottomi:
+			movd		mm1, [eax+esi]
+			movq		mm6, mm1
+			punpcklbw	mm1, mm0
+			mov			ebx, eax
+			sub			ebx, [Coded_Picture_Width]
+			movd		mm3, [ebx+esi]
+			punpcklbw	mm3, mm0
+			pmullw		mm1, [mmmask_0007]
+			paddusw		mm3, mm1
+			paddusw		mm3, mm4
+			psrlw		mm3, 0x03
+			packuswb	mm3, mm0
+
+			add			ebx, [HALF_WIDTH]
+			movq		mm1, [ebx+esi]
+			punpcklbw	mm1, mm0
+			movd		[ecx+esi], mm3
+
+			pmullw		mm1, [mmmask_0003]
+			add			ebx, [Coded_Picture_Width]
+			movd		mm2, [ebx+esi]
+			punpcklbw	mm2, mm0
+			movq		mm7, mm2
+			pmullw		mm2, mm5
+			paddusw		mm2, mm1
+			paddusw		mm2, mm4
+			psrlw		mm2, 0x03
+			packuswb	mm2, mm0
+
+			mov			edx, ecx
+			add			edx, [HALF_WIDTH]
+			pmullw		mm7, [mmmask_0007]
+			movd		[edx+esi], mm2
+
+			add			edx, [HALF_WIDTH]
+			movd		[edx+esi], mm6
+
+			punpcklbw	mm6, mm0
+			paddusw		mm6, mm7
+			paddusw		mm6, mm4
+			psrlw		mm6, 0x03
+			packuswb	mm6, mm0
+
+			add			edx, [HALF_WIDTH]
+			add			esi, 0x04
+			cmp			esi, [HALF_WIDTH]
+			movd		[edx+esi-4], mm6
+
+			jl			convyuv422bottomi
+		}
+	}
+}
+
+extern "C" void conv422toyuy2odd(unsigned char *py, unsigned char *pu, unsigned char *pv, unsigned char *dst)
+{
+	py += CLIP_STEP;
+	pu += CLIP_HALF_STEP;
+	pv += CLIP_HALF_STEP;
+
+	//TFB = 1;
+
+	__asm
+	{
+		mov			eax, [py]
+		mov			ebx, [pu]
+		mov			ecx, [pv]
+		mov			edx, [dst]
+		mov			esi, 0x00
+		mov			edi, [Clip_Height]
+
+yuy2conv:
+		movd		mm2, [ebx+esi]
+		movd		mm3, [ecx+esi]
+		punpcklbw	mm2, mm3
+		movq		mm1, [eax+esi*2]
+		movq		mm4, mm1
+		punpcklbw	mm1, mm2
+		punpckhbw	mm4, mm2
+
+		add			esi, 0x04
+		cmp			esi, [HALF_CLIP_WIDTH]
+		movq		[edx+esi*4-16], mm1
+		movq		[edx+esi*4-8], mm4
+		jl			yuy2conv
+
+		add			eax, [DOUBLE_WIDTH]
+		add			ebx, [Coded_Picture_Width]
+		add			ecx, [Coded_Picture_Width]
+		add			edx, [QUAD_CLIP_WIDTH]
+		sub			edi, 0x02
+		mov			esi, 0x00
+		cmp			edi, 0x00
+		jg			yuy2conv
+
+		emms
+	}
+}
+
+extern "C" void conv422toyuy2even(unsigned char *py, unsigned char *pu, unsigned char *pv, unsigned char *dst)
+{
+	py += Coded_Picture_Width + CLIP_STEP;
+	pu += HALF_WIDTH + CLIP_HALF_STEP;
+	pv += HALF_WIDTH + CLIP_HALF_STEP;
+	dst += DOUBLE_CLIP_WIDTH;
+
+	//BFB = 1;
+
+	__asm
+	{
+		mov			eax, [py]
+		mov			ebx, [pu]
+		mov			ecx, [pv]
+		mov			edx, [dst]
+		mov			esi, 0x00
+		mov			edi, [Clip_Height]
+
+yuy2conv:
+		movd		mm2, [ebx+esi]
+		movd		mm3, [ecx+esi]
+		punpcklbw	mm2, mm3
+		movq		mm1, [eax+esi*2]
+		movq		mm4, mm1
+		punpcklbw	mm1, mm2
+		punpckhbw	mm4, mm2
+
+		add			esi, 0x04
+		cmp			esi, [HALF_CLIP_WIDTH]
+		movq		[edx+esi*4-16], mm1
+		movq		[edx+esi*4-8], mm4
+		jl			yuy2conv
+
+		add			eax, [DOUBLE_WIDTH]
+		add			ebx, [Coded_Picture_Width]
+		add			ecx, [Coded_Picture_Width]
+		add			edx, [QUAD_CLIP_WIDTH]
+		sub			edi, 0x02
+		mov			esi, 0x00
+		cmp			edi, 0x00
+		jg			yuy2conv
+
+		emms
+	}
+}
+
+extern "C" void conv444toRGB24odd(unsigned char *py, unsigned char *pu, unsigned char *pv, unsigned char *dst)
+{
+	py += CLIP_STEP;
+	pu += CLIP_STEP;
+	pv += CLIP_STEP;
+	dst += RGB_DOWN1;
+
+	//TFB = 1;
+
+	__asm
+	{
+		mov			eax, [py]
+		mov			ebx, [pu]
+		mov			ecx, [pv]
+		mov			edx, [dst]
+		mov			edi, [Clip_Height]
+		mov			esi, 0x00
+		pxor		mm0, mm0
+
+convRGB24:
+		movd		mm1, [eax+esi]
+		movd		mm3, [ebx+esi]
+		punpcklbw	mm1, mm0
+		punpcklbw	mm3, mm0
+		movd		mm5, [ecx+esi]
+		punpcklbw	mm5, mm0
+		movq		mm7, [mmmask_0128]
+		psubw		mm3, mm7
+		psubw		mm5, mm7
+
+		psubw		mm1, [RGB_Offset]
+		movq		mm2, mm1
+		movq		mm7, [mmmask_0001]
+		punpcklwd	mm1, mm7
+		punpckhwd	mm2, mm7
+		movq		mm7, [RGB_Scale]
+		pmaddwd		mm1, mm7
+		pmaddwd		mm2, mm7
+
+		movq		mm4, mm3
+		punpcklwd	mm3, mm0
+		punpckhwd	mm4, mm0
+		movq		mm7, [RGB_CBU]
+		pmaddwd		mm3, mm7
+		pmaddwd		mm4, mm7
+		paddd		mm3, mm1
+		paddd		mm4, mm2
+		psrld		mm3, 13
+		psrld		mm4, 13
+		packuswb	mm3, mm0
+		packuswb	mm4, mm0
+
+		movq		mm6, mm5
+		punpcklwd	mm5, mm0
+		punpckhwd	mm6, mm0
+		movq		mm7, [RGB_CRV]
+		pmaddwd		mm5, mm7
+		pmaddwd		mm6, mm7
+		paddd		mm5, mm1
+		paddd		mm6, mm2
+
+		psrld		mm5, 13
+		psrld		mm6, 13
+		packuswb	mm5, mm0
+		packuswb	mm6, mm0
+
+		punpcklbw	mm3, mm5
+		punpcklbw	mm4, mm6
+		movq		mm5, mm3
+		movq		mm6, mm4
+		psrlq		mm5, 16
+		psrlq		mm6, 16
+		por			mm3, mm5
+		por			mm4, mm6
+
+		movd		mm5, [ebx+esi]
+		movd		mm6, [ecx+esi]
+		punpcklbw	mm5, mm0
+		punpcklbw	mm6, mm0
+		movq		mm7, [mmmask_0128]
+		psubw		mm5, mm7
+		psubw		mm6, mm7
+
+		movq		mm7, mm6
+		punpcklwd	mm6, mm5
+		punpckhwd	mm7, mm5		
+		movq		mm5, [RGB_CGX]
+		pmaddwd		mm6, mm5
+		pmaddwd		mm7, mm5
+		paddd		mm6, mm1
+		paddd		mm7, mm2
+
+		psrld		mm6, 13
+		psrld		mm7, 13
+		packuswb	mm6, mm0
+		packuswb	mm7, mm0
+
+		punpcklbw	mm3, mm6
+		punpcklbw	mm4, mm7
+
+		movq		mm1, mm3
+		movq		mm5, mm4
+		movq		mm6, mm4
+
+		psrlq		mm1, 32
+		psllq		mm1, 24
+		por			mm1, mm3
+
+		psrlq		mm3, 40
+		psllq		mm6, 16
+		por			mm3, mm6
+		movd		[edx], mm1
+
+		psrld		mm4, 16
+		psrlq		mm5, 24
+		por			mm5, mm4
+		movd		[edx+4], mm3
+
+		add			edx, 0x0c
+		add			esi, 0x04
+		cmp			esi, [Clip_Width]
+		movd		[edx-4], mm5
+
+		jl			convRGB24
+
+		add			eax, [DOUBLE_WIDTH]
+		add			ebx, [DOUBLE_WIDTH]
+		add			ecx, [DOUBLE_WIDTH]
+		sub			edx, [NINE_CLIP_WIDTH]
+		mov			esi, 0x00
+		sub			edi, 0x02
+		cmp			edi, 0x00
+		jg			convRGB24
+
+		emms
+	}
+}
+
+extern "C" void conv444toRGB24even(unsigned char *py, unsigned char *pu, unsigned char *pv, unsigned char *dst)
+{
+	py += Coded_Picture_Width + CLIP_STEP;
+	pu += Coded_Picture_Width + CLIP_STEP;
+	pv += Coded_Picture_Width + CLIP_STEP;
+	dst += RGB_DOWN2;
+
+	//BFB = 1;
+
+	__asm
+	{
+		mov			eax, [py]
+		mov			ebx, [pu]
+		mov			ecx, [pv]
+		mov			edx, [dst]
+		mov			edi, [Clip_Height]
+		mov			esi, 0x00
+		pxor		mm0, mm0
+
+convRGB24:
+		movd		mm1, [eax+esi]
+		movd		mm3, [ebx+esi]
+		punpcklbw	mm1, mm0
+		punpcklbw	mm3, mm0
+		movd		mm5, [ecx+esi]
+		punpcklbw	mm5, mm0
+		movq		mm7, [mmmask_0128]
+		psubw		mm3, mm7
+		psubw		mm5, mm7
+
+		psubw		mm1, [RGB_Offset]
+		movq		mm2, mm1
+		movq		mm7, [mmmask_0001]
+		punpcklwd	mm1, mm7
+		punpckhwd	mm2, mm7
+		movq		mm7, [RGB_Scale]
+		pmaddwd		mm1, mm7
+		pmaddwd		mm2, mm7
+
+		movq		mm4, mm3
+		punpcklwd	mm3, mm0
+		punpckhwd	mm4, mm0
+		movq		mm7, [RGB_CBU]
+		pmaddwd		mm3, mm7
+		pmaddwd		mm4, mm7
+		paddd		mm3, mm1
+		paddd		mm4, mm2
+		psrld		mm3, 13
+		psrld		mm4, 13
+		packuswb	mm3, mm0
+		packuswb	mm4, mm0
+
+		movq		mm6, mm5
+		punpcklwd	mm5, mm0
+		punpckhwd	mm6, mm0
+		movq		mm7, [RGB_CRV]
+		pmaddwd		mm5, mm7
+		pmaddwd		mm6, mm7
+		paddd		mm5, mm1
+		paddd		mm6, mm2
+		psrld		mm5, 13
+		psrld		mm6, 13
+		packuswb	mm5, mm0
+		packuswb	mm6, mm0
+
+		punpcklbw	mm3, mm5
+		punpcklbw	mm4, mm6
+		movq		mm5, mm3
+		movq		mm6, mm4
+		psrlq		mm5, 16
+		psrlq		mm6, 16
+		por			mm3, mm5
+		por			mm4, mm6
+
+		movd		mm5, [ebx+esi]
+		movd		mm6, [ecx+esi]
+		punpcklbw	mm5, mm0
+		punpcklbw	mm6, mm0
+		movq		mm7, [mmmask_0128]
+		psubw		mm5, mm7
+		psubw		mm6, mm7
+
+		movq		mm7, mm6
+		punpcklwd	mm6, mm5
+		punpckhwd	mm7, mm5		
+		movq		mm5, [RGB_CGX]
+		pmaddwd		mm6, mm5
+		pmaddwd		mm7, mm5
+		paddd		mm6, mm1
+		paddd		mm7, mm2
+
+		psrld		mm6, 13
+		psrld		mm7, 13
+		packuswb	mm6, mm0
+		packuswb	mm7, mm0
+
+		punpcklbw	mm3, mm6
+		punpcklbw	mm4, mm7
+
+		movq		mm1, mm3
+		movq		mm5, mm4
+		movq		mm6, mm4
+
+		psrlq		mm1, 32
+		psllq		mm1, 24
+		por			mm1, mm3
+
+		psrlq		mm3, 40
+		psllq		mm6, 16
+		por			mm3, mm6
+		movd		[edx], mm1
+
+		psrld		mm4, 16
+		psrlq		mm5, 24
+		por			mm5, mm4
+		movd		[edx+4], mm3
+
+		add			edx, 0x0c
+		add			esi, 0x04
+		cmp			esi, [Clip_Width]
+		movd		[edx-4], mm5
+
+		jl			convRGB24
+
+		add			eax, [DOUBLE_WIDTH]
+		add			ebx, [DOUBLE_WIDTH]
+		add			ecx, [DOUBLE_WIDTH]
+		sub			edx, [NINE_CLIP_WIDTH]
+		mov			esi, 0x00
+		sub			edi, 0x02
+		cmp			edi, 0x00
+		jg			convRGB24
+
+		emms
+	}
+}
+
