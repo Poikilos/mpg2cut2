@@ -305,14 +305,14 @@ int Store_Timing_Chk(int P_Overlay)
   else
   if (PlayCtl.iFPS_Dec_Pct < 50                             // Way-Slow
   &&  iWAVEOUT_Scheduled_Blocks < WAVEOUT_HIGH_PKTS_CUSHION // Way-Ahead
-  &&  PlayCtl.iDrop_B_Frames_Flag > 1)
+  &&  PlayCtl.iDrop_B_Frames_Flag > 1)                // Dropping frames
   {
      cAudNew = '0';
      iSync_Diff_ms = 0;
   }
   else
   {
-    while ( PlayedWaveHeadersCount > 0 )                // free used blocks ...
+    while ( PlayedWaveHeadersCount > 0 )              // free used blocks ...
         WAV_Free_Memory();
 
     iWavQue_ms = process.iWavQue_Len / process.iWavBytesPerMs;
@@ -430,7 +430,9 @@ int Store_Timing_Chk(int P_Overlay)
         cAudNew = '9';
         iSync_Diff_ms = iPeriod_Adj * 9 / 8 ;        // Tea Break
 
-        if (PlayCtl.iDrop_B_Frames_Flag > 0 && PlayCtl.iFPS_Dec_Pct > 145)
+        if (PlayCtl.iDrop_B_Frames_Flag > 0 && PlayCtl.iFPS_Dec_Pct > 145
+        //&&  process.Delay_Sign[0] != '+'
+        )
             PlayCtl.iDrop_B_Frames_Flag--;
 
     }
@@ -489,6 +491,9 @@ int Store_Timing_Chk(int P_Overlay)
             PlayCtl.iDrop_B_Frames_Flag--;
 
 
+        //if (process.Delay_Sign[0] == '+')
+        //    iSync_Diff_ms-=5;
+
         //if (MParse.FastPlay_Flag)
         //{
         //  iSync_Diff_ms = iSync_Diff_ms / 3;
@@ -531,6 +536,9 @@ int Store_Timing_Chk(int P_Overlay)
        cAudNew = '7';
        iSync_Diff_ms = iFrame_Diff_ms;             // Go Nominal
 
+       //if (process.Delay_Sign[0] == '+')
+       //    iSync_Diff_ms--;
+       //else
        if (iQueVsNext > 4) // && iGOPrelative > 4 && iGOPtot > 2)
        {
            cAudNew = 'I';

@@ -91,7 +91,7 @@ convyuv444:
 
 static void conv420to422(unsigned char *src, unsigned char *dst)
 {
-  if (ScanMode_code)
+  if (PicOrig_ScanMode_code)
   {
     __asm
     {

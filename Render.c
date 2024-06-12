@@ -848,7 +848,7 @@ void RenderF420(int P_Mode)  // Fast420
   if (MPEG_Seq_chroma_format >= CHROMA422)  // 4:2:2  or 4:4:4
       iChromaRipple = -1;
   else
-  if (Deint_VIEW && !ScanMode_code)  // deinterlace an interlaced source
+  if (Deint_VIEW && !PicOrig_ScanMode_code)  // deinterlace an interlaced source
   {
       iChromaRipple = 2;
       iChromaWidthAdj = Chroma_Width * 2;

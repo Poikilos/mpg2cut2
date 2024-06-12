@@ -469,7 +469,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
   static int iOrig_ColorSpace;
 
 
-  int iTmp1;
+  int iTmp1, iEnoughHeight;
   int iWidth, iHeight, iLowerLimit;
   int iGapLeft, iGapRight, iGapTop, iGapBot, iDockTop;
 
@@ -533,6 +533,10 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
          iWidth  = lumrect.right  - lumrect.left;
          iHeight = lumrect.bottom - lumrect.top;
          iLowerLimit = rcAvailableScreen.bottom - iHeight;
+         if (Overlay_Height > 288)
+             iEnoughHeight = iHeight / 2;
+         else
+             iEnoughHeight = iHeight;
 
          iDockTop = 0;
          if (iMainWin_State)
@@ -564,7 +568,7 @@ LRESULT CALLBACK Luminance_Dialog(HWND hDialog, UINT message,
                 lumrect.left  = wrect.left   - iWidth;
             }
             else
-            if (iGapTop >= iHeight) // Plenty space above ?
+            if (iGapTop >= iEnoughHeight) // space above ?
             {
                 lumrect.left = wrect.left;
                 iDockTop = 1;

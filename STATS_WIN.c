@@ -367,29 +367,19 @@ void  Stats_FPS() //int P_Force)
 }
 
 
-
-
-//--------------------------------------------------------------------
-// Show stats that only change at sequence header or are relatively stable 
-void S100_Stats_Hdr_Main(int P_Refresh)
+void S050_Progressive_Chk()
 {
-  int  iTmp1, iTmp2, iTmp3;
-
-  char szTmp16[16], szTmp04[4];
-
-  const char TEXTURE_CAT[5][8] = { " ", "Chunky", "Rough", "Freq A", "Fine AV"};
-  char *lpTexture_Cat, *lpSkel;
-
+  int iTitleChg;
+  char szTmp04[4];
   const char FieldMode_Name[4][10] = {"? Pic Fmt", "Top First", "Bot First", "NON-Field"};
 
-
-
-
-  if (OldStats.Old_ScanMode_code != ScanMode_code)
+  iTitleChg = 0;
+  if (OldStats.Old_ScanMode_code != PicOrig_ScanMode_code)
   {
-     sprintf(szBuffer, "%s", ScanMode_Name[ScanMode_code]);
+     sprintf(szBuffer, "%s", ScanMode_Name[PicOrig_ScanMode_code]);
      SetDlgItemText(hStats, IDC_SCAN_MODE1, szBuffer);
-     OldStats.Old_ScanMode_code  = ScanMode_code;
+     OldStats.Old_ScanMode_code  = PicOrig_ScanMode_code;
+     iTitleChg = 1;
   }
     
   if (OldStats.Old_Pic_Structure != MPEG_Pic_Structure)
@@ -397,8 +387,8 @@ void S100_Stats_Hdr_Main(int P_Refresh)
       sprintf(szBuffer, "%s", FieldMode_Name[MPEG_Pic_Structure]);
       SetDlgItemText(hStats, IDC_SCAN_MODE2, szBuffer);
       OldStats.Old_Pic_Structure = MPEG_Pic_Structure;
+      iTitleChg = 1;
   }
-
 
   if (OldStats.Old_Frame_Rate != fFrame_Rate_Orig)
   {
@@ -409,7 +399,42 @@ void S100_Stats_Hdr_Main(int P_Refresh)
 
     SetDlgItemText(hStats, IDC_FRAME_RATE, OldStats.szFrameRate);
     OldStats.Old_Frame_Rate  = fFrame_Rate_Orig;
+    iTitleChg = 1;
   }
+
+
+  if (iMuxChunkRate != OldStats.iMuxRate)
+  {
+      if (process.iFixedRate)
+          strcpy(szTmp04,"F ");
+      else
+          szTmp04[0] = 0;
+    sprintf(szBuffer, "%s%d", szTmp04, (iMuxChunkRate*2/5));  // 50*8/1000
+    SetDlgItemText(hStats, IDC_MUX_RATE, szBuffer);
+    OldStats.iMuxRate = iMuxChunkRate;
+    iTitleChg = 1;
+  }
+
+
+  if (iTitleChg)
+      DSP5_Main_FILE_INFO();
+}
+
+
+//--------------------------------------------------------------------
+// Show stats that only change at sequence header or are relatively stable 
+void S100_Stats_Hdr_Main(int P_Refresh)
+{
+  int  iTmp1, iTmp2, iTmp3;
+
+  char szTmp16[16];
+
+  const char TEXTURE_CAT[5][8] = { " ", "Chunky", "Rough", "Freq A", "Fine AV"};
+  char *lpTexture_Cat, *lpSkel;
+
+  
+
+  S050_Progressive_Chk();
 
 
   if (!FILM_Purity)
@@ -492,17 +517,6 @@ void S100_Stats_Hdr_Main(int P_Refresh)
   }
 
 
-  if (iMuxChunkRate != OldStats.iMuxRate)
-  {
-      if (process.iFixedRate)
-          strcpy(szTmp04,"F ");
-      else
-          szTmp04[0] = 0;
-    sprintf(szBuffer, "%s%d", szTmp04, (iMuxChunkRate*2/5));  // 50*8/1000
-    SetDlgItemText(hStats, IDC_MUX_RATE, szBuffer);
-    OldStats.iMuxRate = iMuxChunkRate;
-  }
-
 
   if (OldStats.chroma_format != MPEG_Seq_chroma_format
   ||  OldStats.Profile       != MPEG_Profile
@@ -573,7 +587,6 @@ void S100_Stats_Hdr_Main(int P_Refresh)
                                             iTmp1,  0); 
        }
   }
-
 
 
   S300_Stats_Audio_Desc();

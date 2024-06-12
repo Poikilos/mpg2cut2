@@ -465,10 +465,10 @@ static char FieldMode_Name[4][4] = {"?", "Top", "Bot", "p"};
            lpszAspect = Mpeg1_Aspect_Ratio_Name[MPEG_Seq_aspect_ratio_code];
 
          sprintf(szTemp,"  %d.%d%c%c%s %s  %2d%sfps  %d%c/s %s",
-                MPEG_Seq_horizontal_size, MPEG_Seq_vertical_size,
-                          *ScanMode_Name[ScanMode_code], // Is original progressive frame  (MPEG_Pic_Origin_progressive [progressive_frame] from Pic Coding Extension)
-                          *ScanMode_Name[MPEG_Seq_progressive_sequence],
-                           FieldMode_Name[MPEG_Pic_Structure], // How is encode structured ? ( [picture_structure] from Pic Coding Extension)
+                MPEG_Seq_horizontal_size, MPEG_Seq_vertical_size,                
+                           *ScanMode_Name[MPEG_Pic_Origin_progressive],  // 1 = original source was progressive  (Pic Coding Extension)
+                           *ScanMode_Name[MPEG_SeqXtn_progressive_sequence],   // is the SEQ suppoed to be progressive ?
+                           FieldMode_Name[MPEG_Pic_Structure],   // How is encode structured ? field pics or full frame pics (Pic Coding Extension)
                      lpszAspect,
                     iFrame_Rate_dsp, szMantissa,  iTmp1, cTmp1,
                MPEG_Seq_chroma_Desc[MPEG_Seq_chroma_format]

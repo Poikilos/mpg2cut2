@@ -359,6 +359,8 @@ static void Pic_Decode_CONTENT()
 {
   int MBAmax;
 
+  Derived_Sizes();  // always recalculate in case of change
+
   /* number of macroblocks per picture */
   MBAmax = mb_width * mb_height;
 

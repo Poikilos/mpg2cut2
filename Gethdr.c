@@ -456,7 +456,7 @@ void gothdr_SEQ()
     if (iNom_kBitRate  >= 9000  // Higher than most DVDs 
     ||  iMuxChunkRate  <  MPEG_Seq_NomBitRate400) // Ch.7 via Nebula
     {
-      if (Coded_Pic_Height <= 576) // && ! MPEG_Seq_progressive_sequence) 
+      if (Coded_Pic_Height <= 576) // && ! MPEG_SeqXtn_progressive_sequence) 
       {
          if (iNom_kBitRate  >  50000)  // Weird files
              process.kBitRateAvg = iNom_kBitRate / 12;
@@ -785,35 +785,6 @@ void gothdr_SEQ()
                    process.GOP_Loc, process.SEQ_Loc, process.PACK_Loc);
 #endif
 
-  // RJ  End of file/run test was temorarily here (Ver 2.1)
-
-  PlayCtl.iUnReportedFrames++;
-
-  if (MPEG_Pic_Type == I_TYPE                //d2v_curr.type == I_TYPE
-      || MParse.Fault_Flag == 97             // RJ update pointers on EOF
-      || process.Action == ACTION_FWD_FRAME  // != ACTION_RIP
-      || PlayCtl.iUnReportedFrames > 30)
-  {
-     T100_Upd_Posn_Info( (process.Action == ACTION_RIP 
-                          || MParse.Fault_Flag == 97 ));  // RJ update pointers on EOF  
-
-     // RJ  End of file/run test was originally here (Ver 1)
-
-     DSP3_Main_TIME_INFO();
-
-     if (MParse.ShowStats_Flag  && MParse.Fault_Flag != 97
-     //&& (MPEG_Pic_Type == I_TYPE || process.Action != ACTION_RIP)
-     )
-     {
-         S100_Stats_Hdr_Main(0);
-         S200_Stats_Pic_Main(0);
-         if (process.Action == ACTION_RIP)
-             Stats_FPS();
-     }
-
-     PlayCtl.iUnReportedFrames = 0;
-
-  } // END I-TYPE
 
 
   vbv_delay = Get_Bits(16);
@@ -839,9 +810,45 @@ void gothdr_SEQ()
         MPEG_Pic_f_code[1][1] = backward_f_code;
     //}
   }
- 
+
+
+  // optional pic coding extension header 
   Extra_Information_Byte_Count = extra_bit_information();
   extension_and_user_data();
+
+
+  PlayCtl.iUnReportedFrames++;
+
+  if (MPEG_Pic_Type == I_TYPE                //d2v_curr.type == I_TYPE
+      || MParse.Fault_Flag == 97             // RJ update pointers on EOF
+      || process.Action == ACTION_FWD_FRAME  // != ACTION_RIP
+      || PlayCtl.iUnReportedFrames > 30)
+  {
+     T100_Upd_Posn_Info( (process.Action == ACTION_RIP 
+                          || MParse.Fault_Flag == 97 ));  // RJ update pointers on EOF  
+
+     // RJ  End of file/run test was originally here (Ver 1)
+
+     DSP3_Main_TIME_INFO();
+
+     if (MParse.ShowStats_Flag  && MParse.Fault_Flag != 97
+     //&& (MPEG_Pic_Type == I_TYPE || process.Action != ACTION_RIP)
+     )
+     {
+         S100_Stats_Hdr_Main(0);
+         S200_Stats_Pic_Main(0);
+         if (process.Action == ACTION_RIP)
+             Stats_FPS();
+     }
+     else
+         S050_Progressive_Chk();
+
+     PlayCtl.iUnReportedFrames = 0;
+
+  } // END I-TYPE
+
+
+
 }
 
 
@@ -963,7 +970,7 @@ static void sequence_extension()
   MPEG_Profile                  = Get_Bits(3);
   MPEG_Level                    = Get_Bits(4);
 
-  MPEG_Seq_progressive_sequence    = Get_Bits(1);
+  MPEG_SeqXtn_progressive_sequence = Get_Bits(1);
   MPEG_Seq_chroma_format           = Get_Bits(2);
 
   horizontal_size_extension    = Get_Bits(2);
@@ -1094,7 +1101,7 @@ static void picture_display_extension()
 
   /* derive number_of_frame_center_offsets */
 
-  if (MPEG_Seq_progressive_sequence)
+  if (MPEG_SeqXtn_progressive_sequence)
   {
     if (MPEG_Pic_repeat_first_field)
     {
@@ -1153,7 +1160,7 @@ static void picture_coding_extension()
   MPEG_Pic_f_code[1][1] = Get_Bits(4); // backward vertical 
 
   MPEG_Pic_intra_dc_precision   = Get_Bits(2);
-  MPEG_Pic_Structure            = Get_Bits(2);  // Which field first
+  MPEG_Pic_Structure            = Get_Bits(2);  // Which field first (Top, Bot, Full-Frame)
 
   if (! MPEG_Pic_Structure) // Allow for bad setting
         MPEG_Pic_Structure  = FULL_FRAME_PIC;
@@ -1166,7 +1173,7 @@ static void picture_coding_extension()
   MPEG_Pic_alternate_scan         = Get_Bits(1);
   MPEG_Pic_repeat_first_field     = Get_Bits(1);
   MPEG_Pic_chroma_420_type        = Get_Bits(1);
-  MPEG_Pic_Origin_progressive     = Get_Bits(1); // Progressive_Frame
+  MPEG_Pic_Origin_progressive     = Get_Bits(1); // display is Progressive_Format
   MPEG_Pic_composite_display_flag = Get_Bits(1);
 
   d2v_curr.Progressive_Format  =  MPEG_Pic_Origin_progressive;
@@ -1335,7 +1342,7 @@ static void Auto_Deint_Calc()
   if (Deint_Auto_CURR)
   {
     if (  MPEG_Seq_vertical_size <= 288  // half-frames are too hard for me to de-interlace automatically
-      ||  MPEG_Seq_progressive_sequence  // Ahhh, if only this had been adopted as the standard for new material !
+      ||  MPEG_SeqXtn_progressive_sequence  // Ahhh, if only this had been adopted as the standard for new material !
       || (!Deint_VOB && 
           (    (fFrame_rate == 25.0 && iIn_VOB) // VOBs tend to be Cinema films, which in PAL std coding SHOULD NOT have interlacing artefacts, although in practice there is some crud around.
             ||  fFrame_rate == 16.0 ||  fFrame_rate == 18.0 || fFrame_rate == 24.0  // Cine frame rates (I forget what 8mm & 9.5mm std rates are, just too long ago for my forgettory)

@@ -902,7 +902,7 @@ void INI_GET()
                               &iCtl_OutPartAuto, &iCtl_OVL_ATI_Bug, 
                               &iCtl_NotSoFast, 
                               &uAud_PID_All, &iCtl_KB_V_Popup,
-                              &iDUMMY,
+                              &iCtl_BigMonitor,
                               &iDUMMY, &iDUMMY,
                               &iCtl_ViewToolbar[0], &iCtl_ViewToolbar[1]);    
     }
@@ -1504,7 +1504,8 @@ void INI_MERGE()
 
 
   if (VGA_Width == 0)
-      VGA_Width = 640 ;
+      VGA_Width = 640;
+  Overlay_Width  = 0;
 
   //iVGA_Avail_Width = VGA_Width - 1;
 
@@ -1540,10 +1541,14 @@ void INI_MERGE()
 
   Reg_ExternalActions();
   */
+
   if (iCtl_Date_Internationale)
       MenuTick(IDM_DATE_INTERNATIONALE);
   if (iCtl_Readability)
       MenuTick(IDM_READABILITY);
+  hFont1 = 0;
+  if (iCtl_BigMonitor)
+      MenuTick(IDM_BIG_MONITOR);
 
 
   DSP_ButtonFont_Sizing();    // Scale button size to screen res
@@ -1853,7 +1858,7 @@ void INI_SAVE()
                             iCtl_OutPartAuto,  iCtl_OVL_ATI_Bug,
                            (iCtl_NotSoFast+1), 
                             uAud_PID_All, iCtl_KB_V_Popup,
-                            iDummy_FALSE, 
+                            iCtl_BigMonitor, 
                             iDummy_FALSE, iDummy_FALSE,
                            (257 - iCtl_ViewToolbar[0]), 
                            (257 - iCtl_ViewToolbar[1]));

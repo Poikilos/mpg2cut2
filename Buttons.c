@@ -242,23 +242,20 @@ void PlayTools_Create() // Extra buttons for special playback
 
 //----------------------------------------------------------------
 
-void DSP_ButtonFont_Sizing()  // Scale button size to screen res
+void DSP_ButtonFont_SmallMonitor()  // Scale button size to screen res
 {
 
   char *szlpFontName;
 
-  hDefaultGuiFont = GetStockObject(DEFAULT_GUI_FONT);
-
-
   /*
   BOOL GetCharWidth32(hDC,       // handle of device context 
-    UINT 'W',        //  iFirstChar,  // first character in range to query  
-    UINT 'W',        //  iLastChar,  // last character in range to query 
-    LPINT &uDGF_Height,  lpBuffer  // address of buffer for widths 
+    UINT 'W',          //  iFirstChar,  // first character in range to query  
+    UINT 'W',          //  iLastChar,  // last character in range to query 
+    LPINT &iDGF_Width  //  lpBuffer  // address of buffer for widths 
    );
 
   if (iCtl_Readability)
-      iTool_Wd  = (uDGF_Height *  2) + 2;
+      iTool_Wd  = (iDGF_Width *  2) + 4;
   else  */
       iTool_Wd  = (VGA_Width  * 30) / 800 + 1;  //
 
@@ -310,15 +307,58 @@ void DSP_ButtonFont_Sizing()  // Scale button size to screen res
 
       //SendMessage(hMenu, WM_SETFONT, (WPARAM)(hFont1), MAKELPARAM(TRUE, 0));
       if (DBGflag || iAudioDBG)
-          SendMessage(hWnd_MAIN, WM_SETFONT, (WPARAM)(hFont1), 0);
-
-    
+          SendMessage(hWnd_MAIN, WM_SETFONT, (WPARAM)(hFont1), 0);    
   }
 
-  if (iCtl_Readability)
-    hFont2 = hFont1;
+}
+
+
+
+//----------------------------------------------------------------
+
+void DSP_ButtonFont_BigMonitor()  // Scale button size to font size
+{
+
+  unsigned int uW='W';
+  int iDGF_Width, iRC;
+
+  if (uFontHeight)  // Have we already done this ?
+    return;         // Retain current values
+ 
+  iRC = GetCharWidth32(hDC,       // handle of device context 
+             uW,            //  iFirstChar,  // first character in range to query  
+             uW,            //  iLastChar,   // last character in range to query 
+             &iDGF_Width);  //  lpBuffer     // address of buffer for widths 
+  
+  if (!iRC || iDGF_Width < 18) 
+     iDGF_Width = 18;
+
+  uFontHeight = iDGF_Width * 3 / 2;
+
+  iTool_Wd  = (iDGF_Width * 2) + 4;
+  iTool_Ht  = iTool_Wd;
+
+}
+
+
+
+
+//----------------------------------------------------------------
+
+void DSP_ButtonFont_Sizing()  // Scale button size to screen res
+{
+
+  hDefaultGuiFont = GetStockObject(DEFAULT_GUI_FONT);
+  hFont2 = (HFONT)(hDefaultGuiFont);
+
+  if (iCtl_BigMonitor && VGA_Width > 600)
+      DSP_ButtonFont_BigMonitor();
   else
-    hFont2 = (HFONT)(hDefaultGuiFont);
+      DSP_ButtonFont_SmallMonitor();
+
+  if (iCtl_Readability && hFont1)
+    hFont2 = hFont1;
+
 
 
 }
@@ -545,11 +585,11 @@ void ToolBar_Metrics()
 
   DSP_ButtonFont_Sizing();    // Scale button size to screen res
    
-  iSEPARATOR          =  iTool_Wd/2;  // Min gap between toolbars
+  iSEPARATOR          =  iTool_Wd/4;  // Min gap between toolbars
   iPLAYBAR_WIDTH      =  10 * iTool_Wd; //  + (3*SPACER+1);
   iMIN_STACKED_WIDTH  =  14 * iTool_Wd + iSEPARATOR; // Width of first 2 toolbars, including separator
   iMAX_STACKED_WIDTH  =  22 * iTool_Wd;      // Stack trigger point
-  iFULLBAR_WIDTH      =  25 * iTool_Wd + (iSEPARATOR); // *2);
+  iFULLBAR_WIDTH      =  25 * iTool_Wd + (iSEPARATOR * 2);
   if (iFULLBAR_WIDTH >= (VGA_Width - 80))
       iFULLBAR_WIDTH  =  VGA_Width - 2;
 
@@ -670,7 +710,7 @@ void ToolBar_Metrics()
           iToolbarWidth = VGA_Width - 2;//- iEdge2;
       else
       if (iTrue_Width > iToolbarWidth)
-          iToolbarWidth = iTrue_Width ;//- iEdge2;
+          iToolbarWidth = iTrue_Width - 2;//- iEdge2;
       else
          iToolbarWidth  = iFULLBAR_WIDTH; 
 

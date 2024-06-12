@@ -176,9 +176,9 @@ void Write_Frame(unsigned char *src[], D2VData d2v, DWORD frame)
 
   if (Pic_Started)
   {
-     ScanMode_code   = d2v.Progressive_Format;
-     Top_Field_First = d2v.Fld1_Top_Rpt >>1;
-     Rpt_First_Field = d2v.Fld1_Top_Rpt & 0x01;
+     PicOrig_ScanMode_code = d2v.Progressive_Format;
+     Top_Field_First       = d2v.Fld1_Top_Rpt >>1;
+     Rpt_First_Field       = d2v.Fld1_Top_Rpt & 0x01;
   }
 
   if (!frame)

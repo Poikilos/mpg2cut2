@@ -21,9 +21,13 @@ int iWarned2k=0;
 void Derived_Sizes()
 {
   mb_width  = (MPEG_Seq_horizontal_size+15)/16;
-  mb_height =  MPEG_Seq_progressive_sequence
-            ?     (MPEG_Seq_vertical_size+15)/16
-            :  2*((MPEG_Seq_vertical_size+31)/32)  ;
+
+  // The specs say to use MPEG_SeqXtn_progressive_sequence
+  // but it works better if we take Picture ScanMode into account.
+
+  mb_height = (MPEG_Pic_Structure || MPEG_SeqXtn_progressive_sequence)
+            ?     (MPEG_Seq_vertical_size+15)/16     // Progressive
+            :  2*((MPEG_Seq_vertical_size+31)/32)  ; // interlaced
 
 
   //  Trap BAD canvas size leading to huge mallocs or crashes, etc
@@ -587,7 +591,7 @@ void MPEG_File_Reset()
           MPEG_ProfLvl_Escape = ' ';
 
           MPEG_Pic_Structure  = FULL_FRAME_PIC;
-          ScanMode_code = 1; 
+          PicOrig_ScanMode_code = 1; 
 
           d2v_curr.Progressive_Format = 1;
           d2v_fwd.Progressive_Format = 1;

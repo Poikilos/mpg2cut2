@@ -55,7 +55,7 @@ char szAppTitle[50]; // "Mpg2Cut2 - Development Version 2.8.6" // You don't expe
 #define API_VER 20802
 char szAppVer[8]
 #ifdef GLOBAL
- = "2.8.6d"
+ = "2.8.6e"
 #endif
 ;
 
@@ -771,13 +771,15 @@ int iParmTC_Style;
 
 int Coded_Pic_Width,  Coded_Pic_Height, Coded_Pic_Size ;
 int Chroma_Width, Chroma_Height, Chroma_Size, RGB24_size;
+
 int Mpeg_MacroBlk_Array_Limit;
 int mb_width, mb_height;
+void Derived_Sizes();
 int DOUBLE_WIDTH, HALF_WIDTH, HALF_WIDTH_D8;
 int CLIP_AREA, HALF_CLIP_AREA;
 ;
 
-int ScanMode_code;
+int PicOrig_ScanMode_code;
 static char *ScanMode_Name[2] = {"interlaced", "progressive"};
 
 int Second_Field;
@@ -908,7 +910,7 @@ int MPEG_iFrame_rate_extension_d;
 int MPEG_Seq_aspect_ratio_code;
 int MPEG_Seq_NomBitRate400 ;
 /* ISO/IEC 13818-2 section 6.2.2.3:  sequence_extension() */
-int MPEG_Seq_progressive_sequence;
+int MPEG_SeqXtn_progressive_sequence;
 int MPEG_Seq_chroma_format;
 
 int MPEG_Seq_intra_quantizer_matrix[64];
@@ -1051,6 +1053,7 @@ void GetChkPoint();
 // STATS_WIN.c
 
 void S120_Stats_Hdr_Seq();
+void S050_Progressive_Chk();
 void S100_Stats_Hdr_Main(int), S200_Stats_Pic_Main(int);
 void S300_Stats_Audio_Desc();
 void S333_Trk_Audio_Desc(HANDLE hDial, unsigned int *TXT_FLD);
@@ -1266,7 +1269,12 @@ void AddButton_Create();
 void MarkLeftButton_Create();
 void MarkRightButton_Create();
 
-unsigned int uFontHeight; //, uDGF_Height;
+unsigned int uFontHeight
+#ifdef GLOBAL
+ = 0
+#endif
+; 
+int iCtl_BigMonitor;
 int iTool_Ht, iTool_Wd, iTrackBar_PosY, iPlayBar_PosY, iSkipBar_PosY;
 int iToolbarWidth, iTrack_Wd;
 int iTopMargin;

@@ -1846,7 +1846,7 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
             F800_SORT_ALL(0);
             DSP5_Main_FILE_INFO();
             break;
-
+  
       case IDM_SORT_SCR:
             F800_SORT_ALL(1);
             DSP5_Main_FILE_INFO();
@@ -4253,10 +4253,18 @@ LRESULT  B201_Msg_USER(UINT message, WPARAM wParam, LPARAM lParam)
            if (iViewToolBar > 1)
            {
                Toolbar_Chg();
-               //ToolBar_Destroy();
-               //ToolBar_Create();
            }
            break;
+     
+      case IDM_BIG_MONITOR:
+           ToggleMenu('T', &iCtl_BigMonitor, IDM_BIG_MONITOR);
+           uFontHeight = 0;  // Reset for full recalc
+           if (iViewToolBar > 1)
+           {
+               Toolbar_Chg();
+           }
+           break;
+
 
 
       case IDM_F3_NAMES:
@@ -6792,7 +6800,7 @@ void ProcessReset(char P_Reason[3])
    ClipResize_Flag = false;
    //iCtl_Zoom_Wanted = -1;
 
-   MPEG_Seq_progressive_sequence = 1; // Allow for old fashioned encoders that assume progressive
+   MPEG_SeqXtn_progressive_sequence = 1; // Allow for old fashioned encoders that assume progressive
 
 //   CheckMenuItem(hMenu, IDM_CLIPRESIZE, MF_UNCHECKED);
 
@@ -7106,8 +7114,6 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
 
   hBrush_MASK = CreateSolidBrush(iCtl_Mask_Colour);
 
-  ToolBar_Metrics();  // Calculate metrics
-
 
   F920_Init_Names();
 
@@ -7329,9 +7335,11 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
 //   sprintf(szInput, "lpCmdLine-%d \n",lpCmdLine);
 // }
 
-  sprintf(szAppTitle, "Mpg2Cut2 - Development Version %s", szAppVer); // You don't expect this to work do you ?"
+  sprintf(szAppTitle, "Mpg2Cut2 - Development Version %s", szAppVer); 
 
   MyRegisterClass(hInstance);
+
+  ToolBar_Metrics();  // Calculate metrics
 
   if (iMainWin_State > 0)
       dwStyle = WS_MAXIMIZE;
@@ -7351,6 +7359,7 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
 
   MainWin_Rect();
   Calc_PhysView_Size();
+  INI_MERGE(); 
 
   // RJ MOVED macroblock tile mallocs into the frame subpool system (block, p_block)
 
@@ -7358,7 +7367,6 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
   Initialize_FPU_IDCT();
 
 
-  INI_MERGE(); 
 
 
 mycallbacks.hMPEGKill=CreateEvent(0,FALSE,FALSE,0);

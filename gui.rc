@@ -44,14 +44,14 @@ BEGIN
                     WS_BORDER,4,16,163,6
     LTEXT           "Overall progress",IDC_PROGRESS_TXT2,5,3,176,8
     LTEXT           ".....",IDP_PROGRESS_ETA,4,24,87,8
-    CONTROL         "Slow",IDP_SLOW_CHK,"Button",BS_AUTORADIOBUTTON,187,10,
+    CONTROL         "Slow",IDP_SLOW_CHK,"Button",BS_AUTORADIOBUTTON,185,10,
                     31,8
-    CONTROL         "Medium",IDP_NORM_CHK,"Button",BS_AUTORADIOBUTTON,187,19,
-                    33,10
-    CONTROL         "Max",IDP_HIGH_CHK,"Button",BS_AUTORADIOBUTTON,187,39,29,
+    CONTROL         "Medium",IDP_NORM_CHK,"Button",BS_AUTORADIOBUTTON,185,19,
+                    38,10
+    CONTROL         "Max",IDP_HIGH_CHK,"Button",BS_AUTORADIOBUTTON,185,39,29,
                     10
-    GROUPBOX        "",IDC_STATIC,184,2,39,48
-    CONTROL         "Quick",IDP_QUICK_CHK,"Button",BS_AUTORADIOBUTTON,187,29,
+    GROUPBOX        "",IDC_STATIC,182,2,42,48
+    CONTROL         "Quick",IDP_QUICK_CHK,"Button",BS_AUTORADIOBUTTON,185,29,
                     30,10
     LTEXT           "",IDP_PARSING,170,15,10,8
 END
@@ -188,7 +188,7 @@ IDD_STATISTICS DIALOGEX 0, 0, 149, 249
 STYLE DS_MODALFRAME | DS_NOIDLEMSG | WS_MINIMIZEBOX | WS_POPUP | WS_CAPTION | 
     WS_SYSMENU
 CAPTION "Statistics Window"
-FONT 10, "System", 0, 0, 0x1
+FONT 10, "System"
 BEGIN
     LTEXT           "Found",IDC_STATIC,30,198,22,9,SS_CENTERIMAGE | NOT 
                     WS_GROUP
@@ -254,9 +254,9 @@ BEGIN
                     SS_SUNKEN | NOT WS_GROUP
     LTEXT           "",IDC_AUDIO_TYPE_3,1,132,76,9,SS_CENTERIMAGE | 
                     SS_SUNKEN | NOT WS_GROUP
-    LTEXT           "",IDC_AUDIO_TYPE_4,77,105,69,8,SS_CENTERIMAGE | 
+    LTEXT           "",IDC_AUDIO_TYPE_4,77,105,69,9,SS_CENTERIMAGE | 
                     SS_SUNKEN | NOT WS_GROUP
-    LTEXT           "",IDC_AUDIO_TYPE_5,77,113,69,9,SS_CENTERIMAGE | 
+    LTEXT           "",IDC_AUDIO_TYPE_5,77,114,69,9,SS_CENTERIMAGE | 
                     SS_SUNKEN | NOT WS_GROUP
     LTEXT           "",IDC_AUDIO_PS1,114,83,15,9,SS_CENTERIMAGE | NOT 
                     WS_GROUP
@@ -319,7 +319,7 @@ BEGIN
     LTEXT           "",IDC_APTS_RES,52,61,20,9,SS_CENTERIMAGE | SS_SUNKEN | 
                     NOT WS_GROUP
     RTEXT           "G",IDC_STATIC,101,51,8,9,SS_CENTERIMAGE | NOT WS_GROUP
-    LTEXT           "",IDC_AUDIO_TYPE_6,77,122,69,9,SS_CENTERIMAGE | 
+    LTEXT           "",IDC_AUDIO_TYPE_6,77,123,69,9,SS_CENTERIMAGE | 
                     SS_SUNKEN | NOT WS_GROUP
     LTEXT           "",IDC_AUDIO_TYPE_7,77,132,69,9,SS_CENTERIMAGE | 
                     SS_SUNKEN | NOT WS_GROUP
@@ -344,7 +344,7 @@ BEGIN
                     NOT WS_GROUP
     LTEXT           "Timers",IDC_STATIC,37,41,28,9,SS_CENTERIMAGE | NOT 
                     WS_GROUP
-    LTEXT           "",IDC_CHROMA_FMT,50,29,49,9,SS_CENTERIMAGE | NOT 
+    LTEXT           "",IDC_CHROMA_FMT,44,29,55,9,SS_CENTERIMAGE | NOT 
                     WS_GROUP
     RTEXT           "",IDC_SCR,111,70,35,9,SS_CENTERIMAGE | SS_SUNKEN | NOT 
                     WS_GROUP
@@ -1548,6 +1548,12 @@ BEGIN
             MENUITEM "bbINFO2 Summary",             IDM_ACT_BBINFO2
             MENUITEM "GSpot",                       DM_ACT_GSPOT, GRAYED
         END
+        POPUP "Options"
+        BEGIN
+            MENUITEM "Enhanced Readability",        IDM_READABILITY
+            MENUITEM "Small buttons on Big Monitor", IDM_BIG_MONITOR
+            MENUITEM "Toolbar Tips",                IDM_TOOLTIPS
+        END
     END
     POPUP "&Misc"
     BEGIN
@@ -1606,8 +1612,6 @@ BEGIN
             MENUITEM "Missing First xxx Warning",   IDM_WARN_BAD_START
             MENUITEM "Bad Length in Sys Hdr",       IDM_WARN_BAD_SYSHDR
             MENUITEM SEPARATOR
-            MENUITEM "Enhanced Readability",        IDM_READABILITY
-            MENUITEM "Toolbar Tips",                IDM_TOOLTIPS
         END
         POPUP "Default Sort Sequence"
         BEGIN
@@ -1710,21 +1714,6 @@ BEGIN
         MENUITEM "Debug Audio",                 IDM_AUDIO_DBG
         MENUITEM "Debug Trace",                 IDM_DBG
         MENUITEM "Longer",                      IDM_HELP_PF1
-    END
-END
-
-IDR_TIME_FMT_MENU MENU DISCARDABLE 
-BEGIN
-    POPUP "Time Format List"
-    BEGIN
-        MENUITEM "REL - Relative from start",   ID_FMT_REL
-        MENUITEM "TOD - Time Of Day recorded",  ID_FMT_TOD
-        MENUITEM "Relative + Time Of Day ",     ID_FMT_TOD_REL
-        MENUITEM "PTS - Presentation Time Stamp", ID_FMT_PTS
-        MENUITEM "SCR - System Clock Reference", ID_FMT_SCR
-        MENUITEM "GOP - Group Of Pictures",     ID_FMT_GOP
-        MENUITEM "HEX - Hexadecimal",           ID_FMT_HEX
-        MENUITEM "BLK - Block number",          ID_FMT_BLK
     END
 END
 
