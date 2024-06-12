@@ -307,7 +307,7 @@ void Mpeg_Drop_Init()
              if (cpu.ssemmx)  // Pentium 3 or better
                  PlayCtl.iDrop_B_Frames_Flag = 1;
              else
-                PlayCtl.iDrop_B_Frames_Flag = 2;
+                 PlayCtl.iDrop_B_Frames_Flag = 2;
          }
          else
          {

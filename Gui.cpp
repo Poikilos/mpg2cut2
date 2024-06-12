@@ -7358,7 +7358,7 @@ void X100_INIT(HINSTANCE hInstance, LPSTR lpCmdLine)
   iPrevWinPos.left = Restore_X; iPrevWinPos.top = Restore_Y;
 
   MainWin_Rect();
-  Calc_PhysView_Size();
+  Calc_PhysView_Size(); 
   INI_MERGE(); 
 
   // RJ MOVED macroblock tile mallocs into the frame subpool system (block, p_block)

@@ -10,7 +10,7 @@
 //#include "DDRAW_CTL.h"
 
 
-// rj NOTE - Should encapsulate all the Direct Draw routines into here
+// rj TODO - Should encapsulate all the Direct Draw routines into here
 //-----------------------------------------------------------------------
 
 #include <ddraw.h>
@@ -46,7 +46,7 @@ void  Flag2RGB()
 void D100_CHECK_Overlay()
 {
 HRESULT hRC;
-int iRC, iTmp1, iTmp2;
+int iRC, iTmp1, iTmp2, iRetryCtr;
 char *lpErrTxt, cZero[4];
 
   cZero[0] = 0;
@@ -128,6 +128,8 @@ char *lpErrTxt, cZero[4];
                 ddPixelFormat.dwFourCC = mmioFOURCC('Y','V','1','2');
             else
                 ddPixelFormat.dwFourCC = mmioFOURCC('Y','U','Y','2');
+            
+            iRetryCtr= 0;
 
 FourCC_Retry:
             memcpy(&(ddsd.ddpfPixelFormat), &ddPixelFormat, sizeof(DDPIXELFORMAT));
@@ -152,7 +154,16 @@ FourCC_Retry:
               if (hRC == DDERR_LOCKEDSURFACES)
                 lpErrTxt = &"OVL Surface LockOut";
               else
-                lpErrTxt = &"No YUY2 Surface";
+              {
+                if (iRetryCtr == 0)
+                {
+                    iRetryCtr++;
+                    Sleep(1000);  // Allow for case of separate instance taking time to release overlay
+                    goto FourCC_Retry;
+                }
+                else
+                    lpErrTxt = &"No YUY2 Surface";
+              }
 
               strcpy(szMsgTxt, lpErrTxt);
             }

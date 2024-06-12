@@ -32,7 +32,7 @@ int iWavQue_Frames;
 
 void Timing_DropMore()
 {
-  int iTrig;
+  int iTrig, iLow;
 
   if (DBGflag)
   {
@@ -79,37 +79,46 @@ void Timing_DropMore()
              PlayCtl.iDrop_B_Frames_Flag--;
       }
       else
-
-      if (PlayCtl.iFPS_Dec_Pct <= 50  //  (way down from nominal frame rate)
-      || (iWAVEOUT_Scheduled_Blocks < WAVEOUT_LOW_PKTS_CUSHION
-           && iWAV_Init))
       {
+        if (iWAVEOUT_Scheduled_Blocks < WAVEOUT_LOW_PKTS_CUSHION
+            && iWAV_Init)
+            iLow = 1;
+        else
+            iLow = 0;
 
-         if ((iWAVEOUT_Scheduled_Blocks   < WAVEOUT_MID_FINE_PKTS_CUSHION
-              &&  MParse.SlowPlay_Flag <= 0)
-         // ||  PlayCtl.iDrop_B_Frames_Flag > 2)
-         || *File_Name[File_Ctr] == 'Z') // My optical drive.  TODO: Generalize this by interrogating drive info
-              iTrig = 95;
-         else
-         if (MParse.FastPlay_Flag > 2 && !cpu.sse2
-         &&  PlayCtl.iDrop_B_Frames_Flag == 1
-         ||  Coded_Pic_Height > 576)
-              iTrig = 90;
-         else
-              iTrig = 80;
+        if (PlayCtl.iFPS_Dec_Pct <= 50  //  (way down from nominal frame rate)
+        ||  iLow)
+        {
 
-         if (iWAVEOUT_Scheduled_Blocks < WAVEOUT_MID_MID_PKTS_CUSHION
-         &&  PlayCtl.iBehindFrames > 1
-            )
-         {
-             if (PlayCtl.iFPS_Dec_Pct < iTrig
-             &&  PlayCtl.iBehindFrames > 4)
-                 PlayCtl.iDrop_B_Frames_Flag = 2;
-             else
-                 PlayCtl.iDrop_B_Frames_Flag = 1;
-         }
+           if (iLow)
+               iTrig = 95;
+           else
+           if ((iWAVEOUT_Scheduled_Blocks < WAVEOUT_MID_FINE_PKTS_CUSHION
+                &&  MParse.SlowPlay_Flag  <= 0)
+           // ||  PlayCtl.iDrop_B_Frames_Flag > 2)
+           || *File_Name[File_Ctr] == 'Z') // My optical drive.  TODO: Generalize this by interrogating drive info
+                iTrig = 95;
+           else
+           if (MParse.FastPlay_Flag > 2 && !cpu.sse2
+           &&  PlayCtl.iDrop_B_Frames_Flag == 1
+           ||  Coded_Pic_Height > 576)
+               iTrig = 90;
+           else
+           iTrig = 85;
+         
+
+           if (iWAVEOUT_Scheduled_Blocks < WAVEOUT_MID_MID_PKTS_CUSHION
+           &&  PlayCtl.iBehindFrames > 1
+               )
+           {
+               if (PlayCtl.iFPS_Dec_Pct < iTrig
+               &&  PlayCtl.iBehindFrames > 4)
+                   PlayCtl.iDrop_B_Frames_Flag = 2;
+               else
+                   PlayCtl.iDrop_B_Frames_Flag = 1;
+           }
+        }
       }
-
 
       //process.Pack_Min_Size = process.Pack_Max_Size;
       process.Pack_Max_Size = 0;
@@ -385,7 +394,16 @@ int Store_Timing_Chk(int P_Overlay)
           if (iWavQue_Frames < 5)
           {
              cAudNew = 'Z';
-             iSync_Diff_ms = iFrame_Diff_ms / 3;
+             
+             //if (iWavQue_Frames < 0)
+             {
+                 iSync_Diff_ms = iDropTrigger_ms;
+                 if (PlayCtl.iDrop_B_Frames_Flag < 2 && PlayCtl.iDrop_Behind)
+                     PlayCtl.iDrop_B_Frames_Flag++;
+                 //Timing_DropMore();
+             }
+             //else
+             //    iSync_Diff_ms = iFrame_Diff_ms / 4;
           }
           else
           if (iWavQue_Frames < iAudioInterAdj)
@@ -394,34 +412,31 @@ int Store_Timing_Chk(int P_Overlay)
              iSync_Diff_ms = iFrame_Diff_ms / 2;
           }
 
-          if ((iGOPrelative+1) >= iGOPtot
-          || (PREV_Pic_Type == B_TYPE && MPEG_Pic_Type == B_TYPE))
+          if (iSync_Diff_ms > 0
+          &&  ((iGOPrelative+1) >= iGOPtot
+                || (PREV_Pic_Type == B_TYPE && MPEG_Pic_Type == B_TYPE)))
              iSync_Diff_ms = iSync_Diff_ms  * 4 / 10;
-          //else
-          //   iSync_Diff_ms = iSync_Diff_ms  * 7 / 10;
-
         }
 
-        else   // FastPlay
+        else
+        {   // FastPlay
 
-        if (iWAVEOUT_Scheduled_Blocks
-        &&  iAudioInterAdj > 4)  // chunky ?
-        {
-          if ((iGOPrelative+1) == iGOPtot
-          || (PREV_Pic_Type == B_TYPE && MPEG_Pic_Type == B_TYPE))
-             iSync_Diff_ms = iFrame_Diff_ms     / 5;
-          else
-             iSync_Diff_ms = iFrame_Diff_ms * 2 / 5;
+          if (iWAVEOUT_Scheduled_Blocks
+          &&  iAudioInterAdj > 4)  // chunky ?
+          {
+            if ((iGOPrelative+1) == iGOPtot
+            || (PREV_Pic_Type == B_TYPE && MPEG_Pic_Type == B_TYPE))
+               iSync_Diff_ms = iFrame_Diff_ms     / 5;
+            else
+               iSync_Diff_ms = iFrame_Diff_ms * 2 / 5;
+          }
+          else // Not chunky or no audio in buffer
+          if (iSync_Diff_ms > 2 ) // && MParse.FastPlay_Flag < CUE_SLOW
+              iSync_Diff_ms = 2;
+
+          if (!PlayCtl.iMaxedOut)
+              Timing_DropMore();
         }
-        else // Not chunky or no audio in buffer
-        if (iSync_Diff_ms > 2 ) // && MParse.FastPlay_Flag < CUE_SLOW
-            iSync_Diff_ms = 2;
-        //else
-        //    iSync_Diff_ms = 0;
-        //if (PlayCtl.iDrop_Behind || )
-        if (!PlayCtl.iMaxedOut)
-            Timing_DropMore();
-
     }
 
     else
@@ -430,9 +445,8 @@ int Store_Timing_Chk(int P_Overlay)
         cAudNew = '9';
         iSync_Diff_ms = iPeriod_Adj * 9 / 8 ;        // Tea Break
 
-        if (PlayCtl.iDrop_B_Frames_Flag > 0 && PlayCtl.iFPS_Dec_Pct > 145
-        //&&  process.Delay_Sign[0] != '+'
-        )
+        if (PlayCtl.iDrop_B_Frames_Flag > 0 
+         && (PlayCtl.iFPS_Dec_Pct > 145 ||  PlayCtl.iMaxedOut))
             PlayCtl.iDrop_B_Frames_Flag--;
 
     }
@@ -752,7 +766,7 @@ int Store_Timing_Chk(int P_Overlay)
 
     if (iSync_Diff_ms <= iDropTrigger_ms // Some frames are more complex than others, so big latitude
     && PlayCtl.iDrop_Behind
-    && MPEG_Pic_Structure == FULL_FRAME_PIC // Not supported on non-interlace
+    && MPEG_Pic_Structure == FULL_FRAME_PIC // Not supported on field pic encodes
     && MPEG_Pic_Type != I_TYPE)          // Not sure if this will handle TOP/BOT field encoded frames
     {
        if (PlayCtl.iBehindFrames > 1)

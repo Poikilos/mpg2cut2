@@ -1502,7 +1502,7 @@ void FrameRate2FramePeriod()
 
   iFrame_Period_ms  = (iFrame_Period_ps  + 500000)  /  1000000;
   iSleepTrigger_ms  =  iFrame_Period_ms  *  2;
-  iDropTrigger_ms   = -iFrame_Period_ms  *  20;
+  iDropTrigger_ms   =  iFrame_Period_ms  * -20;
 }
 
 

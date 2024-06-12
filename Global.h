@@ -667,7 +667,7 @@ int Edge_Width, Edge_Height;
 // int ClientWidth, ClientHeight ;
 int iMainWin_State;
 int Overlay_Width, Overlay_Height;
-int iPhysView_Width, iPhysView_Height, iMenuHeight;
+int iPhysView_Width, iPhysView_Height; 
 int Prev_Coded_Width, Prev_Coded_Height;
 
 int VGA_Width, VGA_Height, VGA_New_Width ;
@@ -1369,7 +1369,7 @@ void F150_File_Begin(char);
 
 void F300_DropFilesProc(WPARAM) ;
 int  F500_IN_OPEN_TRY(char);
-int  F503_Dup_Name_TST(char *P_Name, const char *P_Msg);
+int  F503_Dup_Name_TST(char *P_Name, const char *P_Msg, const unsigned int P_Buttons);
 int  F505_IN_OPEN_TST(char cP_Act);
 void F590_ReOpenAllFiles(char);
 int  F591_Ask_Trojan(const int, const void *P_Desc,

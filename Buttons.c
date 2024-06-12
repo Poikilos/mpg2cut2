@@ -322,8 +322,8 @@ void DSP_ButtonFont_BigMonitor()  // Scale button size to font size
   unsigned int uW='W';
   int iDGF_Width, iRC;
 
-  if (uFontHeight)  // Have we already done this ?
-    return;         // Retain current values
+  //if (uFontHeight)  // Have we already done this ?
+  //  return;         // Retain current values
  
   iRC = GetCharWidth32(hDC,       // handle of device context 
              uW,            //  iFirstChar,  // first character in range to query  
@@ -576,9 +576,7 @@ void ToolBar_Metrics()
   int iTrue_Width, iTmp1, iTrig;
   //Calculate and store the position of each control
 
-  //int iEdge2;
-  //iEdge2 = Edge_Width<<1;
-  //if (iEdge2 < 1) iEdge2 = 4;
+  if (Edge_Width <= 0) Edge_Width = 2;
 
   if (VGA_Height < 480)
       VGA_Height = 480;
@@ -591,7 +589,7 @@ void ToolBar_Metrics()
   iMAX_STACKED_WIDTH  =  22 * iTool_Wd;      // Stack trigger point
   iFULLBAR_WIDTH      =  25 * iTool_Wd + (iSEPARATOR * 2);
   if (iFULLBAR_WIDTH >= (VGA_Width - 80))
-      iFULLBAR_WIDTH  =  VGA_Width - 2;
+      iFULLBAR_WIDTH  =  VGA_Width - Edge_Width;
 
 
   iPlayBar_PosY = 0;  iSkipBar_PosY = 0;
@@ -698,7 +696,7 @@ void ToolBar_Metrics()
       }
 
       if (iTrue_Width <= iToolbarWidth)
-          iTrue_Width  = iToolbarWidth + 2; //iFULLBAR_WIDTH * 2 / 3;
+          iTrue_Width  = iToolbarWidth + Edge_Width;
 
       iTrackbar_Big  = 1;
       iTrackBar_PosX = 0;                          // Trackbar
@@ -707,10 +705,10 @@ void ToolBar_Metrics()
   else
   {   // Wider than minimum
       if (iTrue_Width >= (VGA_Width - 80))
-          iToolbarWidth = VGA_Width - 2;//- iEdge2;
+          iToolbarWidth = VGA_Width - Edge_Width;
       else
       if (iTrue_Width > iToolbarWidth)
-          iToolbarWidth = iTrue_Width - 2;//- iEdge2;
+          iToolbarWidth = iTrue_Width - Edge_Width;
       else
          iToolbarWidth  = iFULLBAR_WIDTH; 
 

@@ -272,7 +272,7 @@ void Mpeg_Aspect_Before()
          }
          else
          {
-           iAspect_Height =  iViewMax_Height; // iVGA_Avail_Height - 60; // Maybe chg 60 to iMenuHeight
+           iAspect_Height =  iViewMax_Height;
            if (process.iView_Extra_Crop)
            {
                //iCentre_Cropped = 1;

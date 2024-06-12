@@ -6,8 +6,69 @@
 --------------------Configuration: MPEG2Cut - Win32 Release--------------------
 </h3>
 <h3>Command Lines</h3>
-Creating command line "rc.exe /l 0x409 /fo"Release/gui.res" /d "NDEBUG" "G:\SP\MPG2CUT2\gui.rc"" 
-Creating temporary file "F:\TEMP\RSP8F5.tmp" with contents
+Creating temporary file "F:\TEMP\RSP9D9.tmp" with contents
+[
+/nologo /G6 /MT /W3 /Zd /Ox /Ot /Oa /Og /Oi /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
+"G:\SP\MPG2CUT2\Aspect.c"
+"G:\SP\MPG2CUT2\Buttons.c"
+"G:\SP\MPG2CUT2\ClipFile.c"
+"G:\SP\MPG2CUT2\CLIPS.c"
+"G:\SP\MPG2CUT2\DBG.c"
+"G:\SP\MPG2CUT2\Disp_Names.c"
+"G:\SP\MPG2CUT2\Disp_win.c"
+"G:\SP\MPG2CUT2\Get_INIT.c"
+"G:\SP\MPG2CUT2\GetAudio.c"
+"G:\SP\MPG2CUT2\getbit.c"
+"G:\SP\MPG2CUT2\GetBlk.c"
+"G:\SP\MPG2CUT2\gethdr.c"
+"G:\SP\MPG2CUT2\getpic.c"
+"G:\SP\MPG2CUT2\GopBack.c"
+"G:\SP\MPG2CUT2\IN_FILES.c"
+"G:\SP\MPG2CUT2\INI.c"
+"G:\SP\MPG2CUT2\INI_REG.c"
+"G:\SP\MPG2CUT2\LUM_WIN.c"
+"G:\SP\MPG2CUT2\motion.c"
+"G:\SP\MPG2CUT2\MPA_DA.c"
+"G:\SP\MPG2CUT2\mpeg2dec.c"
+"G:\SP\MPG2CUT2\Nav_JUMP.c"
+"G:\SP\MPG2CUT2\OUT.c"
+"G:\SP\MPG2CUT2\Out_PART.c"
+"G:\SP\MPG2CUT2\Out_Progress.c"
+"G:\SP\MPG2CUT2\Out_SPLIT.c"
+"G:\SP\MPG2CUT2\Parm2Clip.c"
+"G:\SP\MPG2CUT2\Plug.c"
+"G:\SP\MPG2CUT2\Pref.cpp"
+"G:\SP\MPG2CUT2\Render.c"
+"G:\SP\MPG2CUT2\SNAPS.c"
+"G:\SP\MPG2CUT2\STATS_WIN.c"
+"G:\SP\MPG2CUT2\store.c"
+"G:\SP\MPG2CUT2\Timing.c"
+"G:\SP\MPG2CUT2\TRACKBAR.c"
+"G:\SP\MPG2CUT2\TxtFunc.c"
+"G:\SP\MPG2CUT2\Volume.c"
+"G:\SP\MPG2CUT2\wave_out.c"
+]
+Creating command line "cl.exe @F:\TEMP\RSP9D9.tmp" 
+Creating temporary file "F:\TEMP\RSP9DA.tmp" with contents
+[
+/nologo /G6 /MT /W3 /Zd /Ox /Ot /Oa /Og /Oi /Op /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
+"G:\SP\MPG2CUT2\gui.cpp"
+]
+Creating command line "cl.exe @F:\TEMP\RSP9DA.tmp" 
+Creating temporary file "F:\TEMP\RSP9DB.tmp" with contents
+[
+/nologo /G6 /MT /W3 /Zd /Od /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
+"G:\SP\MPG2CUT2\NO_OPT.c"
+"G:\SP\MPG2CUT2\WAV_NOOPT.c"
+]
+Creating command line "cl.exe @F:\TEMP\RSP9DB.tmp" 
+Creating temporary file "F:\TEMP\RSP9DC.tmp" with contents
+[
+/nologo /G6 /MT /W3 /Zd /O1 /Gf /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /FAs /Fa"Release/" /Fo"Release/" /Fd"Release/" /FD /c 
+"G:\SP\MPG2CUT2\Out_FAST.c"
+]
+Creating command line "cl.exe @F:\TEMP\RSP9DC.tmp" 
+Creating temporary file "F:\TEMP\RSP9DD.tmp" with contents
 [
 ddraw.lib dxguid.lib vfw32.lib winmm.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib idctmmx.obj /nologo /subsystem:windows /pdb:none /machine:I386 /out:"Release\Mpg2Cut2-RELEASE.exe" /mapinfo:exports /mapinfo:lines 
 .\Release\Aspect.obj
@@ -67,15 +128,72 @@ ddraw.lib dxguid.lib vfw32.lib winmm.lib kernel32.lib user32.lib gdi32.lib winsp
 .\Release\sanity_check.obj
 .\Release\gui.res
 ]
-Creating command line "link.exe @F:\TEMP\RSP8F5.tmp"
+Creating command line "link.exe @F:\TEMP\RSP9DD.tmp"
 <h3>Output Window</h3>
-Compiling resources...
+Compiling...
+Aspect.c
+Buttons.c
+ClipFile.c
+CLIPS.c
+DBG.c
+Disp_Names.c
+G:\SP\MPG2CUT2\Disp_Names.c(529) : warning C4133: '=' : incompatible types - from 'struct tagNMHDR *' to 'struct HWND__ *'
+Disp_win.c
+Get_INIT.c
+GetAudio.c
+getbit.c
+GetBlk.c
+gethdr.c
+getpic.c
+GopBack.c
+IN_FILES.c
+INI.c
+INI_REG.c
+LUM_WIN.c
+motion.c
+MPA_DA.c
+Generating Code...
+G:\SP\MPG2CUT2\getpic.c(2089) : warning C4799: function 'form_prediction' has no EMMS instruction
+Compiling...
+mpeg2dec.c
+Nav_JUMP.c
+OUT.c
+Out_PART.c
+Out_Progress.c
+Out_SPLIT.c
+Parm2Clip.c
+Plug.c
+Generating Code...
+Compiling...
+Pref.cpp
+Generating Code...
+Compiling...
+Render.c
+SNAPS.c
+STATS_WIN.c
+store.c
+Timing.c
+TRACKBAR.c
+TxtFunc.c
+Volume.c
+wave_out.c
+Generating Code...
+G:\SP\MPG2CUT2\YUV_444.c(86) : warning C4799: function 'conv422to444' has no EMMS instruction
+G:\SP\MPG2CUT2\YUV_444.c(384) : warning C4799: function 'conv420to422' has no EMMS instruction
+Compiling...
+gui.cpp
+Compiling...
+NO_OPT.c
+WAV_NOOPT.c
+Generating Code...
+Compiling...
+Out_FAST.c
 Linking...
 
 
 
 <h3>Results</h3>
-Mpg2Cut2-RELEASE.exe - 0 error(s), 0 warning(s)
+Mpg2Cut2-RELEASE.exe - 0 error(s), 4 warning(s)
 </pre>
 </body>
 </html>

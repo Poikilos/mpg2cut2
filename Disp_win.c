@@ -611,13 +611,15 @@ void MainWin_Rect()
 {
   GetWindowRect(hWnd_MAIN, &wrect);
   GetClientRect(hWnd_MAIN, &crect);
-  Edge_Width  = wrect.right  - wrect.left - crect.right;
-  Edge_Height = wrect.bottom - wrect.top  - crect.bottom;
-  iMenuHeight = crect.top - wrect.top;
-  if (iMenuHeight < 0) iMenuHeight = - iMenuHeight;
+  Edge_Width  = wrect.right  - wrect.left - crect.right - 2;
+  if (Edge_Width <= 0)
+      Edge_Width =  2;
+  Edge_Height = wrect.bottom - wrect.top  - crect.bottom - 2; // This is the height of the Menu and Title Bar together
+  if (Edge_Height <= 0)
+      Edge_Height =  2;
 
-  //Edge_Width  = GetSystemMetrics(SM_CXBORDER);
-  //Edge_Height = GetSystemMetrics(SM_CYBORDER);
+  //Edge_Width  = GetSystemMetrics(SM_CXBORDER) * 2;
+  //Edge_Height = GetSystemMetrics(SM_CYBORDER) * 2;
 }
 
 
@@ -995,7 +997,7 @@ void View_MOUSE_ALIGN(LPARAM lParam)
 
   // Y
 
-  iUnseen = iOverload_Height; // + iMenuHeight + iTopMargin;  // crect.top - wrect.top
+  iUnseen = iOverload_Height; 
 
   if (iView_yFrom < 0)
                              

@@ -343,7 +343,7 @@ int Out_Dup_Name_TST(char *lpOutName)
   int iRC2;
 
   iRC2 = F503_Dup_Name_TST(lpOutName,
-         &"OUTPUT filename same as INPUT.\n\n%s\n\nTry a different name.");
+         &"OUTPUT filename same as INPUT.\n\n%s\n\nTry a different name.", MB_OK);
   return iRC2;
 }
 

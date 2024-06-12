@@ -339,7 +339,7 @@ int F500_IN_OPEN_TRY(char cP_Act)
 
 
 // Check for duplicate DSN
-int F503_Dup_Name_TST(char *P_Name, const char *P_Msg)
+int F503_Dup_Name_TST(char *P_Name, const char *P_Msg, const unsigned int P_Buttons)
 {
   int iRC, iSearch;
 
@@ -351,7 +351,7 @@ int F503_Dup_Name_TST(char *P_Name, const char *P_Msg)
      if (! stricmp(P_Name, &File_Name[iSearch][0]))
      {
           sprintf(szBuffer, P_Msg, P_Name);
-          iRC = MessageBox(hWnd_MAIN, szBuffer, "Mpg2Cut2", MB_OKCANCEL);
+          iRC = MessageBox(hWnd_MAIN, szBuffer, "Mpg2Cut2", P_Buttons);
           if (iRC == 1)
               return -1;           // <========= ESCAPE POINT
           else
@@ -424,7 +424,7 @@ int F505_IN_OPEN_TST(char cP_Act)
   {
       // Check for duplicate DSN
       iRC = F503_Dup_Name_TST(&szInput[0], 
-                       &"FILE ALREADY IN LIST.\n\n%s\n\nSkip Duplicate ?");
+                       &FILE_DUP_SKIP_QRY, MB_YESNO);
       if (iRC < 0)
           return -1;           // <========= ESCAPE POINT
   }

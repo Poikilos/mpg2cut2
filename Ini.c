@@ -1511,7 +1511,7 @@ void INI_MERGE()
 
 
   Restore_Width = VGA_Width - 160 ;
-
+  Edge_Width  = GetSystemMetrics(SM_CXBORDER) * 2;
 
   //rj_Audio_Code = iAudio_SEL_Track ;
 
@@ -1546,6 +1546,7 @@ void INI_MERGE()
       MenuTick(IDM_DATE_INTERNATIONALE);
   if (iCtl_Readability)
       MenuTick(IDM_READABILITY);
+
   hFont1 = 0;
   if (iCtl_BigMonitor)
       MenuTick(IDM_BIG_MONITOR);
